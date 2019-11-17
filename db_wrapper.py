@@ -61,7 +61,30 @@ def run_create_script(cxn, filename):
     c.close()
     return True
 
- 
+
+def what_courses_can_i_take(cxn):
+    """Answers the ultimate question of the meaning of life the universe and everything
+    which so happens to be the same as "What courses Cal Poly offers"
+
+    Args:
+        cxn: the MySQL database connection object
+    Returns:
+        A list of course names that Cal Poly offers
+    """
+    c = cxn.cursor()
+
+    c.execute("use dev")  # TODO: make this modular
+    c.execute("SELECT courseName FROM Courses")
+    # TODO: actually return False error
+
+    tups = c.fetchall()
+
+    # close the cursor
+    c.close()
+
+    return [x[0] for x in tups]
+
+
 if __name__ == "__main__":
     cxn = connect()
 
@@ -70,12 +93,14 @@ if __name__ == "__main__":
 
     script = join(CONFIG['sql_dir'], CONFIG['create_file'])
 
-    print("running create script...")
-    assert run_create_script(cxn, script) == True, "uh oh failed to create"
+    # print("running create script...")
+    # assert run_create_script(cxn, script) == True, "uh oh failed to create"
 
     cxn.close()
     cxn = connect()
 
     print("getting tables...", get_tables(cxn, 'dev'))
+
+    print(what_courses_can_i_take(cxn))
 
     cxn.close()
