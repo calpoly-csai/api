@@ -7,6 +7,8 @@ Also a REST API soon.
 
 [Tyler Campanile](github.com/tecampani)
 
+[Henry Yin](github.com/hyinnn)
+
 [Ben Dahlgren](github.com/Dahlgreb)
 
 [Kush Upadhyay](github.com/kpu-21)
