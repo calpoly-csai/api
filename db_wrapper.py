@@ -85,6 +85,34 @@ def what_courses_can_i_take(cxn):
     return [x[0] for x in tups]
 
 
+def courses_offered(cxn, course):
+    """ Answers the question of when can I take "X"course?
+        
+    Args: 
+        cxn: MySQL database connection object
+        course: the course user wants terms from. Expected format is string
+        "department courseNum"
+    Returns:
+        A list including courseName and a set of terms offered for specified course
+    """
+    c = cxn.cursor()
+
+    c.execute("use dev")
+
+    query = "SELECT courseName, termsOffered from Courses where courseName like \"%"
+    query += course + "%\""
+
+    print(query)
+    c.execute(query)
+    tups = c.fetchall()
+
+    c.close()
+
+    return tups
+
+
+
+
 if __name__ == "__main__":
     cxn = connect()
 
@@ -101,6 +129,6 @@ if __name__ == "__main__":
 
     print("getting tables...", get_tables(cxn, 'dev'))
 
-    print(what_courses_can_i_take(cxn))
+    print(courses_offered(cxn, "CSC 357"))
 
     cxn.close()
