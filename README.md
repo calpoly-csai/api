@@ -14,3 +14,5 @@ Also a REST API soon.
 [Steven Bradley](github.com/stbradle)
 
 [Daniel DeFoe](github.com/danield2255)
+
+[Simon Ibssa](github.com/ibssasimon)
