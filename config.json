@@ -1,0 +1,9 @@
+{
+    "mysql": {
+        "host": "HOSTNAME",
+        "user": "USERNAME",
+        "password": "PASSWORD",
+        "sql_dir": "sql",
+        "create_file": "csai_nov_8_2019_create_script.min.sql"
+    }
+}
