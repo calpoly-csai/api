@@ -2,11 +2,19 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
+import time
 from flask import Flask, jsonify, request
+from flask_cors import CORS
+from modules.validators import WakeWordValidator
+from modules.formatters import WakeWordFormatter
 
+BAD_REQUEST = 400
+SUCCESS = 200
 DEBUG = True
 
 app = Flask(__name__)
+CORS(app)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def hello():
@@ -23,8 +31,8 @@ def hello():
 def save_a_recording():
     """Given the audio metadata & audio file, resamples it, saves to storage.
 
-    Resamples for the AI model. Saves to Google Drive. The audio is a 
-    binary BLOB with a (wrapper?). The request JSON should include a 
+    Resamples for the AI model. Saves to Google Drive. The audio is a
+    binary BLOB with a (wrapper?). The request JSON should include a
     field representing WakeWord or NotWakeWord. Audio file size expected
     to be around 76 KB.
 
@@ -38,18 +46,44 @@ def save_a_recording():
         'location': "here",
         'tone': "serious",
         // TODO: consider an optional description
+        'timestamp': '1577077883' //integer seconds since epoch
+        'username' : 'ewenike'
+
     }
 
     Returns:
-        200 success
-        TODO: figure out the non-success http status code
+        HTTP status code
     """
-    return jsonify({'implemented': False}), 400
+    validator = WakeWordValidator()
+    formatter = WakeWordFormatter()
+    data = request.form
+    issues = validator.validate(data)
+    if issues:
+        try:
+            data = validator.fix(data, issues)
+        except ValueError as err:
+            return str(err), BAD_REQUEST
+    formatted_data = formatter.format(data)
+    filename = create_filename(formatted_data)
+    return filename
 
 
-def create_filename():
+def create_filename(form):
     """Creates a string filename that adheres to the Nimbus foramtting standard."""
-    pass
+
+    order = [
+        'isWakeWord',
+        'noiseLevel',
+        'tone',
+        'location',
+        'gender',
+        'lastName',
+        'firstName',
+        'timestamp',
+        'username'
+    ]
+    values = list(map(lambda key: str(form[key]), order))
+    return '_'.join(values) + '.wav'
 
 
 def resample_audio():
@@ -70,6 +104,7 @@ def convert_to_mfcc():
 @app.route('/times10/<int:num>', methods=['GET'])
 def get_times10(num):
     return jsonify({'result': num*10})
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=DEBUG)
