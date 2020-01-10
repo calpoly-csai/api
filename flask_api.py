@@ -7,6 +7,8 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from modules.validators import WakeWordValidator
 from modules.formatters import WakeWordFormatter
+from pydrive.drive import GoogleDrive
+from pydrive.auth import GoogleAuth
 
 BAD_REQUEST = 400
 SUCCESS = 200
@@ -65,6 +67,7 @@ def save_a_recording():
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
+    save_audiofile(filename, request.files["wav_file"])
     return filename
 
 
@@ -90,11 +93,26 @@ def resample_audio():
     """Resample the audio file to adhere to the Nimbus audio sampling standard."""
     pass
 
+def save_audiofile(filename, content):
+    """Actually save the file into Google Drive."""
+    # Initialize our google drive authentication object using saved credentials,
+    # or through the command line
+    gauth = GoogleAuth()
+    gauth.CommandLineAuth()
+    # This is our pydrive object
+    drive = GoogleDrive(gauth)
+    # parent is our automatically uploaded file folder.  The ID should be read in from
+    # constants.json since we probably shouldn't have that ID floating around on GitHub"""
+    folder_id = get_folder_id()
+    file = drive.CreateFile({"parents": [{"kind": "drive#fileLink",
+    "id": folder_id}], 'title':filename, 'mimeType':'audio/wav'})
+    # Set the content of the file to the POST request's wav_file parameter.
+    file.content = content
+    file.Upload() # Upload file.
 
-def save_audiofile():
-    """Actually save the file into Google Drive or whereever we may do it."""
-    pass
-
+def get_folder_id():
+    with open("folder_id.txt") as folder_id_file:
+        return folder_id_file.readline()
 
 def convert_to_mfcc():
     """Get this function from https://github.com/calpoly-csai/CSAI_Voice_Assistant"""
