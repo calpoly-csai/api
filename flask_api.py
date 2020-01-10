@@ -102,7 +102,7 @@ def save_audiofile(filename, content):
     # This is our pydrive object
     drive = GoogleDrive(gauth)
     # parent is our automatically uploaded file folder.  The ID should be read in from
-    # constants.json since we probably shouldn't have that ID floating around on GitHub"""
+    # folder_id.txt since we probably shouldn't have that ID floating around on GitHub"""
     folder_id = get_folder_id()
     file = drive.CreateFile({"parents": [{"kind": "drive#fileLink",
     "id": folder_id}], 'title':filename, 'mimeType':'audio/wav'})
