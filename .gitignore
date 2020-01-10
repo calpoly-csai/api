@@ -107,3 +107,4 @@ venv.bak/
 .db_config.py
 db_config.py
 .vscode/settings.json
+config.json
