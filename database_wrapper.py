@@ -11,6 +11,7 @@ different databases and storage locations.
 #!/usr/bin/env python3
 import mysql.connector
 from abc import ABC, abstractmethod
+from typing import Any, Optional
 import json
 
 
@@ -36,6 +37,18 @@ class BadConfigFileError(Exception):
         self.message = message
 
 
+        
+        
+"""
+utilities.py
+"""
+def get_current_time():
+    """
+    Useful for answering questions like "Is prof availible now/tomorrow?"
+    """
+    pass
+        
+
 class NimbusDatabase(ABC):
     """
     An abstract class for interacting with the Nimbus database.
@@ -50,8 +63,73 @@ class NimbusDatabase(ABC):
         """
         pass
 
+    
+    @abstractmethod
+    def get_property_from_entity(self, 
+                                 prop: List[str],
+                                 entity: str, 
+                                 condition_field: Optional[str] = None,
+                                 condition_value: Optional[str] = None) -> List[str]:
+        """A higher-order function to get properties from entity in the database.
+
+        Example:
+        >>> db = NimbusDatabase("config.json")
+        >>> db.get_property_from_entity(["firstName", "lastName"], "Professors")
+        [("Foaad", "Khosmood"), ("John", "Clements"), ...]
+
+        >>> db.get_property_from_entity(["firstName", "lastName"], "Professors", "firstName", "Foaad")
+        [("Foaad", "Khosmood")]
+
+        Args:
+            entity: a string representing a table in the database.
+            prop: string(s) representing a field in the given table.
+            condition_field: (optional) string representing the column name.
+            condition_value: (optional) string representing the cell value.
+
+        Returns:
+            The list of prop of the entity (e.g. firstName of Professor)
+        """
+        pass
+
+    @abstractmethod
+    def get_property_from_related_entities(self,
+                                           prop: List[str],
+                                           entity1: str,
+                                           entity2: str,
+                                           key1: str, 
+                                           key2: Optional[str] = None,
+                                           condition_field: Optional[str] = None,
+                                           condition_value: Optional[str] = None) -> List[str]:
+        """A higher-order function to ????
+
+        Example:
+        >>> db = NimbusDatabase("config.json")
+        >>> db.get_property_from_related_entities(["firstName", "lastName", "ohRoom"], "Professors", "OfficeHours", "professorId")
+        [("Foaad", "Khosmood", "14-213"), ("John", "Clements", "14-210"), ...]
+
+        >>> db.get_property_from_related_entities(["firstName", "lastName"], "Professors", "OfficeHours", "professorId", "firstName", "Foaad")
+        [("Foaad", "Khosmood", "14-213")]
+
+        Args:
+            entity: TODO
+            prop: TODO
+
+        Returns:
+            TODO
+        """
+        pass
+        
+    
     @abstractmethod
     def get_entities(self) -> str:
+        pass
+
+
+    @abstractmethod
+    def get_fields_of_entity(self, entity1: str) -> str:
+        """
+        TODO: given an entity, return all the field names of that table in the database. 
+        """
         pass
 
     @abstractmethod
