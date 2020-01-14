@@ -11,7 +11,7 @@ different databases and storage locations.
 #!/usr/bin/env python3
 import mysql.connector
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, Optional, List
 import json
 
 
