@@ -62,7 +62,7 @@ pytest
 ## Contributing
 ![GitHub issues](https://img.shields.io/github/issues/calpoly-csai/api)
 
-Have a [**look through the open issues**](https://github.com/calpoly-csai/api/issues)! 
+Have a [**look at the v1.0 project board for TODOs**](https://github.com/calpoly-csai/api/projects/1)! 
 
 If you are new to programming, then filter for the [**![good first issue](https://img.shields.io/github/labels/calpoly-csai/api/good%20first%20issue)** label](https://github.com/calpoly-csai/api/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
 
