@@ -55,7 +55,7 @@ python3 nimbus_api.py&
 
 ### Run the tests
 ```bash
-./run-tests.sh
+pytest
 ```
 
 
