@@ -15,6 +15,14 @@ Support progress toward the [pick_a_milestone_from_here][1] by _improving someth
 
 ## Details
 
-<insert fun tidbits that may be relevant for getting this done or just for the sake of learning 😊>
+**Describe alternatives you've considered**
+A clear and concise description of any alternative solutions or features you've considered.
+
+**Additional context**
+Add any other context or screenshots about the feature request here.
+
+Add any fun tidbits that may be relevant for getting this done
+
+Or just fun tidbits for the sake of learning 😊
 
 [1]: https://github.com/calpoly-csai/api/milestones
