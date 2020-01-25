@@ -276,6 +276,31 @@ class NimbusMySQL(NimbusDatabase):
         cursor.close()
         return [x[0] for x in tups]
 
+    def get_professor_properties(self, lastName) -> List[str]:
+        #TODO: need to change the get property from entity to accept multiple condition fields and values, currently just looks by last name
+        """
+        """
+        cursor = self.connection.cursor()
+        cursor.execute('use `{}`'.format(self.database))
+        props = get_property_from_entity(self, ["*"], "Professors", condition_field = "lastName", condition_value = lastName)
+        tups = cursor.fetchall()
+        cursor.close()
+        return [x[0] for x in tups]
+
+    def get_course_properties(self, courseName) -> List[str]: 
+        #TODO: decide how we want to look up courses/ maybe create two methods. Currently looks up by courseName
+        """
+        """
+        cursor = self.connection.cursor()
+        cursor.execute('use `{}`'.format(self.database))
+        props = get_property_from_entity(self, ["*"], "Courses", condition_field = "courseName", condition_value = courseName)
+        tups = cursor.fetchall()
+        cursor.close()
+        return [x[0] for x in tups]
+    
+
+
+
     def close(self) -> None:
         """Close the database connection"""
         self.connection.close()
