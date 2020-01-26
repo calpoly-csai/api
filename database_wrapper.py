@@ -279,6 +279,9 @@ class NimbusMySQL(NimbusDatabase):
     def get_professor_properties(self, lastName) -> List[str]:
         #TODO: need to change the get property from entity to accept multiple condition fields and values, currently just looks by last name
         """
+        To get a particular professor's properties 
+
+        
         """
         cursor = self.connection.cursor()
         cursor.execute('use `{}`'.format(self.database))
