@@ -29,6 +29,4 @@ jobs:
         pip install -r requirements.txt
 
     - name: Test with hypothesis
-      run: |
-        pip install hypothesis
-        pytest
+      run: ./run_tests.sh
