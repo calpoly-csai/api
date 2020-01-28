@@ -1,18 +1,20 @@
+#!/usr/bin/env python3
 """An API endpoint module.
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
 import time
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from modules.validators import WakeWordValidator
 from modules.formatters import WakeWordFormatter
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
+import gunicorn_config
+
 
 BAD_REQUEST = 400
 SUCCESS = 200
-DEBUG = True
 
 app = Flask(__name__)
 CORS(app)
@@ -27,6 +29,41 @@ def hello():
         response_code = 42
         response_json = jsonify({'name': 'hello {}'.format(str(app))})
         return response_json, response_code
+
+
+def generate_session_token() -> str:
+    return "SOME_NEW_TOKEN"
+
+
+@app.route('/ask', methods=['POST'])
+def handle_question():
+    """
+    POST (not GET) request because the `question` is submitted
+    and an `answer` is "created." Also, some side-effects on the
+    server are:
+        * storage of the logs of this question-answer-session.
+    """
+
+    if request.is_json == False:
+        return "request must be JSON", BAD_REQUEST
+
+    request_body = request.get_json()
+
+    question = request_body.get('question', None)
+
+    if "question" not in request_body:
+        return "request body should include the question", BAD_REQUEST
+
+    response = {
+        "answer": "answer of <<{}>>".format(question),
+    }
+
+    if "session" in request_body:
+        response['session'] = request_body["session"]
+    else:
+        response['session'] = generate_session_token()
+
+    return jsonify(response), SUCCESS
 
 
 @app.route('/examples/wakeword', methods=['POST'])
@@ -93,6 +130,7 @@ def resample_audio():
     """Resample the audio file to adhere to the Nimbus audio sampling standard."""
     pass
 
+
 def save_audiofile(filename, content):
     """Actually save the file into Google Drive."""
     # Initialize our google drive authentication object using saved credentials,
@@ -105,24 +143,22 @@ def save_audiofile(filename, content):
     # folder_id.txt since we probably shouldn't have that ID floating around on GitHub"""
     folder_id = get_folder_id()
     file = drive.CreateFile({"parents": [{"kind": "drive#fileLink",
-    "id": folder_id}], 'title':filename, 'mimeType':'audio/wav'})
+                                          "id": folder_id}], 'title': filename, 'mimeType': 'audio/wav'})
     # Set the content of the file to the POST request's wav_file parameter.
     file.content = content
-    file.Upload() # Upload file.
+    file.Upload()  # Upload file.
+
 
 def get_folder_id():
     with open("folder_id.txt") as folder_id_file:
         return folder_id_file.readline()
+
 
 def convert_to_mfcc():
     """Get this function from https://github.com/calpoly-csai/CSAI_Voice_Assistant"""
     pass
 
 
-@app.route('/times10/<int:num>', methods=['GET'])
-def get_times10(num):
-    return jsonify({'result': num*10})
-
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=DEBUG)
+    app.run(host='0.0.0.0', debug=gunicorn_config.DEBUG_MODE,
+            port=gunicorn_config.PORT)
