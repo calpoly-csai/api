@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """A wrapper module for the Nimbus data storage systems.
 
 This module includes various adapters for interfacing with
@@ -8,10 +9,9 @@ different databases and storage locations.
     db = NimbusMySQL(config_file="config.json")
     ents = db.get_entities()
 """
-#!/usr/bin/env python3
 import mysql.connector
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Optional, List
 import json
 
 
@@ -70,14 +70,16 @@ class NimbusDatabase(ABC):
             entity: str,
             condition_field: Optional[str] = None,
             condition_value: Optional[str] = None) -> List[str]:
-        """A higher-order function to get properties from entity in the database.
+        """A high-order function to get properties from objects in the database.
 
         Example:
         >>> db = NimbusDatabase("config.json")
-        >>> db.get_property_from_entity(["firstName", "lastName"], "Professors")
+        >>> db.get_property_from_entity(["firstName", "lastName"],
+                                        "Professors")
         [("Foaad", "Khosmood"), ("John", "Clements"), ...]
 
-        >>> db.get_property_from_entity(["firstName", "lastName"], "Professors", "firstName", "Foaad")
+        >>> db.get_property_from_entity(["firstName", "lastName"],
+                                        "Professors", "firstName", "Foaad")
         [("Foaad", "Khosmood")]
 
         Args:
@@ -105,10 +107,15 @@ class NimbusDatabase(ABC):
 
         Example:
         >>> db = NimbusDatabase("config.json")
-        >>> db.get_property_from_related_entities(["firstName", "lastName", "ohRoom"], "Professors", "OfficeHours", "professorId")
+        >>> db.get_property_from_related_entities(
+                        ["firstName", "lastName", "ohRoom"],
+                        "Professors", "OfficeHours", "professorId")
         [("Foaad", "Khosmood", "14-213"), ("John", "Clements", "14-210"), ...]
 
-        >>> db.get_property_from_related_entities(["firstName", "lastName"], "Professors", "OfficeHours", "professorId", "firstName", "Foaad")
+        >>> db.get_property_from_related_entities(
+                        ["firstName", "lastName"],
+                        "Professors", "OfficeHours",
+                        "professorId", "firstName", "Foaad")
         [("Foaad", "Khosmood", "14-213")]
 
         Args:
@@ -127,7 +134,9 @@ class NimbusDatabase(ABC):
     @abstractmethod
     def get_fields_of_entity(self, entity1: str) -> str:
         """
-        TODO: given an entity, return all the field names of that table in the database. 
+        TODO:
+        given an entity,
+        return all the field names of that table in the database.
         """
         pass
 
@@ -275,32 +284,34 @@ class NimbusMySQL(NimbusDatabase):
         return [x[0] for x in tups]
 
     def get_professor_properties(self, lastName) -> List[str]:
-        #TODO: need to change the get property from entity to accept multiple condition fields and values, currently just looks by last name
+        # TODO: need to change the get property from entity to accept multiple
+        #       condition fields and values, currently just looks by last name
         """
-        To get a particular professor's properties 
-
-        
+        To get a particular professor's properties
         """
         cursor = self.connection.cursor()
         cursor.execute('use `{}`'.format(self.database))
-        props = get_property_from_entity(self, ["*"],
-                                         "Professors",
-                                         condition_field="lastName",
-                                         condition_value=lastName)
+        # FIXME: resolve unused variable `props`, until then, commented out
+        # props = get_property_from_entity(self, ["*"],
+        #                                  "Professors",
+        #                                  condition_field="lastName",
+        #                                  condition_value=lastName)
         tups = cursor.fetchall()
         cursor.close()
         return [x[0] for x in tups]
 
     def get_course_properties(self, courseName) -> List[str]:
-        #TODO: decide how we want to look up courses/ maybe create two methods. Currently looks up by courseName
+        # TODO: decide how we want to look up courses/ maybe create two methods
+        #       Currently looks up by courseName
         """
         """
         cursor = self.connection.cursor()
         cursor.execute('use `{}`'.format(self.database))
-        props = get_property_from_entity(self, ["*"],
-                                         "Courses",
-                                         condition_field="courseName",
-                                         condition_value=courseName)
+        # FIXME: resolve unused variable `props`, until then, commented out
+        # props = get_property_from_entity(self, ["*"],
+        #                                  "Courses",
+        #                                  condition_field="courseName",
+        #                                  condition_value=courseName)
         tups = cursor.fetchall()
         cursor.close()
         return [x[0] for x in tups]

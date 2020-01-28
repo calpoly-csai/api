@@ -13,10 +13,22 @@
 
 
 
-# default is 79, but members of the team agreed upon a slight increase
-# The GitHub editor is 127 chars wide
-flake8 --count \
-       --show-source --statistics \
-       --exclude .git,__pycache__,venv,build,dist,docs \
-       --max-complexity 10 \
-       --max-line-length=127
+if [ $1 = "--simple" ]; then 
+        # default is 79, but members of the team agreed upon a slight increase
+        # The GitHub editor is 127 chars wide
+        # ignore E772: do not use bare 'except'
+        flake8 --count \
+               --ignore E722 \
+               --show-source --statistics \
+               --exclude .git,__pycache__,venv,build,dist,docs \
+               --max-complexity 10 \
+               --max-line-length=127
+else
+        # default is 79, but members of the team agreed upon a slight increase
+        # The GitHub editor is 127 chars wide
+        flake8 --count \
+               --show-source --statistics \
+               --exclude .git,__pycache__,venv,build,dist,docs \
+               --max-complexity 10 \
+               --max-line-length=127
+fi

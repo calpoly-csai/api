@@ -3,8 +3,7 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
-import time
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from modules.validators import WakeWordValidator
 from modules.formatters import WakeWordFormatter
@@ -43,7 +42,7 @@ def handle_question():
         * storage of the logs of this question-answer-session.
     """
 
-    if request.is_json == False:
+    if request.is_json is False:
         return "request must be JSON", BAD_REQUEST
 
     request_body = request.get_json()
@@ -108,7 +107,9 @@ def save_a_recording():
 
 
 def create_filename(form):
-    """Creates a string filename that adheres to the Nimbus foramtting standard."""
+    """
+    Creates a string filename that adheres to the Nimbus foramtting standard.
+    """
 
     order = [
         'isWakeWord', 'noiseLevel', 'tone', 'location', 'gender', 'lastName',
@@ -119,7 +120,9 @@ def create_filename(form):
 
 
 def resample_audio():
-    """Resample the audio file to adhere to the Nimbus audio sampling standard."""
+    """
+    Resample the audio file to adhere to the Nimbus audio sampling standard.
+    """
     pass
 
 

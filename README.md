@@ -58,15 +58,26 @@ python3 nimbus_api.py&
 pytest
 ```
 
+### Python PEP8 Style Standards
+**_Run the `format` script to automatically make our code look nice_**
+```bash
+./format.sh
+```
+
+_Sometimes the format script is not enough, so run `lint` to manually style our code_
+```bash
+./lint.sh
+```
+
 
 ## Contributing
 ![GitHub issues](https://img.shields.io/github/issues/calpoly-csai/api)
 
-Have a [**look at the v1.0 project board for TODOs**](https://github.com/calpoly-csai/api/projects/1)! 
+Have a [**look at the v1.0 project board for TODOs**](https://github.com/calpoly-csai/api/projects/1)!
 
 If you are new to programming, then filter for the [**![good first issue](https://img.shields.io/github/labels/calpoly-csai/api/good%20first%20issue)** label](https://github.com/calpoly-csai/api/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
 
-Pull requests are welcome. 
+Pull requests are welcome.
 
 For major changes, please [**open an issue**](https://github.com/calpoly-csai/api/issues/new) first to discuss what you would like to change.
 
@@ -85,6 +96,8 @@ Please make sure to update tests as appropriate.
 [Miles Aikens](https://www.github.com/snekiam)
 
 [Daniel DeFoe](https://www.github.com/danield2255)
+
+[Taylor Nguyen](https://www.github.com/taylor-nguyen-987)
 
 [Adam Perlin](https://www.github.com/adamperlin)
 
