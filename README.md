@@ -16,6 +16,8 @@ Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CS
 
 ![Python PEP8 Style Check](https://github.com/calpoly-csai/api/workflows/Python%20PEP8%20Style%20Check/badge.svg)
 
+![Python Pyre Type Annotation Check](https://github.com/calpoly-csai/api/workflows/Python%20Pyre%20Type%20Annotation%20Check/badge.svg)
+
 ## Documentation
 
 - [ ] **TODO: INSERT LINK TO API DOCUMENTATION**
