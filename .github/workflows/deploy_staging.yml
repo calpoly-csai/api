@@ -1,0 +1,35 @@
+name: Deploy Dev To Staging Server
+
+on:
+  push:
+    branches: 
+      - dev
+
+jobs:
+  deploy:
+    name: deploy to heroku
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: heroku login
+      uses: actions/heroku@master
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      with:
+        args: container:login
+
+    - name: heroku push
+      uses: actions/heroku@master
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      with:
+        args: container:push -a calpoly-csai-nimbus web
+
+    - name: heroku release
+      uses: actions/heroku@master
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      with:
+        args: container:release -a calpoly-csai-nimbus web
