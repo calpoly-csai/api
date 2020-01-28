@@ -1,3 +1,4 @@
+#!/bin/bash
 
 
 # --recursive: makes it work on folders

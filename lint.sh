@@ -1,3 +1,6 @@
+#!/bin/bash
+
+
 #flake8 . --count \ 
 #         --select=E9,F63,F7,F82 \ 
 #         --show-source \ 
@@ -13,7 +16,8 @@
 
 
 
-if [ $1 = "--simple" ]; then 
+if [[ $1 == "--simple" ]]
+then
         # default is 79, but members of the team agreed upon a slight increase
         # The GitHub editor is 127 chars wide
         # ignore E772: do not use bare 'except'
