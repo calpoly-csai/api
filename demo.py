@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from database_wrapper import NimbusMySQL
 
-
 if __name__ == '__main__':
     db = NimbusMySQL(config_file="config.json")
 
@@ -13,8 +12,6 @@ if __name__ == '__main__':
 
     print("Unique departments?:", uniq_depts)
 
-    bitcounts = db.get_bitcount(
-        entity="Courses",
-        prop="termsOffered")
+    bitcounts = db.get_bitcount(entity="Courses", prop="termsOffered")
 
     print("How many terms is CSC 100 offered?:", bitcounts[0])

@@ -12,7 +12,6 @@ from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
 import gunicorn_config
 
-
 BAD_REQUEST = 400
 SUCCESS = 200
 
@@ -112,15 +111,8 @@ def create_filename(form):
     """Creates a string filename that adheres to the Nimbus foramtting standard."""
 
     order = [
-        'isWakeWord',
-        'noiseLevel',
-        'tone',
-        'location',
-        'gender',
-        'lastName',
-        'firstName',
-        'timestamp',
-        'username'
+        'isWakeWord', 'noiseLevel', 'tone', 'location', 'gender', 'lastName',
+        'firstName', 'timestamp', 'username'
     ]
     values = list(map(lambda key: str(form[key]), order))
     return '_'.join(values) + '.wav'
@@ -142,8 +134,14 @@ def save_audiofile(filename, content):
     # parent is our automatically uploaded file folder.  The ID should be read in from
     # folder_id.txt since we probably shouldn't have that ID floating around on GitHub"""
     folder_id = get_folder_id()
-    file = drive.CreateFile({"parents": [{"kind": "drive#fileLink",
-                                          "id": folder_id}], 'title': filename, 'mimeType': 'audio/wav'})
+    file = drive.CreateFile({
+        "parents": [{
+            "kind": "drive#fileLink",
+            "id": folder_id
+        }],
+        'title': filename,
+        'mimeType': 'audio/wav'
+    })
     # Set the content of the file to the POST request's wav_file parameter.
     file.content = content
     file.Upload()  # Upload file.
@@ -160,5 +158,6 @@ def convert_to_mfcc():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=gunicorn_config.DEBUG_MODE,
+    app.run(host='0.0.0.0',
+            debug=gunicorn_config.DEBUG_MODE,
             port=gunicorn_config.PORT)

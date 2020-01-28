@@ -4,13 +4,13 @@ from os.path import join
 from db_config_sample import CONFIG
 import time
 
+
 def connect():
-    cxn = m.connect(
-        host=CONFIG['host'],
-        user=CONFIG['user'],
-        passwd=CONFIG['password']
-    )
+    cxn = m.connect(host=CONFIG['host'],
+                    user=CONFIG['user'],
+                    passwd=CONFIG['password'])
     return cxn
+
 
 def get_databases(cxn):
     """
@@ -127,7 +127,6 @@ def does_professor_teach_course(cxn, profLastName, profFirstName, course):
 
     c.execute("use dev")
 
-
     query = "SELECT c.courseName from Courses c INNER JOIN Professors p on c.Professors_id = p.id where p.lastName like \"%"
     query += profLastName + "%\""
 
@@ -147,8 +146,6 @@ def does_professor_teach_course(cxn, profLastName, profFirstName, course):
     if len(tups) == 0:
         return False
     return True
-
-
 
 
 if __name__ == "__main__":

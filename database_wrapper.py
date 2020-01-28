@@ -37,17 +37,17 @@ class BadConfigFileError(Exception):
         self.message = message
 
 
-        
-        
 """
 utilities.py
 """
+
+
 def get_current_time():
     """
     Useful for answering questions like "Is prof availible now/tomorrow?"
     """
     pass
-        
+
 
 class NimbusDatabase(ABC):
     """
@@ -63,13 +63,13 @@ class NimbusDatabase(ABC):
         """
         pass
 
-    
     @abstractmethod
-    def get_property_from_entity(self, 
-                                 prop: List[str],
-                                 entity: str, 
-                                 condition_field: Optional[str] = None,
-                                 condition_value: Optional[str] = None) -> List[str]:
+    def get_property_from_entity(
+            self,
+            prop: List[str],
+            entity: str,
+            condition_field: Optional[str] = None,
+            condition_value: Optional[str] = None) -> List[str]:
         """A higher-order function to get properties from entity in the database.
 
         Example:
@@ -92,14 +92,15 @@ class NimbusDatabase(ABC):
         pass
 
     @abstractmethod
-    def get_property_from_related_entities(self,
-                                           prop: List[str],
-                                           entity1: str,
-                                           entity2: str,
-                                           key1: str, 
-                                           key2: Optional[str] = None,
-                                           condition_field: Optional[str] = None,
-                                           condition_value: Optional[str] = None) -> List[str]:
+    def get_property_from_related_entities(
+            self,
+            prop: List[str],
+            entity1: str,
+            entity2: str,
+            key1: str,
+            key2: Optional[str] = None,
+            condition_field: Optional[str] = None,
+            condition_value: Optional[str] = None) -> List[str]:
         """A higher-order function to ????
 
         Example:
@@ -118,12 +119,10 @@ class NimbusDatabase(ABC):
             TODO
         """
         pass
-        
-    
+
     @abstractmethod
     def get_entities(self) -> str:
         pass
-
 
     @abstractmethod
     def get_fields_of_entity(self, entity1: str) -> str:
@@ -208,8 +207,7 @@ class NimbusMySQL(NimbusDatabase):
             self.connection = mysql.connector.connect(
                 host=mysql_config['host'],
                 user=mysql_config['user'],
-                passwd=mysql_config['password']
-            )
+                passwd=mysql_config['password'])
 
             self.database = mysql_config['database']
 
@@ -285,24 +283,27 @@ class NimbusMySQL(NimbusDatabase):
         """
         cursor = self.connection.cursor()
         cursor.execute('use `{}`'.format(self.database))
-        props = get_property_from_entity(self, ["*"], "Professors", condition_field = "lastName", condition_value = lastName)
+        props = get_property_from_entity(self, ["*"],
+                                         "Professors",
+                                         condition_field="lastName",
+                                         condition_value=lastName)
         tups = cursor.fetchall()
         cursor.close()
         return [x[0] for x in tups]
 
-    def get_course_properties(self, courseName) -> List[str]: 
+    def get_course_properties(self, courseName) -> List[str]:
         #TODO: decide how we want to look up courses/ maybe create two methods. Currently looks up by courseName
         """
         """
         cursor = self.connection.cursor()
         cursor.execute('use `{}`'.format(self.database))
-        props = get_property_from_entity(self, ["*"], "Courses", condition_field = "courseName", condition_value = courseName)
+        props = get_property_from_entity(self, ["*"],
+                                         "Courses",
+                                         condition_field="courseName",
+                                         condition_value=courseName)
         tups = cursor.fetchall()
         cursor.close()
         return [x[0] for x in tups]
-    
-
-
 
     def close(self) -> None:
         """Close the database connection"""
