@@ -2,19 +2,19 @@
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/calpoly-csai/api)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/calpoly-csai/api)
-
 ![GitHub closed issues](https://img.shields.io/github/issues-closed/calpoly-csai/api)
 ![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed/calpoly-csai/api)
-
-![Python Version](https://img.shields.io/badge/python-3.6.9-blue)
-![Pip Version](https://img.shields.io/badge/pip-9.0.1-blue)
-![Ubuntu Version](https://img.shields.io/badge/ubuntu-18.04.3%20LTS-blue)
-![MySQL Version](https://img.shields.io/badge/mysql-5.7.28-blue)
-![GitHub Licence](https://img.shields.io/github/license/calpoly-csai/api)
 
 Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CSAI_Voice_Assistant) accessible via HTTP REST protocol.
 
 ## 🚧 This API is still in-development, so expect the endpoints to be constantly changing until finalized.
+
+## GitHub Actions Status
+![Deploy To Staging Server](https://github.com/calpoly-csai/api/workflows/Deploy%20Dev%20To%20Staging%20Server/badge.svg)
+
+![Run Tests](https://github.com/calpoly-csai/api/workflows/Run%20Tests/badge.svg)
+
+![Python PEP8 Style Check](https://github.com/calpoly-csai/api/workflows/Python%20PEP8%20Style%20Check/badge.svg)
 
 ## Documentation
 
