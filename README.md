@@ -33,9 +33,7 @@ Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CS
 
 2. pip 9.0.1
 
-3. (_for deployment_) A Linux server (e.g. Ubuntu 18.04.3 LTS) with open firewall at `tcp:5000` for _Flask_, `tcp:80` for _http_ and `tcp:443` for _https_ and `tcp:22` for _ssh_ and `tcp:3306` for _mysql_
-
-4. The _hostname_, _username_, and _password_ of a MySQL database (e.g. MySQL 5.7.28) inputted into `config.json`
+3. The _hostname_, _username_, and _password_ of a MySQL database (e.g. MySQL 5.7.28) inputted into `config.json`
 
 
 ### Install
@@ -70,6 +68,12 @@ _Sometimes the format script is not enough, so run `lint` to manually style our 
 ```bash
 ./lint.sh
 ```
+
+## Deployment
+### What we use
+A Linux server (e.g. Ubuntu 18.04.3 LTS) with open firewall at `tcp:5000` for _Flask_, `tcp:80` for _http_ and `tcp:443` for _https_ and `tcp:22` for _ssh_ and `tcp:3306` for _mysql_
+
+[See this documentation of the database deployment process](https://github.com/calpoly-csai/wiki/wiki/How-To-Install-and-Set-Up-a-Remote-MySQL-5.7-Database-and-Python-3.6-on-Ubuntu-18.04-with-Google-Cloud-Platform)
 
 
 ## Contributing
