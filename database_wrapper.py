@@ -334,16 +334,10 @@ class NimbusMySQL(NimbusDatabase):
         """
         To get a particular professor's properties
         """
-        cursor = self.connection.cursor()
-        cursor.execute('use `{}`'.format(self.database))
+
         # FIXME: resolve unused variable `props`, until then, commented out
-        # props = get_property_from_entity(self, ["*"],
-        #                                  "Professors",
-        #                                  condition_field="lastName",
-        #                                  condition_value=lastName)
-        tups = cursor.fetchall()
-        cursor.close()
-        return [x[0] for x in tups]
+        props = self.get_property_from_entity(prop=["*"], entity="Professors", condition_field="lastName", condition_value=lastName)
+        return props
 
     def get_course_properties(self, courseName) -> List[str]:
         # TODO: decide how we want to look up courses/ maybe create two methods
