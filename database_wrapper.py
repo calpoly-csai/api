@@ -226,6 +226,51 @@ class NimbusMySQL(NimbusDatabase):
             msg = "config.json is missing {} field.".format('mysql')
             raise BadConfigFileError(msg)
 
+    '''Example:
+    >> > db = NimbusDatabase("config.json")
+    >> > db.get_property_from_related_entities(
+        ["firstName", "lastName", "ohRoom"],
+        "Professors", "OfficeHours", "professorId")
+    [("Foaad", "Khosmood", "14-213"), ("John", "Clements", "14-210"), ...]'''
+    def get_property_from_entity(
+            self,
+            prop: List[str],
+            entity: str,
+            condition_field: Optional[str] = None,
+            condition_value: Optional[str] = None) -> List[str]:
+        cursor = self.connection.cursor()
+        cursor.execute('use `{}`'.format(self.database))
+        columns = ", ".join(prop)
+
+        if (condition_value is not None) and (condition_field is not None):
+            conditions = condition_field + " = " + "\"" + condition_value + "\""
+            statement = "SELECT {} FROM {} WHERE {}".format(columns, entity, conditions)
+
+        elif (condition_value is None) and (condition_field is None):
+            statement = "SELECT {} FROM {}".format(columns, entity)
+
+        else:
+            print("choose both condition field and condition value")
+            return []
+
+        # print(statement)
+        cursor.execute(statement)
+        tups = cursor.fetchall()
+        cursor.close()
+
+        return tups
+
+    def get_property_from_related_entities(
+            self,
+            prop: List[str],
+            entity1: str,
+            entity2: str,
+            key1: str,
+            key2: Optional[str] = None,
+            condition_field: Optional[str] = None,
+            condition_value: Optional[str] = None) -> List[str]:
+        return []
+
     def yield_entities(self) -> str:
         """Yields a list of all entities in the database."""
         cursor = self.connection.cursor()
@@ -320,3 +365,12 @@ class NimbusMySQL(NimbusDatabase):
         """Close the database connection"""
         self.connection.close()
         super().close()
+
+
+if __name__ == "__main__":
+    database = NimbusMySQL()
+    print(database.get_professor_properties("Khosmood"))
+    print(database.get_fields_of_entity("Courses"))
+    # print(database.yield_entities())
+    print(database.get_course_properties("CPE 101. Fundamentals of Computer Science."))
+    print(database.get_property_from_entity(prop=["firstName", "lastName"], entity="Professors"))
