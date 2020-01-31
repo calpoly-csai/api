@@ -350,16 +350,13 @@ class NimbusMySQL(NimbusDatabase):
         #       Currently looks up by courseName
         """
         """
-        cursor = self.connection.cursor()
-        cursor.execute('use `{}`'.format(self.database))
+
         # FIXME: resolve unused variable `props`, until then, commented out
-        # props = get_property_from_entity(self, ["*"],
-        #                                  "Courses",
-        #                                  condition_field="courseName",
-        #                                  condition_value=courseName)
-        tups = cursor.fetchall()
-        cursor.close()
-        return [x[0] for x in tups]
+        props = self.get_property_from_entity(["*"],
+                                         "Courses",
+                                         condition_field="courseName",
+                                         condition_value=courseName)
+        return props
 
     def close(self) -> None:
         """Close the database connection"""
