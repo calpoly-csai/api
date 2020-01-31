@@ -271,6 +271,15 @@ class NimbusMySQL(NimbusDatabase):
             condition_value: Optional[str] = None) -> List[str]:
         return []
 
+    def get_fields_of_entity(self, entity1: str) -> str:
+        cursor = self.connection.cursor()
+        # don't know why the line below is a syntactically wrong.
+        # cursor.execute('use {}'.format(self.database))
+        cursor.execute("SHOW COLUMNS FROM {}".format(entity1))
+        fields = cursor.fetchall()
+        cursor.close()
+        return fields
+
     def yield_entities(self) -> str:
         """Yields a list of all entities in the database."""
         cursor = self.connection.cursor()
