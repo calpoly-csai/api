@@ -1,0 +1,20 @@
+# This file allows authentication with Google Drive for the nimbus API
+# This enables uploading files to our Google Drive folder.
+# DO NOT upload this file (or credentials.json) to github or any other public directory
+# without removing access tokens and secrets!
+client_config_backend: settings
+client_config:
+  client_id: $CLIENT_ID
+  client_secret: $CLIENT_SECRET
+
+save_credentials: True
+save_credentials_backend: file
+save_credentials_file: credentials.json
+
+get_refresh_token: True
+
+oauth_scope:
+  - https://www.googleapis.com/auth/drive.file
+  - https://www.googleapis.com/auth/drive.install
+  - https://www.googleapis.com/auth/drive
+  - https://www.googleapis.com/auth/drive.metadata
