@@ -25,9 +25,8 @@ class WakeWordValidator(Validator):
         super().__init__()
         self.validators = validators or {
             'isWakeWord':
-                lambda val: type(val) == str and (
-                    val == 'true' or val == 'false'
-                ),
+                lambda val: type(val) == str and
+                (val == 'true' or val == 'false'),
             'noiseLevel':
                 lambda level: type(level) == str and level in 'qml' and len(
                     level) == 1,

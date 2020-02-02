@@ -96,8 +96,6 @@ session.delete(t1)
 pp(session.__dict__)
 session.commit()
 
-
-
 inspector = inspect(engine)
 print('table names', inspector.get_table_names())
 
