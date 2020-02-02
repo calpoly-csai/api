@@ -226,18 +226,33 @@ class NimbusMySQL(NimbusDatabase):
             msg = "config.json is missing {} field.".format('mysql')
             raise BadConfigFileError(msg)
 
-    '''Example:
-    >> > db = NimbusDatabase("config.json")
-    >> > db.get_property_from_related_entities(
-        ["firstName", "lastName", "ohRoom"],
-        "Professors", "OfficeHours", "professorId")
-    [("Foaad", "Khosmood", "14-213"), ("John", "Clements", "14-210"), ...]'''
     def get_property_from_entity(
             self,
             prop: List[str],
             entity: str,
             condition_field: Optional[str] = None,
-            condition_value: Optional[str] = None) -> List[str]:
+            condition_value: Optional[str] = None) -> List[tuple]:
+
+        """get properties of an entity from database.
+
+            Retrieves the rows in the entity with given properties and optional conditions
+
+            Args:
+                prop: a list of properties in an entity
+                entity: an entity we are interested in
+                condition_field: those among prop used to filter some rows
+                condition_value: values of condition_filed to filter some rows
+
+            Returns:
+
+                A list of tuples where each tuple represents each row in the database that meets the arguments
+                For example:
+                    get_property_from_entity(prop=["firstName", "lastName"], entity="Professors")
+                    returns ["Foaad Khosmood"].
+
+            Raises:
+                Exception: An error occurred when only condition_field or condition_value is provided.
+            """
         cursor = self.connection.cursor()
         cursor.execute('use `{}`'.format(self.database))
         columns = ", ".join(prop)
@@ -250,10 +265,8 @@ class NimbusMySQL(NimbusDatabase):
             statement = "SELECT {} FROM {}".format(columns, entity)
 
         else:
-            print("choose both condition field and condition value")
-            return []
+            raise Exception("Provide both condition field and condition value!")
 
-        # print(statement)
         cursor.execute(statement)
         tups = cursor.fetchall()
         cursor.close()
@@ -271,14 +284,17 @@ class NimbusMySQL(NimbusDatabase):
             condition_value: Optional[str] = None) -> List[str]:
         return []
 
-    def get_fields_of_entity(self, entity1: str) -> str:
+    def get_fields_of_entity(self, entity1: str) -> List[tuple]:
         cursor = self.connection.cursor()
         # don't know why the line below is a syntactically wrong.
-        # cursor.execute('use {}'.format(self.database))
+        print(self.database)
+        print('use {}'.format(self.database))
+        cursor.execute("use `{}`".format(self.database))
+        print("SHOW COLUMNS FROM {}".format(entity1))
         cursor.execute("SHOW COLUMNS FROM {}".format(entity1))
         fields = cursor.fetchall()
         cursor.close()
-        return fields
+        return [x[0] for x in fields]
 
     def yield_entities(self) -> str:
         """Yields a list of all entities in the database."""
@@ -369,8 +385,11 @@ class NimbusMySQL(NimbusDatabase):
 
 if __name__ == "__main__":
     database = NimbusMySQL()
-    print(database.get_professor_properties("Khosmood"))
-    print(database.get_fields_of_entity("Courses"))
+    # print(database.get_entities())
+    print(database.yield_entities())
+    # print(database.get_fields_of_entity("Professors"))
+    # print(database.get_professor_properties("Khosmood"))
+    # print(database.get_fields_of_entity("Courses"))
     # print(database.yield_entities())
-    print(database.get_course_properties("CPE 101. Fundamentals of Computer Science."))
-    print(database.get_property_from_entity(prop=["firstName", "lastName"], entity="Professors"))
+    # print(database.get_course_properties("CPE 101. Fundamentals of Computer Science."))
+    # print(database.get_property_from_entity(prop=["*"], entity="Professors"))
