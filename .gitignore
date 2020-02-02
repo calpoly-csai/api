@@ -112,3 +112,8 @@ venv.bak/
 db_config.py
 .vscode/settings.json
 config.json
+
+# files with secrets in them
+settings.yaml
+folder_id.txt
+credentials.json
