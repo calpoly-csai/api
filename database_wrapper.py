@@ -519,6 +519,92 @@ class NimbusMySQL(NimbusDatabase):
                                               condition_value=courseName)
         return props
 
+    def get_club_properties(self, clubName):
+        """
+        Gives all of the properties of a club in the database.
+
+        Args:
+            clubName: a string representing the name of the club
+
+        Returns:
+            TODO: Determine type of the return based on the get_property_from_entity() method
+        """
+        pass
+
+
+    def get_course_schedule(self, courseName):
+        """
+        Describes all of the days and times during the week that a course takes place.
+
+        Args:
+            courseName: a string representing the name of the course
+
+        Returns:
+            TODO: Determine type of the return based on the get_property_from_entity() method
+        """
+        pass
+
+    def get_professor_schedule(self, lastName):
+        """
+        Gives all of the properties of a club in the database.
+
+        Args:
+            lastName: a string representing the last name of the professor
+            TODO: Choose exactly how to be referencing professors
+
+        Returns:
+            TODO: Determine type of the return based on the get_property_from_related_entity() method
+        """
+        pass
+
+    def get_course_prerequisites(self, courseName):
+        """
+        Gives the prerequisite courses for a given course in the database.
+
+        Args:
+            courseName: a string representing the name of the course
+
+        Returns:
+            TODO: Determine type of the return based on the get_property_from_related_entity() method
+        """
+        pass
+
+    def get_professor_research_interests(self, lastName):
+        """
+        Gives the research interests of a specific professor.
+
+        Args:
+            lastName: a string representing the lastName of the professor
+            TODO: Choose exactly how to be referencing professors
+        Returns:
+            TODO: Determine type of the return based on the get_property_from_related_entity() method
+        """
+        pass
+
+    def get_professors_with_interest(self, interest):
+        """
+        Gives the professors who have a specific research interest.
+
+        Args:
+            interest: a string representing a research interest professors may have
+
+        Returns:
+            TODO: Determine type of the return based on the get_property_from_related_entity() method
+        """
+        pass
+
+    def get_professor_polyrating(self, lastName):
+        """
+        Gives the average polyrating of a specific professor.
+
+        Args:
+            lastName: a string representing the lastName of the professor
+            TODO: Choose exactly how to be referencing professors
+        Returns:
+            TODO: Determine type of the return based on the get_property_from_related_entity() method
+        """
+        pass
+
     def close(self) -> None:
         """Close the database connection"""
         self.connection.close()
