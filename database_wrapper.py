@@ -230,8 +230,18 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         # TODO: reconsider if this even works???
         # self.Base.metadata.create_all(self.engine)
         # TODO: go with this instead... more explicit...
-        self.Courses.__table__.create(bind=self.engine)
-        self.AudioSampleMetaData.__table__.create(bind=self.engine)
+        def __safe_create(SQLAlchemy_object):
+            table_name = SQLAlchemy_object.__tablename__
+            print("creating {}...".format(table_name))
+            if table_name in self.inspector.get_table_names():
+                print("<{}> already exists".format(table_name))
+                return
+            SQLAlchemy_object.__table__.create(bind=self.engine)
+            print("<{}> created".format(table_name))
+            return
+
+        __safe_create(self.Courses)
+        __safe_create(self.AudioSampleMetaData)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
