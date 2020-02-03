@@ -27,6 +27,8 @@ class AudioSampleMetaData(Base):
     tone = Column(String(255))
     timestamp = Column(Integer)
     username = Column(String(255))
+    # Text chosen because filename is standarized concatenation of above fields
+    filename = Column(Text)
 
     def __repr__(self):
         return (

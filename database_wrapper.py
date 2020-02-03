@@ -16,6 +16,7 @@ from pprint import pprint as pp
 from typing import List, Optional, Union
 
 import mysql.connector
+import sqlalchemy
 from sqlalchemy import (Column, DateTime, ForeignKey, Integer, String, Table,
                         create_engine)
 from sqlalchemy.ext.declarative import declarative_base
@@ -25,6 +26,39 @@ import Entity
 from Entity.Courses import Courses
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from sqlalchemy import inspect
+
+
+class BadDictionaryKeyError(Exception):
+    """Raised when the given JSON/dict is missing some required fields.
+
+    Attributes:
+        message: an explanation of what fields are missing.
+    """
+
+    def __init__(self, message: str):
+        self.message = message
+
+
+class BadDictionaryValueError(Exception):
+    """Raised when the given JSON/dict has unexpected wake
+
+    Attributes:
+        message: an explanation.
+    """
+
+    def __init__(self, message: str):
+        self.message = message
+
+
+class NimbusDatabaseError(Exception):
+    """Raised when we have a database querying problem.
+
+    Attributes:
+        message: an explanation of the data querying problem.
+    """
+
+    def __init__(self, message: str):
+        self.message = message
 
 
 class UnsupportedDatabaseError(Exception):
@@ -192,6 +226,33 @@ class NimbusDatabase(ABC):
         return
 
 
+def raises_database_error(func):
+    """A Python decorator for mapping to NimbusDatabaseError
+
+    Resources:
+        https://realpython.com/primer-on-python-decorators/#simple-decorators
+        https://docs.python.org/3/library/exceptions.html
+    """
+
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except sqlalchemy.exc.DataError as e:
+            # TODO: consider security tradeoff of displaying
+            #       internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins, so try to raise a smaller message
+            raise NimbusDatabaseError(str(e.args)) from e
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying
+            #       internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins, so try to catch the EXACT exception
+            raise e
+
+    return wrapper
+
+
 class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
     """
     """
@@ -267,6 +328,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
 
         self.AudioSampleMetaData.__table__.create(bind=self.engine)
 
+    @raises_database_error
     def save_audio_sample_meta_data(self, formatted_data: dict) -> bool:
         """
         Save the metadata into the NimbusDatabase.
@@ -274,61 +336,89 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         formatted_data this point looks like:
         {
             "isWakeWord": True,
-            "firstName": "john",
+            "firstName": "jj",
             "lastName": "doe",
             "gender": "f",
             "noiseLevel": "q",
             "location": "here",
             "tone": "serious-but-not-really",
             "timestamp": 1577077883,
-            "username": "guest"
+            "username": "guest",
+            "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"
         }
+
+        Raises:
+            BadDictionaryKeyError - ...
+            BadDictionaryValueError - ...
 
         Returns:
             True if all is good, else False
         """
         keys_i_care_about = {
             'isWakeWord', 'firstName', 'lastName', 'gender', 'noiseLevel',
-            'location', 'tone', 'timestamp', 'username'
+            'location', 'tone', 'timestamp', 'username', 'filename'
         }
 
-        if len(formatted_data) == 0:
-            raise Exception("I did not get the keys I care about")
+        print(formatted_data)
 
+        if len(formatted_data) == 0:
+            msg = "expected: {} but got: {}"
+            msg = msg.format(keys_i_care_about, set(formatted_data.keys()))
+            raise BadDictionaryKeyError(msg)
+
+        # assert that the formatted_data does not have extra keys
         for k in formatted_data:
             if k not in keys_i_care_about:
-                # TODO: make this a better message
-                raise Exception("I did not get the keys I care about")
+                msg = "expected: {} but got: {}"
+                msg = msg.format(keys_i_care_about, set(formatted_data.keys()))
+                raise BadDictionaryKeyError(msg)
+
+        # assert that the keys_i_care_about are in formatted_data
+        for k in keys_i_care_about:
+            if k not in formatted_data:
+                msg = "expected: {} but got: {}"
+                msg = msg.format(keys_i_care_about, set(formatted_data.keys()))
+                raise BadDictionaryKeyError(msg)
 
         # create an AudioSampleMetaData object with the given metadata
         metadata = AudioSampleMetaData()
 
-        # TODO: @waidhoferj
-        #       maybe category does make sense for readability here?
-        if formatted_data['isWakeWord'] == 'ww':
+        isWW = formatted_data['isWakeWord']
+        if ((isWW == 'ww') or (isWW is True)):
             metadata.is_wake_word = True
-        elif formatted_data['isWakeWord'] == 'nww':
-            metadata.is_wake_word = True
+        elif ((isWW == 'nww') or (isWW is False)):
+            metadata.is_wake_word = False
         else:
-            raise Exception("unexpected values for isWakeWord")
+            msg = "unexpected values for isWakeWord\n"
+            msg += "expected 'ww' or True or 'nww' or False but got '{}'"
+            msg = msg.format(formatted_data['isWakeWord'])
+            raise BadDictionaryValueError(msg)
 
         metadata.first_name = formatted_data['firstName']
         metadata.last_name = formatted_data['lastName']
         metadata.gender = formatted_data['gender']
 
-        if formatted_data['noiseLevel'] == 'q':
+        if (formatted_data['noiseLevel'] == 'q' or
+                formatted_data['noiseLevel'] == 'quiet'):
             metadata.noise_level = NoiseLevel.quiet
-        elif formatted_data['noiseLevel'] == 'm':
+        elif (formatted_data['noiseLevel'] == 'm' or
+              formatted_data['noiseLevel'] == 'medium'):
             metadata.noise_level = NoiseLevel.medium
-        elif formatted_data['noiseLevel'] == 'l':
+        elif (formatted_data['noiseLevel'] == 'l' or
+              formatted_data['noiseLevel'] == 'loud'):
             metadata.noise_level = NoiseLevel.loud
         else:
-            raise Exception("unexpected values for noiseLevel")
+            msg = "unexpected values for noiseLevel\n"
+            msg += "expected 'q' or 'm' or 'l' but got '{}'"
+            msg = msg.format(formatted_data['noiseLevel'])
+            raise BadDictionaryValueError(msg)
 
         metadata.location = formatted_data['location']
         metadata.tone = formatted_data['tone']
         metadata.timestamp = formatted_data['timestamp']
         metadata.username = formatted_data['username']
+
+        metadata.filename = formatted_data['filename']
 
         # insert this new metadata object into the AudioSampleMetaData table
         self.session.add(metadata)
@@ -541,7 +631,6 @@ class NimbusMySQL(NimbusDatabase):
         """
         pass
 
-
     def get_course_schedule(self, courseName):
         """
         Describes all of the days and times during the week that a course takes place.
@@ -633,7 +722,7 @@ if __name__ == "__main__":
     db.create_AudioSampleMetaData_table()
 
     metadata = {
-        "isWakeWord": True,
+        "isWakeWord": 'ww',
         "firstName": "john",
         "lastName": "doe",
         "gender": "f",
@@ -641,7 +730,8 @@ if __name__ == "__main__":
         "location": "here",
         "tone": "serious-but-not-really",
         "timestamp": 1577077883,
-        "username": "guest"
+        "username": "guest",
+        "filename": "filename"
     }
 
     db.save_audio_sample_meta_data(metadata)

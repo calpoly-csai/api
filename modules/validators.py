@@ -1,4 +1,7 @@
 import time
+import enum
+
+from werkzeug.exceptions import BadRequestKeyError
 
 
 class Validator:
@@ -16,6 +19,22 @@ class Validator:
         If not possible, raises error.
         """
         return data
+
+
+class WakeWordValidatorIssue(enum.Enum):
+    DOES_NOT_EXIST = 1
+    INVALID = 2
+
+
+class WakeWordValidatorError(Exception):
+    """Raised when.... bad data...
+
+    Attributes:
+        message: an explanation of... why bad data...
+    """
+
+    def __init__(self, message: str):
+        self.message = message
 
 
 class WakeWordValidator(Validator):
@@ -56,33 +75,35 @@ class WakeWordValidator(Validator):
         for key in self.validators:
             validator = self.validators[key]
             try:
-                val = data[key]
-                if(not validator(val)):
-                    issues[key] = 'INVALID'
-            except Exception:
-                issues[key] = 'DOES_NOT_EXIST'
+                value = data[key]
+                if (not validator(value)):
+                    issues[key] = WakeWordValidatorIssue.INVALID
+            except BadRequestKeyError as e:
+                print("caught BadRequestKeyError: ", e.args)
+                issues[key] = WakeWordValidatorIssue.DOES_NOT_EXIST
         return issues
 
     def fix(self, data, issues):
         """
         Attempts to fix Wake Word audio metadata.
-        If the data issue is irreplaceable, raises ValueError.
+        If the data issue is irreplaceable, raises WakeWordValidatorError.
         """
         form = data.copy()
         for key in issues:
             issue = issues[key]
-            if (issue == 'DNE'):
+            if (issue == WakeWordValidatorIssue.DOES_NOT_EXIST):
                 if (key == 'username'):
                     form[key] = 'guest'
+                    print('fixed username', form[key])
                 elif (key == 'timestamp'):
                     form[key] = int(time.time())
                     print('fixed timestamp', form[key])
                 else:
-                    raise ValueError(
+                    raise WakeWordValidatorError(
                         f"Required audio metadata '{key}' was not provided")
-            elif (issue == 'invalid'):
+            elif (issue == WakeWordValidatorIssue.INVALID):
                 # TODO: anticipate invalid entries and correct them.
-                raise ValueError(
+                raise WakeWordValidatorError(
                     f"{key} has invalid value of {form[key]} with a type of {type(form[key])}"
                 )
         return form

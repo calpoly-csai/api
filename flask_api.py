@@ -5,13 +5,14 @@ Contains all the handlers for the API. Also the main code to run Flask.
 """
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from modules.validators import WakeWordValidator
-from modules.formatters import WakeWordFormatter
-from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
-import gunicorn_config
+from pydrive.drive import GoogleDrive
 
-from database_wrapper import NimbusMySQLAlchemy
+import gunicorn_config
+from database_wrapper import (BadDictionaryKeyError, BadDictionaryValueError,
+                              NimbusDatabaseError, NimbusMySQLAlchemy)
+from modules.formatters import WakeWordFormatter
+from modules.validators import WakeWordValidator, WakeWordValidatorError
 
 BAD_REQUEST = 400
 SUCCESS = 200
@@ -79,15 +80,34 @@ def save_a_recording():
     if issues:
         try:
             data = validator.fix(data, issues)
-        except ValueError as err:
+        except WakeWordValidatorError as err:
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
 
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
-    db.save_audio_sample_meta_data(formatted_data)
-
+    # Save the audiofile first because if error then we stop here
+    # We do not want to save any metadata to the NimbusDatabase
+    #   if the audio fails to save.
     save_audiofile(filename, request.files["wav_file"])
+
+    # Let's also save the filename to the database for quick reference
+    formatted_data['filename'] = filename
+
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    try:
+        db.save_audio_sample_meta_data(formatted_data)
+    except BadDictionaryKeyError as e:
+        return str(e), BAD_REQUEST
+    except BadDictionaryValueError as e:
+        return str(e), BAD_REQUEST
+    except NimbusDatabaseError as e:
+        return str(e), BAD_REQUEST
+    except Exception as e:
+        # TODO: consider security tradeoff of displaying internal server errors
+        #       versus development time (being able to see errors quickly)
+        # HINT: security always wins
+        raise e
+
     return filename
 
 
