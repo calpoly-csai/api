@@ -11,21 +11,15 @@ different databases and storage locations.
 """
 import json
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
-from pprint import pprint as pp
 from typing import List, Optional, Union
 
 import mysql.connector
 import sqlalchemy
-from sqlalchemy import (Column, DateTime, ForeignKey, Integer, String, Table,
-                        create_engine)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, relationship, sessionmaker
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.orm import sessionmaker
 
-import Entity
-from Entity.Courses import Courses
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
-from sqlalchemy import inspect
+from Entity.Courses import Courses
 
 
 class BadDictionaryKeyError(Exception):
@@ -328,7 +322,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
 
         self.AudioSampleMetaData.__table__.create(bind=self.engine)
 
-    @raises_database_error
+    @raises_database_error  # noqa - C901 "too complex" - agreed TODO: reduce complexity
     def save_audio_sample_meta_data(self, formatted_data: dict) -> bool:
         """
         Save the metadata into the NimbusDatabase.
@@ -344,7 +338,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
             "tone": "serious-but-not-really",
             "timestamp": 1577077883,
             "username": "guest",
-            "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"
+            "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
         }
 
         Raises:

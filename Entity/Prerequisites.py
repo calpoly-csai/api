@@ -1,6 +1,3 @@
-#Prerequisites
-
-
 class Prerequisites:
 
     def __init__(self, courseId, prereqCourse):

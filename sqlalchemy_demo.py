@@ -5,9 +5,9 @@
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
-from datetime import datetime, timedelta
-from sqlalchemy import Table, Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import relationship, backref
+from datetime import datetime, timedelta  # noqa
+from sqlalchemy import Table, Column, Integer, String, DateTime, ForeignKey  # noqa
+from sqlalchemy.orm import relationship, backref  # noqa
 from sqlalchemy.orm import sessionmaker
 from pprint import pprint as pp
 from sqlalchemy import inspect
@@ -27,7 +27,7 @@ class Tag(Base):
 
 # connection
 # https://docs.sqlalchemy.org/en/13/dialects/mysql.html#module-sqlalchemy.dialects.mysql.mysqlconnector
-# engine = create_engine('mysql+mysqlconnector://USERNAME:PASSWORD@HOST_NAME:3306/DATABASE_NAME')
+# engine = create_engine('mysql+mysqlconnector://USERNAME:PASSWORD@HOST_NAME:3306/DATABASE_NAME')  # noqa
 config_file = 'config.json'
 with open(config_file) as json_data_file:
     config = json.load(json_data_file)
@@ -101,7 +101,7 @@ print('table names', inspector.get_table_names())
 
 print("dropping table Tag")
 # https://www.pythonsheets.com/notes/python-sqlalchemy.html#drop-a-table
-# https://stackoverflow.com/questions/35918605/how-to-delete-a-table-in-sqlalchemy
+# https://stackoverflow.com/questions/35918605/how-to-delete-a-table-in-sqlalchemy  # noqa
 print(Tag.__table__.drop(engine))
 print("dropped??")
 

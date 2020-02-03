@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, Enum, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.mysql import SET
 import enum
 
 # This is the way SQLAlchemy initializes their special classes
@@ -31,8 +30,10 @@ class AudioSampleMetaData(Base):
     filename = Column(Text)
 
     def __repr__(self):
-        return (
-            "<AudioSampleMetaData ( id={}, is_wake_word={}, first_name={}, last_name={}, gender={}, noise_level={}, location={}, tone={}, timestamp={}, username={} )>"
-            .format(self.id, self.is_wake_word, self.first_name, self.last_name,
-                    self.gender, self.noise_level, self.location, self.tone,
-                    self.timestamp, self.username))
+        string = "<AudioSampleMetaData ( id={}, is_wake_word={}, "
+        string += "first_name={}, last_name={}, gender={}, noise_level={}, "
+        string += "location={}, tone={}, timestamp={}, username={} )>"
+        return (string.format(self.id, self.is_wake_word, self.first_name,
+                              self.last_name, self.gender, self.noise_level,
+                              self.location, self.tone, self.timestamp,
+                              self.username))

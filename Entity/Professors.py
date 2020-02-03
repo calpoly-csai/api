@@ -1,6 +1,3 @@
-#Professors
-
-
 class Professors:
 
     def __init__(self, id, firstName, lastName, phoneNumber, researchInterests,

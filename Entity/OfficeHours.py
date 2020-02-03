@@ -1,6 +1,3 @@
-#OfficeHours
-
-
 class OfficeHours:
 
     def __init__(self, Professors_id, ohroom, ohday, ohtime):
