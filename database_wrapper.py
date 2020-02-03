@@ -21,8 +21,10 @@ from sqlalchemy import (Column, DateTime, ForeignKey, Integer, String, Table,
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship, sessionmaker
 
+import Entity
 from Entity.Courses import Courses
-from flask_api import app
+from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
+from sqlalchemy import inspect
 
 
 class UnsupportedDatabaseError(Exception):
@@ -198,6 +200,8 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         # # sqlalchemy needs a Base class for all the database entities
         # self.Base = declarative_base()
         self.engine = None  # gets set according to config_file
+        self.Courses = Courses
+        self.AudioSampleMetaData = AudioSampleMetaData
 
         with open(config_file) as json_data_file:
             config = json.load(json_data_file)
@@ -218,11 +222,16 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
             msg = "config.json is missing {} field.".format('mysql')
             raise BadConfigFileError(msg)
 
+        self.inspector = inspect(self.engine)
         self._create_database_session()
         print("initialized NimbusMySQLAlchemy")
 
     def _create_all_tables(self):
-        self.Base.metadata.create_all(self.engine)
+        # TODO: reconsider if this even works???
+        # self.Base.metadata.create_all(self.engine)
+        # TODO: go with this instead... more explicit...
+        self.Courses.__table__.create(bind=self.engine)
+        self.AudioSampleMetaData.__table__.create(bind=self.engine)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -240,8 +249,88 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
                 Courses.dept == department,
                 Courses.courseNum == course_num).all())
 
+    def create_AudioSampleMetaData_table(self) -> None:
+        table_name = self.AudioSampleMetaData.__tablename__
+        if table_name in self.inspector.get_table_names():
+            print("table already exists")
+            return
+
+        self.AudioSampleMetaData.__table__.create(bind=self.engine)
+
+    def save_audio_sample_meta_data(self, formatted_data: dict) -> bool:
+        """
+        Save the metadata into the NimbusDatabase.
+
+        formatted_data this point looks like:
+        {
+            "isWakeWord": True,
+            "firstName": "john",
+            "lastName": "doe",
+            "gender": "f",
+            "noiseLevel": "q",
+            "location": "here",
+            "tone": "serious-but-not-really",
+            "timestamp": 1577077883,
+            "username": "guest"
+        }
+
+        Returns:
+            True if all is good, else False
+        """
+        keys_i_care_about = {
+            'isWakeWord', 'firstName', 'lastName', 'gender', 'noiseLevel',
+            'location', 'tone', 'timestamp', 'username'
+        }
+
+        if len(formatted_data) == 0:
+            raise Exception("I did not get the keys I care about")
+
+        for k in formatted_data:
+            if k not in keys_i_care_about:
+                # TODO: make this a better message
+                raise Exception("I did not get the keys I care about")
+
+        # create an AudioSampleMetaData object with the given metadata
+        metadata = AudioSampleMetaData()
+
+        # TODO: @waidhoferj
+        #       maybe category does make sense for readability here?
+        if formatted_data['isWakeWord'] == 'ww':
+            metadata.is_wake_word = True
+        elif formatted_data['isWakeWord'] == 'nww':
+            metadata.is_wake_word = True
+        else:
+            raise Exception("unexpected values for isWakeWord")
+
+        metadata.first_name = formatted_data['firstName']
+        metadata.last_name = formatted_data['lastName']
+        metadata.gender = formatted_data['gender']
+
+        if formatted_data['noiseLevel'] == 'q':
+            metadata.noise_level = NoiseLevel.quiet
+        elif formatted_data['noiseLevel'] == 'm':
+            metadata.noise_level = NoiseLevel.medium
+        elif formatted_data['noiseLevel'] == 'l':
+            metadata.noise_level = NoiseLevel.loud
+        else:
+            raise Exception("unexpected values for noiseLevel")
+
+        metadata.location = formatted_data['location']
+        metadata.tone = formatted_data['tone']
+        metadata.timestamp = formatted_data['timestamp']
+        metadata.username = formatted_data['username']
+
+        # insert this new metadata object into the AudioSampleMetaData table
+        self.session.add(metadata)
+        self.session.commit()
+
+        pass
+
     def _execute(self, query: str):
         return self.engine.execute(query)
+
+    def __del__(self):
+        print("NimbusMySQLAlchemy closed")
 
 
 class NimbusMySQL(NimbusDatabase):
@@ -444,3 +533,19 @@ if __name__ == "__main__":
     print("course_list:", course_list)
     csc357 = course_list[0]
     print("course_list[0].courseName", csc357.courseName)
+
+    db.create_AudioSampleMetaData_table()
+
+    metadata = {
+        "isWakeWord": True,
+        "firstName": "john",
+        "lastName": "doe",
+        "gender": "f",
+        "noiseLevel": "q",
+        "location": "here",
+        "tone": "serious-but-not-really",
+        "timestamp": 1577077883,
+        "username": "guest"
+    }
+
+    db.save_audio_sample_meta_data(metadata)

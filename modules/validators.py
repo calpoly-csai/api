@@ -57,10 +57,10 @@ class WakeWordValidator(Validator):
             validator = self.validators[key]
             try:
                 val = data[key]
-            except:
-                issues[key] = 'DNE'
-            if (not validator(val)):
-                issues[key] = 'invalid'
+                if(not validator(val)):
+                    issues[key] = 'INVALID'
+            except Exception:
+                issues[key] = 'DOES_NOT_EXIST'
         return issues
 
     def fix(self, data, issues):

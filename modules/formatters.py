@@ -16,6 +16,8 @@ class WakeWordFormatter(Formatter):
         super().__init__()
 
     def format(self, data):
+        # TODO: document this function better
+        # TODO: write test cases for this function
         form = data.copy()
         for key in form:
             if key == 'isWakeWord':

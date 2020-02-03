@@ -11,8 +11,12 @@ from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
 import gunicorn_config
 
+from database_wrapper import NimbusMySQLAlchemy
+
 BAD_REQUEST = 400
 SUCCESS = 200
+
+CONFIG_FILE_PATH = 'config.json'
 
 app = Flask(__name__)
 CORS(app)
@@ -64,32 +68,9 @@ def handle_question():
     return jsonify(response), SUCCESS
 
 
-@app.route('/examples/wakeword', methods=['POST'])
+@app.route('/new_data/wakeword', methods=['POST'])
 def save_a_recording():
     """Given the audio metadata & audio file, resamples it, saves to storage.
-
-    Resamples for the AI model. Saves to Google Drive. The audio is a
-    binary BLOB with a (wrapper?). The request JSON should include a
-    field representing WakeWord or NotWakeWord. Audio file size expected
-    to be around 76 KB.
-
-    Example:
-    {
-        'isWakeWord': True,
-        'firstName': "john",
-        'lastName': "doe",
-        'gender': "m", // enum('m', 'f') // male, female
-        'noiseLevel': "m", // enum('q','m','l') // quiet, medium, loud
-        'location': "here",
-        'tone': "serious",
-        // TODO: consider an optional description
-        'timestamp': '1577077883' //integer seconds since epoch
-        'username' : 'ewenike'
-
-    }
-
-    Returns:
-        HTTP status code
     """
     validator = WakeWordValidator()
     formatter = WakeWordFormatter()
@@ -102,6 +83,10 @@ def save_a_recording():
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
+
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    db.save_audio_sample_meta_data(formatted_data)
+
     save_audiofile(filename, request.files["wav_file"])
     return filename
 
@@ -110,7 +95,6 @@ def create_filename(form):
     """
     Creates a string filename that adheres to the Nimbus foramtting standard.
     """
-
     order = [
         'isWakeWord', 'noiseLevel', 'tone', 'location', 'gender', 'lastName',
         'firstName', 'timestamp', 'username'
