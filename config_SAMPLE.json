@@ -1,6 +1,7 @@
 {
     "mysql": {
         "host": "HOSTNAME",
+        "port": "PORT e.g. 3306",
         "user": "USERNAME",
         "password": "PASSWORD",
         "database": "DATABASE",
