@@ -111,26 +111,6 @@ def save_a_recording():
     return filename
 
 
-@app.route('/new_data/ww_temp_storage', methods=['POST'])
-def save_a_recording():
-    """Given the audio metadata & audio file, resamples it, saves to storage.
-    """
-    validator = WakeWordValidator()
-    formatter = WakeWordFormatter()
-    data = request.form
-    issues = validator.validate(data)
-    if issues:
-        try:
-            data = validator.fix(data, issues)
-        except WakeWordValidatorError as err:
-            return str(err), BAD_REQUEST
-    formatted_data = formatter.format(data)
-    filename = "UNREGISTERED_" + create_filename(formatted_data)
-    save_audiofile(filename, request.files["wav_file"])
-
-    return filename
-
-
 def create_filename(form):
     """
     Creates a string filename that adheres to the Nimbus foramtting standard.
