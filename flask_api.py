@@ -119,7 +119,8 @@ def create_filename(form):
         'isWakeWord', 'noiseLevel', 'tone', 'location', 'gender', 'lastName',
         'firstName', 'timestamp', 'username'
     ]
-    values = list(map(lambda key: str(form[key]), order))
+    values = list(
+        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return '_'.join(values) + '.wav'
 
 
