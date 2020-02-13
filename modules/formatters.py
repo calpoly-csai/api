@@ -21,7 +21,7 @@ class WakeWordFormatter(Formatter):
         form = data.copy()
         for key in form:
             if key == 'isWakeWord':
-                form[key] = 'ww' if (form[key]) else 'nww'
+                form[key] = 'ww' if (form[key].lower() == "true") else 'nww'
             elif key == 'timestamp':
                 form[key] = int(form[key])
             else:
