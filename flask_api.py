@@ -69,7 +69,7 @@ def handle_question():
     return jsonify(response), SUCCESS
 
 
-@app.route('/new_data/wakeword', methods=['POST'])
+@app.route('/new_data/audiosample', methods=['POST'])
 def save_a_recording():
     """Given the audio metadata & audio file, resamples it, saves to storage.
     """
