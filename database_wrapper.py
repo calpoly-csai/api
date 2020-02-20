@@ -281,6 +281,27 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         self._create_database_session()
         print("initialized NimbusMySQLAlchemy")
 
+    @staticmethod
+    def validate_input_keys(input_data: dict, expected_keys: set):
+        if len(input_data) == 0:
+            msg = "expected: {} but got: {}"
+            msg = msg.format(expected_keys, set(input_data.keys()))
+            raise BadDictionaryKeyError(msg)
+
+        # assert that the formatted_data does not have extra keys
+        for k in input_data:
+            if k not in expected_keys:
+                msg = "expected: {} but got: {}"
+                msg = msg.format(expected_keys, set(input_data.keys()))
+                raise BadDictionaryKeyError(msg)
+
+        # assert that the keys_i_care_about are in formatted_data
+        for k in expected_keys:
+            if k not in input_data:
+                msg = "expected: {} but got: {}"
+                msg = msg.format(expected_keys, set(input_data.keys()))
+                raise BadDictionaryKeyError(msg)
+
     def _create_all_tables(self):
         # TODO: reconsider if this even works???
         # self.Base.metadata.create_all(self.engine)
@@ -355,25 +376,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
 
         print(formatted_data)
 
-        if len(formatted_data) == 0:
-            msg = "expected: {} but got: {}"
-            msg = msg.format(keys_i_care_about, set(formatted_data.keys()))
-            raise BadDictionaryKeyError(msg)
-
-        # assert that the formatted_data does not have extra keys
-        for k in formatted_data:
-            if k not in keys_i_care_about:
-                msg = "expected: {} but got: {}"
-                msg = msg.format(keys_i_care_about, set(formatted_data.keys()))
-                raise BadDictionaryKeyError(msg)
-
-        # assert that the keys_i_care_about are in formatted_data
-        for k in keys_i_care_about:
-            if k not in formatted_data:
-                msg = "expected: {} but got: {}"
-                msg = msg.format(keys_i_care_about, set(formatted_data.keys()))
-                raise BadDictionaryKeyError(msg)
-
+        self.validate_input_keys(formatted_data, keys_i_care_about)
         # create an AudioSampleMetaData object with the given metadata
         metadata = AudioSampleMetaData()
 
@@ -419,6 +422,32 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         self.session.commit()
 
         pass
+
+    def save_course(self, course_data: dict):
+        expected_keys = {'courseId', 'dept', 'courseNum', 'units',
+                         'termsOffered', 'courseName', 'raw_concurrent_text',
+                         'raw_recommended_text', 'raw_prerequisites_text'}
+        self.validate_input_keys(course_data, expected_keys)
+
+        course = self.session.query(Courses).filter_by(courseId=course_data['courseId']).first()
+        if not course:
+            print("Adding new course: {}".format(course_data['courseId']))
+            course = Courses()
+            course.courseId = course_data['courseId']
+        else:
+            print("Updating course: {}".format(course_data['courseId']))
+
+        course.dept = course_data['dept']
+        course.courseNum = course_data['courseNum']
+        course.termsOffered = course_data['termsOffered']
+        course.units = course_data['units']
+        course.courseName = course_data['courseName']
+        course.raw_concurrent_text = course_data['raw_concurrent_text']
+        course.raw_recommended_text = course_data['raw_recommended_text']
+        course.raw_prerequisites_text = course_data['raw_prerequisites_text']
+
+        self.session.add(course)
+        self.session.commit()
 
     def _execute(self, query: str):
         return self.engine.execute(query)
