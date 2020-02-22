@@ -64,6 +64,10 @@ class WakeWordValidator(Validator):
                 lambda timestamp: str.isdigit(timestamp),
             'username':
                 lambda username: type(username) == str,
+            'script':
+                lambda script: type(script) == str,
+            'emphasis':
+                lambda script: type(script) == str,
         }
 
     def validate(self, data):

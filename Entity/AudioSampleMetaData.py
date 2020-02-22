@@ -26,6 +26,8 @@ class AudioSampleMetaData(Base):
     tone = Column(String(255))
     timestamp = Column(Integer)
     username = Column(String(255))
+    script = Column(String(1024))
+    emphasis = Column(String(255))
     # Text chosen because filename is standarized concatenation of above fields
     filename = Column(Text)
 

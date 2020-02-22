@@ -350,7 +350,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         """
         keys_i_care_about = {
             'isWakeWord', 'firstName', 'lastName', 'gender', 'noiseLevel',
-            'location', 'tone', 'timestamp', 'username', 'filename'
+            'location', 'tone', 'timestamp', 'username', 'filename', 'emphasis'
         }
 
         print(formatted_data)
@@ -360,18 +360,10 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
             msg = msg.format(keys_i_care_about, set(formatted_data.keys()))
             raise BadDictionaryKeyError(msg)
 
-        # assert that the formatted_data does not have extra keys
-        for k in formatted_data:
-            if k not in keys_i_care_about:
-                msg = "expected: {} but got: {}"
-                msg = msg.format(keys_i_care_about, set(formatted_data.keys()))
-                raise BadDictionaryKeyError(msg)
-
         # assert that the keys_i_care_about are in formatted_data
         for k in keys_i_care_about:
             if k not in formatted_data:
-                msg = "expected: {} but got: {}"
-                msg = msg.format(keys_i_care_about, set(formatted_data.keys()))
+                msg = f"Field '{k}' is missing. Please include this value in the audio payload"
                 raise BadDictionaryKeyError(msg)
 
         # create an AudioSampleMetaData object with the given metadata
@@ -411,7 +403,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         metadata.tone = formatted_data['tone']
         metadata.timestamp = formatted_data['timestamp']
         metadata.username = formatted_data['username']
-
+        metadata.script = formatted_data['script']
         metadata.filename = formatted_data['filename']
 
         # insert this new metadata object into the AudioSampleMetaData table
