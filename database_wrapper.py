@@ -20,6 +20,7 @@ from sqlalchemy.orm import sessionmaker
 
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Courses import Courses
+from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
 
 
 class BadDictionaryKeyError(Exception):
@@ -257,6 +258,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         self.engine = None  # gets set according to config_file
         self.Courses = Courses
         self.AudioSampleMetaData = AudioSampleMetaData
+        self.QuestionAnswerPair = QuestionAnswerPair
 
         with open(config_file) as json_data_file:
             config = json.load(json_data_file)
@@ -297,6 +299,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
 
         __safe_create(self.Courses)
         __safe_create(self.AudioSampleMetaData)
+        __safe_create(self.QuestionAnswerPair)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -321,6 +324,40 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
             return
 
         self.AudioSampleMetaData.__table__.create(bind=self.engine)
+
+    def save_question_answer_pair(self, qa_dict: dict) -> bool:
+        """
+        Save the given question answer pair into the database.
+
+        Example input:
+        {
+            "can_we_answer": False,
+            "answer_type": AnswerType.other,
+            "question_format": "What is the meaning of life?",
+            "answer_format": "Dr. Fizzbuzz says the answer is sqrt(1764)"
+        }
+
+        Args:
+            qa_dict: a dictionary that corresponds to the fields in QuestionAnswerPair  # noqa
+
+        Raises:
+            BadDictionaryKeyError - ...
+            BadDictionaryValueError - ...
+
+        Returns:
+            True if all is good, else False
+        """
+        # create an QuestionAnswerPair object with the given data
+        qa_pair_data = QuestionAnswerPair()
+        qa_pair_data.can_we_answer = qa_dict['can_we_answer']
+        qa_pair_data.answer_type = qa_dict['answer_type']
+        qa_pair_data.question_format = qa_dict['question_format']
+        qa_pair_data.answer_format = qa_dict['answer_format']
+
+        # insert this new qa_pair_data object into the QuestionAnswerPair table
+        self.session.add(qa_pair_data)
+        self.session.commit()
+        return True
 
     @raises_database_error  # noqa - C901 "too complex" - agreed TODO: reduce complexity
     def save_audio_sample_meta_data(self, formatted_data: dict) -> bool:
