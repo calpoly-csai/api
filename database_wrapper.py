@@ -338,6 +338,8 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
             "tone": "serious-but-not-really",
             "timestamp": 1577077883,
             "username": "guest",
+            "script": "??????????",  # FIXME: what is script?
+            "emphasis": "iss",  # like saying Nimbiss instead of Nimbus
             "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
         }
 
@@ -383,6 +385,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         metadata.first_name = formatted_data['firstName']
         metadata.last_name = formatted_data['lastName']
         metadata.gender = formatted_data['gender']
+        metadata.emphasis = formatted_data['emphasis']
 
         if (formatted_data['noiseLevel'] == 'q' or
                 formatted_data['noiseLevel'] == 'quiet'):
@@ -717,7 +720,9 @@ if __name__ == "__main__":
         "tone": "serious-but-not-really",
         "timestamp": 1577077883,
         "username": "guest",
-        "filename": "filename"
+        "filename": "filename",
+        "script": "??????????",  # FIXME: what is script?
+        "emphasis": "iss"  # like saying Nimbiss instead of Nimbus
     }
 
     db.save_audio_sample_meta_data(metadata)
