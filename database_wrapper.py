@@ -20,6 +20,7 @@ from sqlalchemy.orm import sessionmaker
 
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Courses import Courses
+from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
 from Entity.Professors import Professors
 
 
@@ -97,7 +98,7 @@ class NimbusDatabase(ABC):
     should implement these operations such as `connect`
     """
 
-    def __init__(self, config_file: str = 'config.json') -> None:
+    def __init__(self, config_file: str = "config.json") -> None:
         """
         Inits Nimbus Database using the hostname, username, password
         found inside the config_file.
@@ -106,11 +107,12 @@ class NimbusDatabase(ABC):
 
     @abstractmethod
     def get_property_from_entity(
-            self,
-            prop: List[str],
-            entity: str,
-            condition_field: Optional[str] = None,
-            condition_value: Optional[str] = None) -> List[str]:
+        self,
+        prop: List[str],
+        entity: str,
+        condition_field: Optional[str] = None,
+        condition_value: Optional[str] = None,
+    ) -> List[str]:
         """A high-order function to get properties from objects in the database.
 
         Example:
@@ -136,14 +138,15 @@ class NimbusDatabase(ABC):
 
     @abstractmethod
     def get_property_from_related_entities(
-            self,
-            prop: List[str],
-            entity1: str,
-            entity2: str,
-            key1: str,
-            key2: Optional[str] = None,
-            condition_field: Optional[str] = None,
-            condition_value: Optional[str] = None) -> List[str]:
+        self,
+        prop: List[str],
+        entity1: str,
+        entity2: str,
+        key1: str,
+        key2: Optional[str] = None,
+        condition_field: Optional[str] = None,
+        condition_value: Optional[str] = None,
+    ) -> List[str]:
         """A higher-order function to ????
 
         Example:
@@ -248,35 +251,39 @@ def raises_database_error(func):
     return wrapper
 
 
-class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
+class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     """
     """
 
-    def __init__(self, config_file: str = 'config.json') -> None:
-        # # sqlalchemy needs a Base class for all the database entities
-        # self.Base = declarative_base()
+    def __init__(self, config_file: str = "config.json") -> None:
         self.engine = None  # gets set according to config_file
         self.Courses = Courses
         self.Professors = Professors
         self.AudioSampleMetaData = AudioSampleMetaData
+        self.QuestionAnswerPair = QuestionAnswerPair
 
         with open(config_file) as json_data_file:
             config = json.load(json_data_file)
 
-        if config.get('mysql', False):
-            mysql_config = config['mysql']
+        if config.get("mysql", False):
+            mysql_config = config["mysql"]
             RDBMS = "mysql"
             PIP_PACKAGE = "mysqlconnector"
             SQLALCHEMY_DATABASE_URI = "{}+{}://{}:{}@{}:{}/{}".format(
-                RDBMS, PIP_PACKAGE, mysql_config['user'],
-                mysql_config['password'], mysql_config['host'],
-                mysql_config['port'], mysql_config['database'])
+                RDBMS,
+                PIP_PACKAGE,
+                mysql_config["user"],
+                mysql_config["password"],
+                mysql_config["host"],
+                mysql_config["port"],
+                mysql_config["database"],
+            )
             self.engine = create_engine(SQLALCHEMY_DATABASE_URI)
 
             if self.engine is None:
-                raise BadConfigFileError('failed to connect to MySQL')
+                raise BadConfigFileError("failed to connect to MySQL")
         else:
-            msg = "config.json is missing {} field.".format('mysql')
+            msg = "config.json is missing {} field.".format("mysql")
             raise BadConfigFileError(msg)
 
         self.inspector = inspect(self.engine)
@@ -284,38 +291,38 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         print("initialized NimbusMySQLAlchemy")
 
     def _create_all_tables(self):
-        # TODO: reconsider if this even works???
-        # self.Base.metadata.create_all(self.engine)
-        # TODO: go with this instead... more explicit...
         def __safe_create(SQLAlchemy_object):
             table_name = SQLAlchemy_object.__tablename__
-            print("creating {}...".format(table_name))
+            print(f"creating {table_name}...")
             if table_name in self.inspector.get_table_names():
-                print("<{}> already exists".format(table_name))
+                print(f"<{table_name}> already exists")
                 return
             SQLAlchemy_object.__table__.create(bind=self.engine)
-            print("<{}> created".format(table_name))
+            print(f"<{table_name}> created")
             return
 
         __safe_create(self.Courses)
         __safe_create(self.Professors)
         __safe_create(self.AudioSampleMetaData)
+        __safe_create(self.QuestionAnswerPair)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
         print("initialized database session")
 
-    def get_course_properties(self, department: str,
-                              course_num: Union[str, int]) -> List[Courses]:
+    def get_course_properties(
+        self, department: str, course_num: Union[str, int]
+    ) -> List[Courses]:
         return (
             # sqlalchemy doesn't use type annotations
             # and thus does not necessarily promise a List[Courses]
             # even so we can expect .all() to return a list
             # so long as there is no error in the MySQL syntax
-            self.session.query(Courses).filter(
-                Courses.dept == department,
-                Courses.courseNum == course_num).all())
+            self.session.query(Courses)
+            .filter(Courses.dept == department, Courses.courseNum == course_num)
+            .all()
+        )
 
     def create_AudioSampleMetaData_table(self) -> None:
         table_name = self.AudioSampleMetaData.__tablename__
@@ -325,12 +332,46 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
 
         self.AudioSampleMetaData.__table__.create(bind=self.engine)
 
+    def save_question_answer_pair(self, qa_dict: dict) -> bool:
+        """
+        Save the given question answer pair into the database.
+
+        Example input:
+        {
+            "can_we_answer": False,
+            "answer_type": AnswerType.other,
+            "question_format": "What is the meaning of life?",
+            "answer_format": "Dr. Fizzbuzz says the answer is sqrt(1764)"
+        }
+
+        Args:
+            qa_dict: a dictionary that corresponds to the fields in QuestionAnswerPair  # noqa
+
+        Raises:
+            BadDictionaryKeyError - ...
+            BadDictionaryValueError - ...
+
+        Returns:
+            True if all is good, else False
+        """
+        # create an QuestionAnswerPair object with the given data
+        qa_pair_data = QuestionAnswerPair()
+        qa_pair_data.can_we_answer = qa_dict["can_we_answer"]
+        qa_pair_data.answer_type = qa_dict["answer_type"]
+        qa_pair_data.question_format = qa_dict["question_format"]
+        qa_pair_data.answer_format = qa_dict["answer_format"]
+
+        # insert this new qa_pair_data object into the QuestionAnswerPair table
+        self.session.add(qa_pair_data)
+        self.session.commit()
+        return True
+
     @raises_database_error  # noqa - C901 "too complex" - agreed TODO: reduce complexity
     def save_audio_sample_meta_data(self, formatted_data: dict) -> bool:
         """
         Save the metadata into the NimbusDatabase.
 
-        formatted_data this point looks like:
+        formatted_data at this point looks like:
         {
             "isWakeWord": True,
             "firstName": "jj",
@@ -352,8 +393,16 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
             True if all is good, else False
         """
         keys_i_care_about = {
-            'isWakeWord', 'firstName', 'lastName', 'gender', 'noiseLevel',
-            'location', 'tone', 'timestamp', 'username', 'filename'
+            "isWakeWord",
+            "firstName",
+            "lastName",
+            "gender",
+            "noiseLevel",
+            "location",
+            "tone",
+            "timestamp",
+            "username",
+            "filename",
         }
 
         print(formatted_data)
@@ -380,48 +429,54 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         # create an AudioSampleMetaData object with the given metadata
         metadata = AudioSampleMetaData()
 
-        isWW = formatted_data['isWakeWord']
-        if ((isWW == 'ww') or (isWW is True)):
+        isWW = formatted_data["isWakeWord"]
+        if (isWW == "ww") or (isWW is True):
             metadata.is_wake_word = True
-        elif ((isWW == 'nww') or (isWW is False)):
+        elif (isWW == "nww") or (isWW is False):
             metadata.is_wake_word = False
         else:
             msg = "unexpected values for isWakeWord\n"
             msg += "expected 'ww' or True or 'nww' or False but got '{}'"
-            msg = msg.format(formatted_data['isWakeWord'])
+            msg = msg.format(formatted_data["isWakeWord"])
             raise BadDictionaryValueError(msg)
 
-        metadata.first_name = formatted_data['firstName']
-        metadata.last_name = formatted_data['lastName']
-        metadata.gender = formatted_data['gender']
+        metadata.first_name = formatted_data["firstName"]
+        metadata.last_name = formatted_data["lastName"]
+        metadata.gender = formatted_data["gender"]
 
-        if (formatted_data['noiseLevel'] == 'q' or
-                formatted_data['noiseLevel'] == 'quiet'):
+        if (
+            formatted_data["noiseLevel"] == "q"
+            or formatted_data["noiseLevel"] == "quiet"
+        ):
             metadata.noise_level = NoiseLevel.quiet
-        elif (formatted_data['noiseLevel'] == 'm' or
-              formatted_data['noiseLevel'] == 'medium'):
+        elif (
+            formatted_data["noiseLevel"] == "m"
+            or formatted_data["noiseLevel"] == "medium"
+        ):
             metadata.noise_level = NoiseLevel.medium
-        elif (formatted_data['noiseLevel'] == 'l' or
-              formatted_data['noiseLevel'] == 'loud'):
+        elif (
+            formatted_data["noiseLevel"] == "l"
+            or formatted_data["noiseLevel"] == "loud"
+        ):
             metadata.noise_level = NoiseLevel.loud
         else:
             msg = "unexpected values for noiseLevel\n"
             msg += "expected 'q' or 'm' or 'l' but got '{}'"
-            msg = msg.format(formatted_data['noiseLevel'])
+            msg = msg.format(formatted_data["noiseLevel"])
             raise BadDictionaryValueError(msg)
 
-        metadata.location = formatted_data['location']
-        metadata.tone = formatted_data['tone']
-        metadata.timestamp = formatted_data['timestamp']
-        metadata.username = formatted_data['username']
+        metadata.location = formatted_data["location"]
+        metadata.tone = formatted_data["tone"]
+        metadata.timestamp = formatted_data["timestamp"]
+        metadata.username = formatted_data["username"]
 
-        metadata.filename = formatted_data['filename']
+        metadata.filename = formatted_data["filename"]
 
         # insert this new metadata object into the AudioSampleMetaData table
         self.session.add(metadata)
         self.session.commit()
 
-        pass
+        return True
 
     def save_faculty(self, professor: dict) -> bool:
         """ 
@@ -479,7 +534,7 @@ class NimbusMySQL(NimbusDatabase):
         config_file: a JSON file with the mysql details.
     """
 
-    def __init__(self, config_file: str = 'config.json') -> None:
+    def __init__(self, config_file: str = "config.json") -> None:
         """
         Inits Nimbus Database using the hostname, username, password
         found inside the config_file.
@@ -500,42 +555,43 @@ class NimbusMySQL(NimbusDatabase):
         with open(config_file) as json_data_file:
             config = json.load(json_data_file)
 
-        if config.get('mysql', False):
-            mysql_config = config['mysql']
+        if config.get("mysql", False):
+            mysql_config = config["mysql"]
             self.connection = mysql.connector.connect(
-                host=mysql_config['host'],
-                user=mysql_config['user'],
-                passwd=mysql_config['password'])
+                host=mysql_config["host"],
+                user=mysql_config["user"],
+                passwd=mysql_config["password"],
+            )
 
-            self.database = mysql_config['database']
+            self.database = mysql_config["database"]
 
             if self.connection is None or self.database is None:
-                raise BadConfigFileError('failed to connect to MySQL')
+                raise BadConfigFileError("failed to connect to MySQL")
         else:
-            msg = "config.json is missing {} field.".format('mysql')
+            msg = "config.json is missing {} field.".format("mysql")
             raise BadConfigFileError(msg)
 
-    '''Example:
+    """Example:
     >> > db = NimbusDatabase("config.json")
     >> > db.get_property_from_related_entities(
         ["firstName", "lastName", "ohRoom"],
         "Professors", "OfficeHours", "professorId")
-    [("Foaad", "Khosmood", "14-213"), ("John", "Clements", "14-210"), ...]'''
+    [("Foaad", "Khosmood", "14-213"), ("John", "Clements", "14-210"), ...]"""
 
     def get_property_from_entity(
-            self,
-            prop: List[str],
-            entity: str,
-            condition_field: Optional[str] = None,
-            condition_value: Optional[str] = None) -> List[str]:
+        self,
+        prop: List[str],
+        entity: str,
+        condition_field: Optional[str] = None,
+        condition_value: Optional[str] = None,
+    ) -> List[str]:
         cursor = self.connection.cursor()
-        cursor.execute('use `{}`'.format(self.database))
+        cursor.execute("use `{}`".format(self.database))
         columns = ", ".join(prop)
 
         if (condition_value is not None) and (condition_field is not None):
-            conditions = condition_field + " = " + "\"" + condition_value + "\""
-            statement = "SELECT {} FROM {} WHERE {}".format(
-                columns, entity, conditions)
+            conditions = condition_field + " = " + '"' + condition_value + '"'
+            statement = "SELECT {} FROM {} WHERE {}".format(columns, entity, conditions)
 
         elif (condition_value is None) and (condition_field is None):
             statement = "SELECT {} FROM {}".format(columns, entity)
@@ -552,14 +608,15 @@ class NimbusMySQL(NimbusDatabase):
         return tups
 
     def get_property_from_related_entities(
-            self,
-            prop: List[str],
-            entity1: str,
-            entity2: str,
-            key1: str,
-            key2: Optional[str] = None,
-            condition_field: Optional[str] = None,
-            condition_value: Optional[str] = None) -> List[str]:
+        self,
+        prop: List[str],
+        entity1: str,
+        entity2: str,
+        key1: str,
+        key2: Optional[str] = None,
+        condition_field: Optional[str] = None,
+        condition_value: Optional[str] = None,
+    ) -> List[str]:
         return []
 
     def get_fields_of_entity(self, entity1: str) -> str:
@@ -574,8 +631,8 @@ class NimbusMySQL(NimbusDatabase):
     def yield_entities(self) -> str:
         """Yields a list of all entities in the database."""
         cursor = self.connection.cursor()
-        cursor.execute('use {}'.format(self.database))
-        cursor.execute('show tables')
+        cursor.execute("use {}".format(self.database))
+        cursor.execute("show tables")
         # `fetchall` returns a list of single element tuples
         tups = cursor.fetchall()
         cursor.close()
@@ -595,8 +652,8 @@ class NimbusMySQL(NimbusDatabase):
         'ResponseFormats', 'ShortNames']
         """
         cursor = self.connection.cursor()
-        cursor.execute('use `{}`'.format(self.database))
-        cursor.execute('show tables')
+        cursor.execute("use `{}`".format(self.database))
+        cursor.execute("show tables")
         # `fetchall` returns a list of single element tuples
         tups = cursor.fetchall()
         cursor.close()
@@ -610,8 +667,8 @@ class NimbusMySQL(NimbusDatabase):
         """
         """
         cursor = self.connection.cursor()
-        cursor.execute('use `{}`'.format(self.database))
-        cursor.execute('select distinct({}) from {}'.format(prop, entity))
+        cursor.execute("use `{}`".format(self.database))
+        cursor.execute("select distinct({}) from {}".format(prop, entity))
         # `fetchall` returns a list of single element tuples
         tups = cursor.fetchall()
         cursor.close()
@@ -621,8 +678,8 @@ class NimbusMySQL(NimbusDatabase):
         """
         """
         cursor = self.connection.cursor()
-        cursor.execute('use `{}`'.format(self.database))
-        cursor.execute('select bit_count(`{}`) from `{}`'.format(prop, entity))
+        cursor.execute("use `{}`".format(self.database))
+        cursor.execute("select bit_count(`{}`) from `{}`".format(prop, entity))
         # `fetchall` returns a list of single element tuples
         tups = cursor.fetchall()
         cursor.close()
@@ -636,10 +693,12 @@ class NimbusMySQL(NimbusDatabase):
         """
 
         # FIXME: resolve unused variable `props`, until then, commented out
-        props = self.get_property_from_entity(prop=["*"],
-                                              entity="Professors",
-                                              condition_field="lastName",
-                                              condition_value=lastName)
+        props = self.get_property_from_entity(
+            prop=["*"],
+            entity="Professors",
+            condition_field="lastName",
+            condition_value=lastName,
+        )
         return props
 
     def get_course_properties(self, courseName) -> List[str]:
@@ -649,10 +708,9 @@ class NimbusMySQL(NimbusDatabase):
         """
 
         # FIXME: resolve unused variable `props`, until then, commented out
-        props = self.get_property_from_entity(["*"],
-                                              "Courses",
-                                              condition_field="courseName",
-                                              condition_value=courseName)
+        props = self.get_property_from_entity(
+            ["*"], "Courses", condition_field="courseName", condition_value=courseName
+        )
         return props
 
     def get_club_properties(self, clubName):
@@ -748,26 +806,14 @@ class NimbusMySQL(NimbusDatabase):
 
 if __name__ == "__main__":
     db = NimbusMySQLAlchemy()
-    course_list = db.get_course_properties('CSC', 357)
-    print("course_list:", course_list)
-    course_list = db.get_course_properties('CSC', '357')
-    print("course_list:", course_list)
-    csc357 = course_list[0]
-    print("course_list[0].courseName", csc357.courseName)
 
-    db.create_AudioSampleMetaData_table()
+    db._create_all_tables()
 
     metadata = {
-        "isWakeWord": 'ww',
-        "firstName": "john",
-        "lastName": "doe",
-        "gender": "f",
-        "noiseLevel": "q",
-        "location": "here",
-        "tone": "serious-but-not-really",
-        "timestamp": 1577077883,
-        "username": "guest",
-        "filename": "filename"
+        "can_we_answer": False,
+        "answer_type": AnswerType.other,
+        "question_format": "What is the meaning of life?",
+        "answer_format": "Dr. Fizzbuzz says the answer is sqrt(1764)",
     }
 
-    db.save_audio_sample_meta_data(metadata)
+    db.save_question_answer_pair(metadata)
