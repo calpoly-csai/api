@@ -764,26 +764,14 @@ class NimbusMySQL(NimbusDatabase):
 
 if __name__ == "__main__":
     db = NimbusMySQLAlchemy()
-    course_list = db.get_course_properties("CSC", 357)
-    print("course_list:", course_list)
-    course_list = db.get_course_properties("CSC", "357")
-    print("course_list:", course_list)
-    csc357 = course_list[0]
-    print("course_list[0].courseName", csc357.courseName)
 
-    db.create_AudioSampleMetaData_table()
+    db._create_all_tables()
 
     metadata = {
-        "isWakeWord": "ww",
-        "firstName": "john",
-        "lastName": "doe",
-        "gender": "f",
-        "noiseLevel": "q",
-        "location": "here",
-        "tone": "serious-but-not-really",
-        "timestamp": 1577077883,
-        "username": "guest",
-        "filename": "filename",
+        "can_we_answer": False,
+        "answer_type": AnswerType.other,
+        "question_format": "What is the meaning of life?",
+        "answer_format": "Dr. Fizzbuzz says the answer is sqrt(1764)",
     }
 
-    db.save_audio_sample_meta_data(metadata)
+    db.save_question_answer_pair(metadata)
