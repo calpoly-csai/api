@@ -21,6 +21,7 @@ from sqlalchemy.orm import sessionmaker
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Calendars import Calendars
 from Entity.Courses import Courses
+from Entity.Professors import Professors
 
 
 class BadDictionaryKeyError(Exception):
@@ -258,6 +259,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         self.engine = None  # gets set according to config_file
         self.Calendars = Calendars
         self.Courses = Courses
+        self.Professors = Professors
         self.AudioSampleMetaData = AudioSampleMetaData
 
         with open(config_file) as json_data_file:
@@ -299,6 +301,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
 
         __safe_create(self.Calendars)
         __safe_create(self.Courses)
+        __safe_create(self.Professors)
         __safe_create(self.AudioSampleMetaData)
 
     def _create_database_session(self):
@@ -438,15 +441,16 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
   
          Args: 
              calendar_data: a dictionary that corresponds to the fields in Calendar 
-  
+
          Raises: 
              BadDictionaryKeyError - ... 
              BadDictionaryValueError - ... 
   
          Returns: 
              True if all is good, else False 
-         """ 
-        
+        """ 
+
+        calendar = Calendars()
         calendar.date = calendar_data['date']
         calendar.day = calendar_data['day']
         calendar.month = calendar_data['month']
@@ -456,6 +460,46 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         self.session.add(calendar)
         self.session.commit()
         return True
+
+    def save_faculty(self, professor: dict) -> bool:
+        """ 
+         Save the given professor into the database. 
+
+         Example input: 
+         { 
+             "id": 1, 
+             "firstName": "Tim", 
+             "lastName": "Kearns", 
+             "phoneNumber": "805-123-4567" ,
+             "researchInterests": "algorithms, databases",
+             "email": "tkearns@calpoly.edu"
+         } 
+  
+         Args: 
+             professor: a dictionary that corresponds to the fields in Professor
+
+         Raises: 
+             BadDictionaryKeyError - ... 
+             BadDictionaryValueError - ... 
+  
+         Returns: 
+             True if all is good, else False 
+        """ 
+
+        professor_data = Professors()
+        professor_data.id = professor["id"]
+        professor_data.firstName = professor["firstName"]
+        professor_data.lastName = professor["lastName"]
+        professor_data.phoneNumber = professor["phoneNumber"]
+        professor_data.researchInterests = professor["researchInterests"]
+        professor_data.email = professor["email"]
+
+        # insert this new professor_data object into the Professors table 
+        self.session.add(professor_data) 
+        self.session.commit() 
+        return True
+
+
 
     def _execute(self, query: str):
         return self.engine.execute(query)
