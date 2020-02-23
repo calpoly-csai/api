@@ -21,6 +21,7 @@ from sqlalchemy.orm import sessionmaker
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Calendars import Calendars
 from Entity.Courses import Courses
+from Entity.Locations import Locations
 from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
 from Entity.Professors import Professors
 
@@ -262,6 +263,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.Courses = Courses
         self.Professors = Professors
         self.AudioSampleMetaData = AudioSampleMetaData
+        self.Locations = Locations
         self.QuestionAnswerPair = QuestionAnswerPair
 
         with open(config_file) as json_data_file:
@@ -307,6 +309,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.Courses)
         __safe_create(self.Professors)
         __safe_create(self.AudioSampleMetaData)
+        __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
 
     def _create_database_session(self):
@@ -478,7 +481,37 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         # insert this new metadata object into the AudioSampleMetaData table
         self.session.add(metadata)
         self.session.commit()
+        return True
 
+    def save_location(self, location_data: dict):
+        """
+        Save the given location data into the database.
+
+        Example Input:
+        {
+            "building_number": 1,
+            "name": "Administration",
+            "longitude": -120.658561,
+            "latitude": 35.300960
+        }
+        Args:
+            location_data: a dictionary that corresponds to the fields in Locations
+
+        Raises:
+            BadDictionaryKeyError - ...
+            BadDictionaryValueError - ...
+
+        Returns:
+            True if all good, else False
+        """
+        location = Locations()
+        location.building_number = location_data["building_number"]
+        location.name = location_data["name"]
+        location.longitude = location_data["longitude"]
+        location.latitude = location_data["latitude"]
+
+        self.session.add(location)
+        self.session.commit()
         return True
 
     def save_calendar(self, calendar_data: dict):
@@ -503,14 +536,14 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
   
          Returns: 
              True if all is good, else False 
-        """ 
+        """
 
         calendar = Calendars()
-        calendar.date = calendar_data['date']
-        calendar.day = calendar_data['day']
-        calendar.month = calendar_data['month']
-        calendar.year = calendar_data['year']
-        calendar.raw_events_text = calendar_data['raw_events_text']
+        calendar.date = calendar_data["date"]
+        calendar.day = calendar_data["day"]
+        calendar.month = calendar_data["month"]
+        calendar.year = calendar_data["year"]
+        calendar.raw_events_text = calendar_data["raw_events_text"]
 
         self.session.add(calendar)
         self.session.commit()
@@ -539,7 +572,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
   
          Returns: 
              True if all is good, else False 
-        """ 
+        """
 
         professor_data = Professors()
         professor_data.id = professor["id"]
@@ -549,12 +582,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         professor_data.researchInterests = professor["researchInterests"]
         professor_data.email = professor["email"]
 
-        # insert this new professor_data object into the Professors table 
-        self.session.add(professor_data) 
-        self.session.commit() 
+        # insert this new professor_data object into the Professors table
+        self.session.add(professor_data)
+        self.session.commit()
         return True
-
-
 
     def _execute(self, query: str):
         return self.engine.execute(query)
@@ -848,11 +879,11 @@ if __name__ == "__main__":
 
     db._create_all_tables()
 
-    metadata = {
-        "can_we_answer": False,
-        "answer_type": AnswerType.other,
-        "question_format": "What is the meaning of life?",
-        "answer_format": "Dr. Fizzbuzz says the answer is sqrt(1764)",
+    data = {
+        "building_number": 1,
+        "name": "Administration",
+        "longitude": -120.658561,
+        "latitude": 35.300960,
     }
 
-    db.save_question_answer_pair(metadata)
+    db.save_location(data)
