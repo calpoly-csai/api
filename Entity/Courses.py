@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Enum
+from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.mysql import SET
 import enum
