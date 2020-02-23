@@ -15,7 +15,7 @@ class NoiseLevel(enum.Enum):
 class AudioSampleMetaData(Base):
     __tablename__ = 'AudioSampleMetaData'
     id = Column(Integer, primary_key=True)
-    # I think... SQLAlchemy will resolve this to TINYINT in MYSQL
+    # SQLAlchemy resolves Boolean to TINYINT within MYSQL
     is_wake_word = Column(Boolean)
     # TODO: run a magical SQL script that support emojis in first_name
     first_name = Column(String(255))
