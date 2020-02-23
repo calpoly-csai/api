@@ -19,6 +19,7 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
+from Entity.Calendars import Calendars
 from Entity.Courses import Courses
 from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
 from Entity.Professors import Professors
@@ -257,6 +258,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
     def __init__(self, config_file: str = "config.json") -> None:
         self.engine = None  # gets set according to config_file
+        self.Calendars = Calendars
         self.Courses = Courses
         self.Professors = Professors
         self.AudioSampleMetaData = AudioSampleMetaData
@@ -301,6 +303,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             print(f"<{table_name}> created")
             return
 
+        __safe_create(self.Calendars)
         __safe_create(self.Courses)
         __safe_create(self.Professors)
         __safe_create(self.AudioSampleMetaData)
@@ -478,10 +481,45 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         return True
 
+    def save_calendar(self, calendar_data: dict):
+        """ 
+         Save the given calendar into the database. 
+  
+         Example input: 
+         { 
+             "date": 7_4_2020,
+             "day": 4,
+             "month": July,
+             "year": 2020,
+             "raw_events_text": ['Academic holiday - Independence Day Observed']
+         } 
+  
+         Args: 
+             calendar_data: a dictionary that corresponds to the fields in Calendar 
+
+         Raises: 
+             BadDictionaryKeyError - ... 
+             BadDictionaryValueError - ... 
+  
+         Returns: 
+             True if all is good, else False 
+        """ 
+
+        calendar = Calendars()
+        calendar.date = calendar_data['date']
+        calendar.day = calendar_data['day']
+        calendar.month = calendar_data['month']
+        calendar.year = calendar_data['year']
+        calendar.raw_events_text = calendar_data['raw_events_text']
+
+        self.session.add(calendar)
+        self.session.commit()
+        return True
+
     def save_faculty(self, professor: dict) -> bool:
         """ 
          Save the given professor into the database. 
-  
+
          Example input: 
          { 
              "id": 1, 
@@ -494,26 +532,27 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
   
          Args: 
              professor: a dictionary that corresponds to the fields in Professor
-  
+
          Raises: 
              BadDictionaryKeyError - ... 
              BadDictionaryValueError - ... 
   
          Returns: 
              True if all is good, else False 
-         """ 
-         professor_data= Professors()
-         professor_data.id = professor["id"]
-         professor_data.firstName = professor["firstName"]
-         professor_data.lastName = professor["lastName"]
-         professor_data.phoneNumber = professor["phoneNumber"]
-         professor_data.researchInterests = professor["researchInterests"]
-         professor_data.email = professor["email"]
+        """ 
 
-         # insert this new professor_data object into the Professors table 
-         self.session.add(professor_data) 
-         self.session.commit() 
-         return True
+        professor_data = Professors()
+        professor_data.id = professor["id"]
+        professor_data.firstName = professor["firstName"]
+        professor_data.lastName = professor["lastName"]
+        professor_data.phoneNumber = professor["phoneNumber"]
+        professor_data.researchInterests = professor["researchInterests"]
+        professor_data.email = professor["email"]
+
+        # insert this new professor_data object into the Professors table 
+        self.session.add(professor_data) 
+        self.session.commit() 
+        return True
 
 
 
