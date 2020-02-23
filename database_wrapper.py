@@ -20,7 +20,7 @@ from sqlalchemy.orm import sessionmaker
 
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Courses import Courses
-
+from Entity.Locations import Locations
 
 class BadDictionaryKeyError(Exception):
     """Raised when the given JSON/dict is missing some required fields.
@@ -257,6 +257,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         self.engine = None  # gets set according to config_file
         self.Courses = Courses
         self.AudioSampleMetaData = AudioSampleMetaData
+        self.Locations = Locations
 
         with open(config_file) as json_data_file:
             config = json.load(json_data_file)
@@ -297,6 +298,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
 
         __safe_create(self.Courses)
         __safe_create(self.AudioSampleMetaData)
+        __safe_create(self.Locations)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -419,6 +421,36 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         self.session.commit()
 
         pass
+    def save_location(self, location_data: dict):
+        """
+        Save the given location data into the database.
+
+        Example Input:
+        {
+            "building_number": 1,
+            "name": Administration,
+            "longitude": -120.658561,
+            "latitude": 35.300960
+        }
+        Args:
+            location_data: a dictionary that corresponds to the fields in Locations
+
+        Raises:
+            BadDictionaryKeyError - ...
+            BadDictionaryValueError - ...
+
+        Returns:
+            True if all good, else False
+        """
+        location = Locations()
+        location.building_number = location_data['building_number']
+        location.name = location_data['name']
+        location.longitude = location_data['longitude']
+        location.latitude = location_data['latitude']
+
+        self.session.add(location)
+        self.session.commit()
+        return True
 
     def _execute(self, query: str):
         return self.engine.execute(query)
