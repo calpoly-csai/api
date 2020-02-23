@@ -424,18 +424,42 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         pass
 
     def save_course(self, course_data: dict):
-        expected_keys = {'courseId', 'dept', 'courseNum', 'units',
+        """
+        Save the course into the NimbusDatabase.
+
+        course_data this point looks like:
+        {
+            "dept": CPE,
+            "courseNum": 357,
+            "units": 4,
+            "termsOffered": "F,W,SP",
+            "courseName": "Systems Programming",
+            "raw_concurrent_text": "N/A",
+            "raw_recommended_text": "N/A",
+            "raw_prerequisites_text": "CSC/CPE,102,and,CSC/CPE,103,with,..."
+        }
+
+        Raises:
+            BadDictionaryKeyError - ...
+            BadDictionaryValueError - ...
+
+        Returns:
+            True if all is good, else False
+        """
+        expected_keys = {'dept', 'courseNum', 'units',
                          'termsOffered', 'courseName', 'raw_concurrent_text',
                          'raw_recommended_text', 'raw_prerequisites_text'}
         self.validate_input_keys(course_data, expected_keys)
 
-        course = self.session.query(Courses).filter_by(courseId=course_data['courseId']).first()
+        course = self.session.query(Courses).filter_by(dept=course_data['dept'],
+                                                       courseNum=course_data['courseNum']).first()
         if not course:
-            print("Adding new course: {}".format(course_data['courseId']))
+            print("Adding new course: {} {}".format(course_data['dept'],
+                                                    course_data['courseNum']))
             course = Courses()
-            course.courseId = course_data['courseId']
         else:
-            print("Updating course: {}".format(course_data['courseId']))
+            print("Updating course: {} {}".format(course_data['dept'],
+                                                  course_data['courseNum']))
 
         course.dept = course_data['dept']
         course.courseNum = course_data['courseNum']

@@ -22,7 +22,7 @@ class CollegeStanding(enum.Enum):
 class Courses(Base):
     __tablename__ = 'Courses'
     # TODO: update schema and this Courses class to follow snake_case convention
-    courseId = Column(String(10), primary_key=True)
+    id = Column(Integer, primary_key=True)
     dept = Column(String(5))
     courseNum = Column(Integer)
     termsOffered = Column(SET('F', 'W', 'SP', 'SU', 'TBD'))

@@ -115,6 +115,9 @@ def save_a_recording():
 
 @app.route('/new_data/courses', methods=['POST'])
 def save_courses():
+    """
+    Persists list of courses
+    """
     data = json.loads(request.get_json())
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for course in data['courses']:
