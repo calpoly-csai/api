@@ -13,7 +13,7 @@ import re
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 now = datetime.now()
-date_time = now.strftime("_%m_%d_%Y_%H:%M:%S")
+date_time = now.strftime("_%m_%d_%Y_%H_%M_%S")
 
 
 def save_model(model, model_name):
@@ -31,10 +31,9 @@ def load_model(model_name):
 def load_latest_model():
     train_path = PROJECT_DIR + '/models/'
     onlyfiles = [f for f in listdir(train_path) if isfile(join(train_path, f))]
-    r = [(f, datetime.strptime(re.findall(r'([\d]+_[\d]+_[\d]+_[\d]+\:[\d]+\:[\d]+)', f)[0], '%m_%d_%Y_%H:%M:%S')) for f in onlyfiles]
+    r = [(f, datetime.strptime(re.findall(r'([\d]+_[\d]+_[\d]+_[\d]+_[\d]+_[\d]+)', f)[0], '%m_%d_%Y_%H_%M_%S')) for f in onlyfiles]
     r = sorted(r, key=lambda x: x[1])
     model_path = r[-1][0]
     return joblib.load(train_path + model_path)
 
 
-load_latest_model()
