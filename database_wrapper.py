@@ -19,6 +19,7 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
+from Entity.Calendars import Calendars
 from Entity.Courses import Courses
 
 
@@ -255,6 +256,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         # # sqlalchemy needs a Base class for all the database entities
         # self.Base = declarative_base()
         self.engine = None  # gets set according to config_file
+        self.Calendars = Calendars
         self.Courses = Courses
         self.AudioSampleMetaData = AudioSampleMetaData
 
@@ -295,6 +297,7 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
             print("<{}> created".format(table_name))
             return
 
+        __safe_create(self.Calendars)
         __safe_create(self.Courses)
         __safe_create(self.AudioSampleMetaData)
 
@@ -419,6 +422,40 @@ class NimbusMySQLAlchemy():  # NimbusMySQLAlchemy(NimbusDatabase):
         self.session.commit()
 
         pass
+
+    def save_calendar(self, calendar_data: dict):
+        """ 
+         Save the given calendar into the database. 
+  
+         Example input: 
+         { 
+             "date": 7_4_2020,
+             "day": 4,
+             "month": July,
+             "year": 2020,
+             "raw_events_text": ['Academic holiday - Independence Day Observed']
+         } 
+  
+         Args: 
+             calendar_data: a dictionary that corresponds to the fields in Calendar 
+  
+         Raises: 
+             BadDictionaryKeyError - ... 
+             BadDictionaryValueError - ... 
+  
+         Returns: 
+             True if all is good, else False 
+         """ 
+        
+        calendar.date = calendar_data['date']
+        calendar.day = calendar_data['day']
+        calendar.month = calendar_data['month']
+        calendar.year = calendar_data['year']
+        calendar.raw_events_text = calendar_data['raw_events_text']
+
+        self.session.add(calendar)
+        self.session.commit()
+        return True
 
     def _execute(self, query: str):
         return self.engine.execute(query)
