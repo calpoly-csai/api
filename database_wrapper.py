@@ -13,7 +13,6 @@ import json
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
 
-import mysql.connector
 import sqlalchemy
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
@@ -515,27 +514,27 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         return True
 
     def save_calendar(self, calendar_data: dict):
-        """ 
-         Save the given calendar into the database. 
-  
-         Example input: 
-         { 
+        """
+         Save the given calendar into the database.
+
+         Example input:
+         {
              "date": 7_4_2020,
              "day": 4,
              "month": July,
              "year": 2020,
              "raw_events_text": ['Academic holiday - Independence Day Observed']
-         } 
-  
-         Args: 
-             calendar_data: a dictionary that corresponds to the fields in Calendar 
+         }
 
-         Raises: 
-             BadDictionaryKeyError - ... 
-             BadDictionaryValueError - ... 
-  
-         Returns: 
-             True if all is good, else False 
+         Args:
+             calendar_data: a dictionary that corresponds to the fields in Calendar
+
+         Raises:
+             BadDictionaryKeyError - ...
+             BadDictionaryValueError - ...
+
+         Returns:
+             True if all is good, else False
         """
 
         calendar = Calendars()
@@ -550,28 +549,28 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         return True
 
     def save_faculty(self, professor: dict) -> bool:
-        """ 
-         Save the given professor into the database. 
+        """
+         Save the given professor into the database.
 
-         Example input: 
-         { 
-             "id": 1, 
-             "firstName": "Tim", 
-             "lastName": "Kearns", 
+         Example input:
+         {
+             "id": 1,
+             "firstName": "Tim",
+             "lastName": "Kearns",
              "phoneNumber": "805-123-4567" ,
              "researchInterests": "algorithms, databases",
              "email": "tkearns@calpoly.edu"
-         } 
-  
-         Args: 
+         }
+
+         Args:
              professor: a dictionary that corresponds to the fields in Professor
 
-         Raises: 
-             BadDictionaryKeyError - ... 
-             BadDictionaryValueError - ... 
-  
-         Returns: 
-             True if all is good, else False 
+         Raises:
+             BadDictionaryKeyError - ...
+             BadDictionaryValueError - ...
+
+         Returns:
+             True if all is good, else False
         """
 
         professor_data = Professors()
@@ -592,286 +591,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
     def __del__(self):
         print("NimbusMySQLAlchemy closed")
-
-
-class NimbusMySQL(NimbusDatabase):
-    """An adapter for mysql-connector-python to fit our program.
-
-    The NimbusMySQL makes the mysql-connector-python interface
-    compatible with the our program's interface.
-
-    Attributes:
-        config_file: a JSON file with the mysql details.
-    """
-
-    def __init__(self, config_file: str = "config.json") -> None:
-        """
-        Inits Nimbus Database using the hostname, username, password
-        found inside the config_file.
-
-        Args:
-            config_file: a JSON file with a 'mysql' object that holds
-            the connection details.
-
-        Returns:
-            None
-
-        Raises:
-            BadConfigFileError: If the config_file fields are unexpected.
-        """
-        self.connection = None  # gets set according to config_file
-        self.database = None  # gets set according to config_file
-
-        with open(config_file) as json_data_file:
-            config = json.load(json_data_file)
-
-        if config.get("mysql", False):
-            mysql_config = config["mysql"]
-            self.connection = mysql.connector.connect(
-                host=mysql_config["host"],
-                user=mysql_config["user"],
-                passwd=mysql_config["password"],
-            )
-
-            self.database = mysql_config["database"]
-
-            if self.connection is None or self.database is None:
-                raise BadConfigFileError("failed to connect to MySQL")
-        else:
-            msg = "config.json is missing {} field.".format("mysql")
-            raise BadConfigFileError(msg)
-
-    """Example:
-    >> > db = NimbusDatabase("config.json")
-    >> > db.get_property_from_related_entities(
-        ["firstName", "lastName", "ohRoom"],
-        "Professors", "OfficeHours", "professorId")
-    [("Foaad", "Khosmood", "14-213"), ("John", "Clements", "14-210"), ...]"""
-
-    def get_property_from_entity(
-        self,
-        prop: List[str],
-        entity: str,
-        condition_field: Optional[str] = None,
-        condition_value: Optional[str] = None,
-    ) -> List[str]:
-        cursor = self.connection.cursor()
-        cursor.execute("use `{}`".format(self.database))
-        columns = ", ".join(prop)
-
-        if (condition_value is not None) and (condition_field is not None):
-            conditions = condition_field + " = " + '"' + condition_value + '"'
-            statement = "SELECT {} FROM {} WHERE {}".format(columns, entity, conditions)
-
-        elif (condition_value is None) and (condition_field is None):
-            statement = "SELECT {} FROM {}".format(columns, entity)
-
-        else:
-            print("choose both condition field and condition value")
-            return []
-
-        # print(statement)
-        cursor.execute(statement)
-        tups = cursor.fetchall()
-        cursor.close()
-
-        return tups
-
-    def get_property_from_related_entities(
-        self,
-        prop: List[str],
-        entity1: str,
-        entity2: str,
-        key1: str,
-        key2: Optional[str] = None,
-        condition_field: Optional[str] = None,
-        condition_value: Optional[str] = None,
-    ) -> List[str]:
-        return []
-
-    def get_fields_of_entity(self, entity1: str) -> str:
-        cursor = self.connection.cursor()
-        # don't know why the line below is a syntactically wrong.
-        # cursor.execute('use {}'.format(self.database))
-        cursor.execute("SHOW COLUMNS FROM {}".format(entity1))
-        fields = cursor.fetchall()
-        cursor.close()
-        return fields
-
-    def yield_entities(self) -> str:
-        """Yields a list of all entities in the database."""
-        cursor = self.connection.cursor()
-        cursor.execute("use {}".format(self.database))
-        cursor.execute("show tables")
-        # `fetchall` returns a list of single element tuples
-        tups = cursor.fetchall()
-        cursor.close()
-        for x in tups:
-            yield x[0]
-
-    def get_entities(self) -> str:
-        """
-        Returns a list of all entities in the database.
-
-        Example:
-        >>> from database_wrapper import NimbusMySQL
-        >>> db = NimbusMySQL()
-        >>> db.get_entities()
-        ['Clubs', 'Corequisites', 'Corrections', 'Courses', 'OfficeHours',
-        'PolyRatings', 'Prerequisites', 'Professors', 'ResearchInterests',
-        'ResponseFormats', 'ShortNames']
-        """
-        cursor = self.connection.cursor()
-        cursor.execute("use `{}`".format(self.database))
-        cursor.execute("show tables")
-        # `fetchall` returns a list of single element tuples
-        tups = cursor.fetchall()
-        cursor.close()
-        return [x[0] for x in tups]
-
-    def get_relationships(self) -> str:
-        """Returns a list of all relationships between entities in database."""
-        pass
-
-    def get_unique(self, entity, prop) -> str:
-        """
-        """
-        cursor = self.connection.cursor()
-        cursor.execute("use `{}`".format(self.database))
-        cursor.execute("select distinct({}) from {}".format(prop, entity))
-        # `fetchall` returns a list of single element tuples
-        tups = cursor.fetchall()
-        cursor.close()
-        return [x[0] for x in tups]
-
-    def get_bitcount(self, entity, prop) -> str:
-        """
-        """
-        cursor = self.connection.cursor()
-        cursor.execute("use `{}`".format(self.database))
-        cursor.execute("select bit_count(`{}`) from `{}`".format(prop, entity))
-        # `fetchall` returns a list of single element tuples
-        tups = cursor.fetchall()
-        cursor.close()
-        return [x[0] for x in tups]
-
-    def get_professor_properties(self, lastName) -> List[str]:
-        # TODO: need to change the get property from entity to accept multiple
-        #       condition fields and values, currently just looks by last name
-        """
-        To get a particular professor's properties
-        """
-
-        # FIXME: resolve unused variable `props`, until then, commented out
-        props = self.get_property_from_entity(
-            prop=["*"],
-            entity="Professors",
-            condition_field="lastName",
-            condition_value=lastName,
-        )
-        return props
-
-    def get_course_properties(self, courseName) -> List[str]:
-        # TODO: decide how we want to look up courses/ maybe create two methods
-        #       Currently looks up by courseName
-        """
-        """
-
-        # FIXME: resolve unused variable `props`, until then, commented out
-        props = self.get_property_from_entity(
-            ["*"], "Courses", condition_field="courseName", condition_value=courseName
-        )
-        return props
-
-    def get_club_properties(self, clubName):
-        """
-        Gives all of the properties of a club in the database.
-
-        Args:
-            clubName: a string representing the name of the club
-
-        Returns:
-            TODO: Determine type of the return based on the get_property_from_entity() method
-        """
-        pass
-
-    def get_course_schedule(self, courseName):
-        """
-        Describes all of the days and times during the week that a course takes place.
-
-        Args:
-            courseName: a string representing the name of the course
-
-        Returns:
-            TODO: Determine type of the return based on the get_property_from_entity() method
-        """
-        pass
-
-    def get_professor_schedule(self, lastName):
-        """
-        Gives all of the properties of a club in the database.
-
-        Args:
-            lastName: a string representing the last name of the professor
-            TODO: Choose exactly how to be referencing professors
-
-        Returns:
-            TODO: Determine type of the return based on the get_property_from_related_entity() method
-        """
-        pass
-
-    def get_course_prerequisites(self, courseName):
-        """
-        Gives the prerequisite courses for a given course in the database.
-
-        Args:
-            courseName: a string representing the name of the course
-
-        Returns:
-            TODO: Determine type of the return based on the get_property_from_related_entity() method
-        """
-        pass
-
-    def get_professor_research_interests(self, lastName):
-        """
-        Gives the research interests of a specific professor.
-
-        Args:
-            lastName: a string representing the lastName of the professor
-            TODO: Choose exactly how to be referencing professors
-        Returns:
-            TODO: Determine type of the return based on the get_property_from_related_entity() method
-        """
-        pass
-
-    def get_professors_with_interest(self, interest):
-        """
-        Gives the professors who have a specific research interest.
-
-        Args:
-            interest: a string representing a research interest professors may have
-
-        Returns:
-            TODO: Determine type of the return based on the get_property_from_related_entity() method
-        """
-        pass
-
-    def get_professor_polyrating(self, lastName):
-        """
-        Gives the average polyrating of a specific professor.
-
-        Args:
-            lastName: a string representing the lastName of the professor
-            TODO: Choose exactly how to be referencing professors
-        Returns:
-            TODO: Determine type of the return based on the get_property_from_related_entity() method
-        """
-        pass
-
-    def close(self) -> None:
-        """Close the database connection"""
-        self.connection.close()
-        super().close()
 
 
 if __name__ == "__main__":
