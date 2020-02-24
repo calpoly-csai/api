@@ -3,6 +3,8 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
+import json
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pydrive.auth import GoogleAuth
@@ -109,6 +111,31 @@ def save_a_recording():
         raise e
 
     return filename
+
+
+@app.route('/new_data/courses', methods=['POST'])
+def save_courses():
+    """
+    Persists list of courses
+    """
+    data = json.loads(request.get_json())
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    for course in data['courses']:
+        try:
+            db.save_course(course)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
 
 
 def create_filename(form):

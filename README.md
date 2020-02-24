@@ -33,7 +33,28 @@ Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CS
 
 2. pip 9.0.1
 
-3. The _hostname_, _username_, and _password_ of a MySQL database (e.g. MySQL 5.7.28) inputted into `config.json`
+
+### Database Configuration
+
+**Create a file** called `config.json` that should include at least the following details of a MySQL database:
+```json
+{
+    ...
+    "mysql": {
+        "host": "HOSTNAME",
+        "port": "PORT e.g. 3306",
+        "user": "USERNAME",
+        "password": "PASSWORD",
+        "database": "DATABASE",
+        ...
+    }
+    ...
+}
+```
+
+**You can also use [`config_SAMPLE.json`](https://github.com/calpoly-csai/api/blob/dev/config_SAMPLE.json) as a reference**
+
+_Contact anyone on the Data Team to get connection details for the Nimbus database_
 
 
 ### Install

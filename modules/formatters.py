@@ -23,5 +23,4 @@ class WakeWordFormatter(Formatter):
         form["firstName"] = form["firstName"].title()
         form["lastName"] = form["lastName"].title()
         form['timestamp'] = int(form[key])
-
         return form

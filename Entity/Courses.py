@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Enum
+from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.mysql import SET
 import enum
@@ -22,7 +22,7 @@ class CollegeStanding(enum.Enum):
 class Courses(Base):
     __tablename__ = 'Courses'
     # TODO: update schema and this Courses class to follow snake_case convention
-    courseId = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     dept = Column(String(5))
     courseNum = Column(Integer)
     termsOffered = Column(SET('F', 'W', 'SP', 'SU', 'TBD'))
@@ -31,9 +31,6 @@ class Courses(Base):
     raw_concurrent_text = Column(Text)
     raw_recommended_text = Column(Text)
     raw_prerequisites_text = Column(Text)
-    crossListedAs = Column(String(45))
-    raw_standing_text = Column(String(45))
-    standing = Column(Enum(CollegeStanding))
 
     def __repr__(self):
         return "<Courses (dept={}, course_num={})>".format(
