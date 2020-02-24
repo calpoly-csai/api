@@ -532,6 +532,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         club_data.desc = formatted_data['desc']
         club_data.contact_email = formatted_data['contact_email']
         club_data.contact_email_2 = formatted_data['contact_email_2']
+        club_data.contact_person = formatted_data['contact_person']
         club_data.contact_phone = formatted_data['contact_phone']
         club_data.box = formatted_data['box']
         club_data.advisor = formatted_data['advisor']
@@ -813,13 +814,13 @@ if __name__ == "__main__":
         [
             (x, y)
             for x, y in zip(
-                db.get_property_from_entity(
-                    prop="longitude", entity=Locations, entity_string="Admin"
-                ),
-                db.get_property_from_entity(
-                    prop="latitude", entity=Locations, entity_string="Admin"
-                ),
-            )
+            db.get_property_from_entity(
+                prop="longitude", entity=Locations, entity_string="Admin"
+            ),
+            db.get_property_from_entity(
+                prop="latitude", entity=Locations, entity_string="Admin"
+            ),
+        )
         ]
     )
 
@@ -840,3 +841,6 @@ if __name__ == "__main__":
             prop="courseName", entity=Courses, entity_string="357"
         )
     )
+
+
+

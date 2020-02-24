@@ -10,7 +10,7 @@ class SectionType(enum.Enum):
     activity = Act = 0
     seminar = Sem = 1
     independent = Ind = 2
-    lab = Lab = 3
+    lab = 3
     lecture = Lec = 4
 
 
