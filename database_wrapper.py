@@ -21,8 +21,14 @@ from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Calendars import Calendars
 from Entity.Courses import Courses
 from Entity.Locations import Locations
-from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
-from Entity.Professors import Professors
+from Entity.QuestionAnswerPair import QuestionAnswerPair
+from Entity.Professors import Professors, ProfessorsProperties
+
+
+UNION_ENTITIES = Union[
+    Calendars, Courses, Professors, AudioSampleMetaData, QuestionAnswerPair
+]
+UNION_PROPERTIES = Union[ProfessorsProperties]
 
 
 class BadDictionaryKeyError(Exception):
@@ -316,6 +322,50 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.session = Session()
         print("initialized database session")
 
+    def get_property_from_entity(
+        self, prop: str, entity: UNION_ENTITIES, entity_string: str
+    ) -> List[UNION_ENTITIES]:
+        """
+        This function implements the abstractmethod to get a column of values
+        from a NimbusDatabase entity.
+
+        Example:
+        >>> db = NimbusMySQLAlchemy()
+        >>> db.get_property_from_entity(
+            prop="email",
+            entity=Entity.Professors.Professors,
+            entity_string="Khosmood",
+        )
+        >>> ["foaad@calpoly.edu"]
+
+        Args:
+            prop: ...
+            entity: ...
+            entity_string: ...
+
+        Returns:
+            A list of values for `prop`
+            such that the `entity` matches the `entity_string`.
+
+        Raises:
+            ...
+        """
+        # TODO: be smart by check only Professor.firstName Professor.lastName
+        # TODO: only check Course.dept, Course.course_num, Course.course_name
+        props = []
+        for k in entity.__dict__:
+            if not k.startswith("_"):
+                props.append(entity.__dict__[k])
+
+        results = []
+        # FIXME: this is not good querying!
+        # TODO: don't be so lazy!
+        for p in props:
+            query_obj = self.session.query(entity)
+            res = query_obj.filter(p.contains(entity_string)).all()
+            results += res
+        return [x.__dict__.get(prop) for x in results]
+
     def get_course_properties(
         self, department: str, course_num: Union[str, int]
     ) -> List[Courses]:
@@ -606,3 +656,35 @@ if __name__ == "__main__":
     }
 
     db.save_location(data)
+
+    print(
+        [
+            (x, y)
+            for x, y in zip(
+                db.get_property_from_entity(
+                    prop="longitude", entity=Locations, entity_string="Admin"
+                ),
+                db.get_property_from_entity(
+                    prop="latitude", entity=Locations, entity_string="Admin"
+                ),
+            )
+        ]
+    )
+
+    print(
+        db.get_property_from_entity(
+            prop="courseName", entity=Courses, entity_string="Algo"
+        )
+    )
+
+    print(
+        db.get_property_from_entity(
+            prop="courseName", entity=Courses, entity_string="Design"
+        )
+    )
+
+    print(
+        db.get_property_from_entity(
+            prop="courseName", entity=Courses, entity_string="357"
+        )
+    )
