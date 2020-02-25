@@ -649,7 +649,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         calendar.month = calendar_data["month"]
         calendar.year = calendar_data["year"]
         calendar.raw_events_text = calendar_data["raw_events_text"]
-
+        
         self.session.add(calendar)
         self.session.commit()
         return True
