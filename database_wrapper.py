@@ -139,7 +139,7 @@ class NimbusDatabase(ABC):
             condition_field: (optional) string representing the column name.
             condition_value: (optional) string representing the cell value.
 
-        Returns: adam is coos
+        Returns:
             The list of prop of the entity (e.g. firstName of Professor)
         """
         pass
