@@ -24,6 +24,8 @@ from Entity.Locations import Locations
 from Entity.QuestionAnswerPair import QuestionAnswerPair
 from Entity.Professors import Professors, ProfessorsProperties
 from Entity.RPILogs import RPILogs, RPILogsProperties
+from Entity.Clubs import Clubs
+from Entity.Sections import Sections, SectionType
 
 
 UNION_ENTITIES = Union[
@@ -265,6 +267,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
     def __init__(self, config_file: str = "config.json") -> None:
         self.engine = None  # gets set according to config_file
+        self.Clubs = Clubs
+        self.Sections = Sections
         self.Calendars = Calendars
         self.Courses = Courses
         self.Professors = Professors
@@ -333,6 +337,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             print(f"<{table_name}> created")
             return
 
+        __safe_create(self.Clubs)
+        __safe_create(self.Sections)
         __safe_create(self.Calendars)
         __safe_create(self.Courses)
         __safe_create(self.Professors)
@@ -442,6 +448,100 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         # insert this new qa_pair_data object into the QuestionAnswerPair table
         self.session.add(qa_pair_data)
+        self.session.commit()
+        return True
+
+    def save_section(self, formatted_data: dict) -> bool:
+        """
+        Save the given section into the database
+
+         Example input:
+         {
+             "section_name": "CSC 480_06"
+             "instructor": "Kauffman, Daniel Alexander"
+             "alias": "dkauffma"
+             "title": "Instructor AY"
+             "phone": "+1.805.756.2824"
+             "office": "014-0254A"
+             "type": Lab
+             "days": SET('M', 'W', 'F')
+             "start": "10:10 AM"
+             "end": "11:00 AM"
+             "location": "014-0257"
+             "department": "CENG-Computer Science & Software Engineering"
+         }
+
+         Args:
+             formatted_data: a dictionary that corresponds to the fields in Sections
+
+         Raises:
+             BadDictionaryKeyError - ...
+             BadDictionaryValueError - ...
+
+         Returns:
+             True if all is good, else False
+        """
+
+        section = Sections()
+        section.section_name = formatted_data['section_name']
+        section.instructor = formatted_data['instructor']
+        section.alias = formatted_data['alias']
+        section.title = formatted_data['title']
+        section.phone = formatted_data['phone']
+        section.office = formatted_data['office']
+        section.type = formatted_data['type']
+        section.days = formatted_data['days']
+        section.start = formatted_data['start']
+        section.end = formatted_data['end']
+        section.location = formatted_data['location']
+        section.department = formatted_data['department']
+
+        self.session.add(section)
+        self.session.commit()
+        return True
+
+    def save_club(self, formatted_data: dict) -> bool:
+        """
+        Save the given club into the database.
+
+         Example input:
+         {
+             "club_name": Cal Poly Computer Science and Artificial Intelligence
+             "types": Academic, Special Interest
+             "desc": The Computer Science and Artificial Intelligence club provides..."
+             "contact_email": maikens@calpoly.edu
+             "contact_email_2": fkurfess@calpoly.edu
+             "contact_person": Miles Aikens
+             "contact_phone": 7349723564
+             "box": 89
+             "advisor": Franz Kurfess
+             "affiliation": None
+         }
+
+         Args:
+             formatted_data: a dictionary that corresponds to the fields in Clubs
+
+         Raises:
+             BadDictionaryKeyError - ...
+             BadDictionaryValueError - ...
+
+         Returns:
+             True if all is good, else False
+        """
+
+        club_data = Clubs()
+        club_data.club_name = formatted_data['club_name']
+        club_data.types = formatted_data['types']
+        club_data.desc = formatted_data['desc']
+        club_data.contact_email = formatted_data['contact_email']
+        club_data.contact_email_2 = formatted_data['contact_email_2']
+        club_data.contact_person = formatted_data['contact_person']
+        club_data.contact_phone = formatted_data['contact_phone']
+        club_data.box = formatted_data['box']
+        club_data.advisor = formatted_data['advisor']
+        club_data.affiliation = formatted_data['affiliation']
+
+        self.session.add(club_data)
         self.session.commit()
         return True
 
@@ -749,34 +849,88 @@ if __name__ == "__main__":
 
     db.save_location(data)
 
+
+    data = {
+        "club_name": "Cal Poly Computer Science and Artificial Intelligence",
+        "types": "Academic, Special Interest",
+        "desc": "The Computer Science and Artificial Intelligence club provides...",
+        "contact_email": "maikens@calpoly.edu",
+        "contact_email_2": "fkurfess@calpoly.edu",
+        "contact_person": "Miles Aikens",
+        "contact_phone": "7349723564",
+        "box": "89",
+        "advisor": "Franz Kurfess",
+        "affiliation": "None"
+    }
+
+    db.save_club(data)
+
+    data = {
+        "section_name": "CSC 480_06",
+        "instructor": "Kauffman, Daniel Alexander",
+        "alias": "dkauffma",
+        "title": "Instructor AY",
+        "phone": "+1.805.756.2824",
+        "office": "014-0254A",
+        "type": SectionType.lab,
+        "days": set({'M', 'W', 'F'}),
+        "start": "10:10 AM",
+        "end": "11:00 AM",
+        "location": "014-0257",
+        "department": "CENG-Computer Science & Software Engineering"
+    }
+
+    db.save_section(data)
+
     print(
+        "\n", "\n", "What clubs does is Kurfess advise?", "\n", "\n",
+        db.get_property_from_entity(
+            prop="club_name", entity=Clubs, entity_string="Kurfess"
+        )
+    )
+
+    print(
+        "\n", "\n", "What sections is Kauffman teaching?", "\n", "\n",
+        db.get_property_from_entity(
+            prop="section_name", entity=Sections, entity_string="Kauffman"
+        )
+    )
+
+    print(
+        "\n", "\n", "What is the long & lat of Admin building?", "\n", "\n",
         [
             (x, y)
             for x, y in zip(
-                db.get_property_from_entity(
-                    prop="longitude", entity=Locations, entity_string="Admin"
-                ),
-                db.get_property_from_entity(
-                    prop="latitude", entity=Locations, entity_string="Admin"
-                ),
-            )
+            db.get_property_from_entity(
+                prop="longitude", entity=Locations, entity_string="Admin"
+            ),
+            db.get_property_from_entity(
+                prop="latitude", entity=Locations, entity_string="Admin"
+            ),
+        )
         ]
     )
 
     print(
+        "\n", "\n", "What courses are about Algo?", "\n", "\n",
         db.get_property_from_entity(
             prop="courseName", entity=Courses, entity_string="Algo"
         )
     )
 
     print(
+        "\n", "\n", "What courses are about Design?", "\n", "\n",
         db.get_property_from_entity(
             prop="courseName", entity=Courses, entity_string="Design"
         )
     )
 
     print(
+        "\n", "\n", "What courses are somehow related to 357?", "\n", "\n",
         db.get_property_from_entity(
             prop="courseName", entity=Courses, entity_string="357"
         )
     )
+
+
+
