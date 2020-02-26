@@ -12,7 +12,7 @@ from google.cloud import automl_v1
 from google.cloud.automl_v1.proto import service_pb2
 
 # Temporary import for the classifier
-from question_classifier import QuestionClassifier
+from question_classifier import TrainQuestionClassifier
 
 class NIMBUS_NLP:
 
@@ -24,32 +24,34 @@ class NIMBUS_NLP:
 
         Args: input_question (string) - user input question to answer
 
-        Return: return_tuple (tuple) - contains the user's input question,
-                                       the variable extracted input question,
-                                       the entity extracted, and the predicted
-                                       answer
+        Return: nlp_props (dict) - contains the user's input question,
+                                   the variable extracted input question,
+                                   the entity extracted, and the predicted
+                                   answer
 
         '''
 
+        # Instantiate the variable extraction class
         variable_extraction = Variable_Extraction()
-        entity, normalized_sentence = variable_extraction.\
-                                        extract_variables(input_question)
 
-        classifier = TrainQuestionClassifier(save_model=False)
-        answer = classifier.classify_question(normalized_sentence)
+        # Obtain the properties from variable extraction
+        nlp_props = variable_extraction.extract_variables(input_question)
 
-        return_tuple = (input_question, normalized_sentence,
-                        entity, answer)
+        # Instantiate the question classifier class
+        classifier = TrainQuestionClassifier(save_model=True)
 
-        return return_tuple
-
+        # Classify the question and add it to the nlp properties dictionary 
+        nlp_props["question class"] = classifier.\
+                classify_question(nlp_props["normalized question"])
+        
+        return nlp_props
+    
 
 class Variable_Extraction:
     def __init__(self):
         self.model_name = None # replace with the project model id
         credential_path = None # replace with the path to the credential json
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
-        self.entity = ""
 
     def inline_text_payload(self, sent):
         '''
@@ -96,21 +98,79 @@ class Variable_Extraction:
 
         Args: sent (string) - input sentence
 
-        Return: (tuple) - (normalized sentence, entity) 
-
+        Return: (dict) -    "entity" - extracted entity 
+                            "tag" - tag of the extracted entity 
+                            "normalized entity" - stripped entity
+                            "input question" - input question from the user
+                            "normalized question" - variable-replaced question
         '''
 
         # Make the prediction
         request = self.get_prediction(sent)
 
         # Obtain the entity in the sentence
-        self.entity = request.payload[0].text_extraction.text_segment.content 
+        entity = request.payload[0].text_extraction.text_segment.content 
         
         # Obtain the predicted tag 
         tag = request.payload[0].display_name
-        
-        return sent.replace(self.entity, '[' + tag + ']'), self.entity
 
+        # Removes excessive words from the entity
+        normalized_entity = Variable_Extraction.excess_word_removal(entity, tag)
+
+        # Replaces the entity of input question with its corresponding tag
+        normalized_question = sent.replace(entity, '[' + tag + ']')
+        
+        return {
+                    "entity"                : entity,
+                    "tag"                   : tag,
+                    "normalized entity"     : normalized_entity,
+                    "input question"        : sent,
+                    "normalized question"   : normalized_question
+               }
+
+    @staticmethod    
+    def excess_word_removal(entity, tag):
+        '''
+        Checks the tag and determines which excess word removal function to use
+
+        Args: entity (string) - extracted entity from the input question
+
+        Return: (string) - returns the normalized entity string
+
+        '''
+
+        if (tag == 'PROF'):
+            return Variable_Extraction.strip_titles(entity)
+
+        else:
+            return entity
+
+    @staticmethod
+    def strip_titles(entity):
+        '''
+        Strips titles from input entities
+
+        Args: entity (string) - extracted entity from the input question
+
+        Return: norm_entity (string) - the normalized, title-stripped entity
+
+        '''
+
+        # list of titles for removal
+        titles = {"professor", "dr.", "dr", "doctor", "prof", "instructor", "mrs.",\
+                  "mr.", "ms.", "mrs", "mr", "ms", "mister"}
+
+        # tokenizes the entity
+        for name in entity.split():
+
+            # checks each token with the titles set and replaces the title
+            # if it is within the word
+            if name.lower() in titles:
+                return entity.replace(name + " ", "")
+
+        # returns the original entity string 
+        # if there is no title in the word
+        return entity
 
 #TODO: Add the Question_Classifier code directly into this file
 class Question_Classifier:
