@@ -138,6 +138,81 @@ def save_courses():
     return "SUCCESS"
 
 
+@app.route('/new_data/clubs', methods=['POST'])
+def save_clubs():
+    """
+    Persists list of clubs
+    """
+    data = json.loads(request.get_json())
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    for club in data['clubs']:
+        try:
+            db.save_club(club)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
+@app.route('/new_data/locations', methods=['POST'])
+def save_locations():
+    """
+    Persists list of locations
+    """
+    data = json.loads(request.get_json())
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    for location in data['locations']:
+        try:
+            db.save_location(location)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
+@app.route('/new_data/calendars', methods=['POST'])
+def save_calendars():
+    """
+    Persists list of calendars
+    """
+    data = json.loads(request.get_json())
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    for calendar in data['calendars']:
+        try:
+            db.save_calendar(calendar)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
 def create_filename(form):
     """
     Creates a string filename that adheres to the Nimbus foramtting standard.

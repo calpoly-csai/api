@@ -4,9 +4,9 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 class Locations(Base):
-    __tablename__ = 'Location'
+    __tablename__ = 'Locations'
     location_id = Column(Integer, primary_key = True)
-    building_number = Column(Integer)
+    building_number = Column(String(5))
     name = Column(String(100))
     longitude = Column(String(255))
     latitude = Column(String(255))
