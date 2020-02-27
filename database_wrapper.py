@@ -10,8 +10,10 @@ different databases and storage locations.
     ents = db.get_entities()
 """
 import json
+import csv
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
+
 
 import sqlalchemy
 from sqlalchemy import create_engine, inspect
@@ -349,9 +351,36 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.session = Session()
         print("initialized database session")
 
+    def get_all_qa_pairs(self):
+
+        qa_entity = QuestionAnswerPair
+
+        query_session = self.session.query(qa_entity.question_format, qa_entity.answer_format)
+        result = query_session.all()
+
+        return result
+
+    def return_qa_pair_csv(self):
+        data = self.get_all_qa_pairs()
+
+        with open('qa_pair.csv', 'w') as out:
+            csv_out = csv.writer(out)
+            csv_out.writerow(['question_format', 'answer_format'])
+            for row in data:
+                csv_out.writerow(row)
+
+
     def get_property_from_entity(
         self, prop: str, entity: UNION_ENTITIES, entity_string: str
     ) -> List[UNION_ENTITIES]:
+        """
+        ISSUE: 1)Don't know which column/attribute entity_string corresponds to
+                 for conditional filtering
+               2)Current code checks all attribute and returns row that contains
+                 entity string.
+                    -> Complication: return entity that
+        """
+
         """
         This function implements the abstractmethod to get a column of values
         from a NimbusDatabase entity.
@@ -392,6 +421,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             res = query_obj.filter(p.contains(entity_string)).all()
             results += res
         return [x.__dict__.get(prop) for x in results]
+
+
 
     def get_course_properties(
         self, department: str, course_num: Union[str, int]
@@ -894,4 +925,6 @@ if __name__ == "__main__":
     )
 
 
+    print("\n\nQA Tuple list\n\n", db.get_all_qa_pairs(), "\n\n")
+    db.return_qa_pair_csv()
 
