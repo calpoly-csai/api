@@ -352,19 +352,13 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         print("initialized database session")
 
     def get_all_qa_pairs(self):
-        result = []
 
         qa_entity = QuestionAnswerPair
-        query_session = self.session.query(qa_entity)
-        for instance in query_session:
-            result += (instance.question_format,
-                          instance.answer_format)
 
-        it = iter(result)
-        tupleList = list(zip(it,it)) #list of QA tuples
+        query_session = self.session.query(qa_entity.question_format, qa_entity.answer_format)
+        result = query_session.all()
 
-
-        return tupleList
+        return result
 
     def return_qa_pair_csv(self):
         data = self.get_all_qa_pairs()
@@ -931,6 +925,6 @@ if __name__ == "__main__":
     )
 
 
-    print(db.get_all_qa_pairs())
+    print("\n\nQA Tuple list\n\n", db.get_all_qa_pairs(), "\n\n")
     db.return_qa_pair_csv()
 
