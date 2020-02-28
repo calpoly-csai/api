@@ -45,6 +45,52 @@ default_tag_column_dict = {
     Sections: {"section_name"}
 }
 
+EXPECTED_KEYS_BY_ENTITY = {
+    AudioSampleMetaData : [
+        "is_wake_word",
+        "first_name",
+        "last_name",
+        "gender",
+        "noise_level",
+        "location",
+        "tone",
+        "timestamp",
+        "username",
+        "filename",
+    ],
+    Clubs : [
+        "club_name",
+        "types",
+        "desc",
+        "contact_email",
+        "contact_email_2",
+        "contact_person",
+        "contact_phone",
+        "box",
+        "advisor",
+        "affiliation"
+    ],
+    Locations : [
+        "building_number",
+        "name",
+        "longitude",
+        "latitude"
+    ],
+    Sections : [
+        "section_name",
+        "instructor",
+        "alias",
+        "title",
+        "phone",
+        "office",
+        "type",
+        "days",
+        "start",
+        "end",
+        "location",
+        "department"
+    ]
+}
 
 class BadDictionaryKeyError(Exception):
     """Raised when the given JSON/dict is missing some required fields.
@@ -386,7 +432,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def full_fuzzy_match(self, tag_value, identifier):
         return fuzz.ratio(tag_value, identifier)
 
-
     def get_property_from_entity(
         self, prop: str, entity: UNION_ENTITIES, identifier: str,
         tag_column_map: dict = default_tag_column_dict
@@ -456,28 +501,21 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             .all()
         )
 
-    def create_AudioSampleMetaData_table(self) -> None:
-        table_name = self.AudioSampleMetaData.__tablename__
-        if table_name in self.inspector.get_table_names():
-            print("table already exists")
-            return
-
-        self.AudioSampleMetaData.__table__.create(bind=self.engine)
-
-    def save_question_answer_pair(self, qa_dict: dict) -> bool:
+    def save_entity(self, entity_type, data_dict: dict, filter_fields=[]) -> bool:
         """
-        Save the given question answer pair into the database.
+        Save an entity into the database. Can only be used when the key names in data_dict
+        match the entity field names (order shouldn't matter, but cases and spelling do matter).
 
-        Example input:
+        Note: INSERTs will be in cyan, and UPDATEs will be in yellow.
+
+        data_dict should be a dictionary of field names and values, looking like:
         {
-            "can_we_answer": False,
-            "answer_type": AnswerType.other,
-            "question_format": "What is the meaning of life?",
-            "answer_format": "Dr. Fizzbuzz says the answer is sqrt(1764)"
+            "field": value,
+            "..."  : ...
         }
 
-        Args:
-            qa_dict: a dictionary that corresponds to the fields in QuestionAnswerPair  # noqa
+        filter_fields is a list of variable names (strings) to match for when running an 
+        update query. If not provided, defaults to an empty list (basically an INSERT)
 
         Raises:
             BadDictionaryKeyError - ...
@@ -486,372 +524,52 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         Returns:
             True if all is good, else False
         """
-        # create an QuestionAnswerPair object with the given data
-        qa_pair_data = QuestionAnswerPair()
-        qa_pair_data.can_we_answer = qa_dict["can_we_answer"]
-        qa_pair_data.answer_type = qa_dict["answer_type"]
-        qa_pair_data.question_format = qa_dict["question_format"]
-        qa_pair_data.answer_format = qa_dict["answer_format"]
 
-        # insert this new qa_pair_data object into the QuestionAnswerPair table
-        self.session.add(qa_pair_data)
-        self.session.commit()
-        return True
+        # Validate input
+        self.validate_input_keys(data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
 
-    def save_section(self, formatted_data: dict) -> bool:
-        """
-        Save the given section into the database
+        # Grab the entity class attributes
+        entity_attributes = entity_type.__dict__
+        entity = None
 
-         Example input:
-         {
-             "section_name": "CSC 480_06"
-             "instructor": "Kauffman, Daniel Alexander"
-             "alias": "dkauffma"
-             "title": "Instructor AY"
-             "phone": "+1.805.756.2824"
-             "office": "014-0254A"
-             "type": Lab
-             "days": SET('M', 'W', 'F')
-             "start": "10:10 AM"
-             "end": "11:00 AM"
-             "location": "014-0257"
-             "department": "CENG-Computer Science & Software Engineering"
-         }
+        # If filter_fields is provided, we can check if we are performing an UPDATE or INSERT.
+        if not filter_fields == []:
+            query = self.session.query(entity_type)
 
-         Args:
-             formatted_data: a dictionary that corresponds to the fields in Sections
+            for field in filter_fields:
+                query = query.filter(getattr(entity_type, field) == data_dict[field])
 
-         Raises:
-             BadDictionaryKeyError - ...
-             BadDictionaryValueError - ...
-
-         Returns:
-             True if all is good, else False
-        """
-
-        section = Sections()
-        section.section_name = formatted_data['section_name']
-        section.instructor = formatted_data['instructor']
-        section.alias = formatted_data['alias']
-        section.title = formatted_data['title']
-        section.phone = formatted_data['phone']
-        section.office = formatted_data['office']
-        section.type = formatted_data['type']
-        section.days = formatted_data['days']
-        section.start = formatted_data['start']
-        section.end = formatted_data['end']
-        section.location = formatted_data['location']
-        section.department = formatted_data['department']
-
-        self.session.add(section)
-        self.session.commit()
-        return True
-
-    def save_club(self, formatted_data: dict) -> bool:
-        """
-        Save the given club into the database.
-
-         Example input:
-         {
-             "club_name": Cal Poly Computer Science and Artificial Intelligence
-             "types": Academic, Special Interest
-             "desc": The Computer Science and Artificial Intelligence club provides..."
-             "contact_email": maikens@calpoly.edu
-             "contact_email_2": fkurfess@calpoly.edu
-             "contact_person": Miles Aikens
-             "contact_phone": 7349723564
-             "box": 89
-             "advisor": Franz Kurfess
-             "affiliation": None
-         }
-
-         Args:
-             formatted_data: a dictionary that corresponds to the fields in Clubs
-
-         Raises:
-             BadDictionaryKeyError - ...
-             BadDictionaryValueError - ...
-
-         Returns:
-             True if all is good, else False
-        """
-
-        expected_keys = {'club_name', 'types', 'desc', 'contact_email',
-                         'contact_email_2', 'contact_person', 'contact_phone',
-                         'box', 'advisor', 'affiliation'}
-        self.validate_input_keys(formatted_data, expected_keys)
-
-        club_data = self.session.query(Clubs).filter_by(club_name=formatted_data['club_name']).first()
-        if not club_data:
-            club_data = Clubs()
-
-        club_data.club_name = formatted_data['club_name']
-        club_data.types = formatted_data['types']
-        club_data.desc = formatted_data['desc']
-        club_data.contact_email = formatted_data['contact_email']
-        club_data.contact_email_2 = formatted_data['contact_email_2']
-        club_data.contact_person = formatted_data['contact_person']
-        club_data.contact_phone = formatted_data['contact_phone']
-        club_data.box = formatted_data['box']
-        club_data.advisor = formatted_data['advisor']
-        club_data.affiliation = formatted_data['affiliation']
-
-        self.session.add(club_data)
-        self.session.commit()
-        return True
-
-    @raises_database_error  # noqa - C901 "too complex" - agreed TODO: reduce complexity
-    def save_audio_sample_meta_data(self, formatted_data: dict) -> bool:
-        """
-        Save the metadata into the NimbusDatabase.
-
-        formatted_data at this point looks like:
-        {
-            "isWakeWord": True,
-            "firstName": "jj",
-            "lastName": "doe",
-            "gender": "f",
-            "noiseLevel": "q",
-            "location": "here",
-            "tone": "serious-but-not-really",
-            "timestamp": 1577077883,
-            "username": "guest",
-            "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
-        }
-
-        Raises:
-            BadDictionaryKeyError - ...
-            BadDictionaryValueError - ...
-
-        Returns:
-            True if all is good, else False
-        """
-        keys_i_care_about = {
-            "isWakeWord",
-            "firstName",
-            "lastName",
-            "gender",
-            "noiseLevel",
-            "location",
-            "tone",
-            "timestamp",
-            "username",
-            "filename",
-        }
-
-        print(formatted_data)
-
-        self.validate_input_keys(formatted_data, keys_i_care_about)
-        # create an AudioSampleMetaData object with the given metadata
-        metadata = AudioSampleMetaData()
-
-        isWW = formatted_data["isWakeWord"]
-        if (isWW == "ww") or (isWW is True):
-            metadata.is_wake_word = True
-        elif (isWW == "nww") or (isWW is False):
-            metadata.is_wake_word = False
+            entity = query.first()
+            if entity:
+                print("\033[93mUpdating {} in {}...\033[00m".format(
+                      entity, entity_attributes['__tablename__']))
+            else:
+                entity = entity_type()
+                print("\033[96mInserting into {}...\033[00m".format(
+                      entity_attributes['__tablename__']))
         else:
-            msg = "unexpected values for isWakeWord\n"
-            msg += "expected 'ww' or True or 'nww' or False but got '{}'"
-            msg = msg.format(formatted_data["isWakeWord"])
-            raise BadDictionaryValueError(msg)
+            entity = entity_type()
+            print("\033[96mInserting into {}...\033[00m".format(
+                  entity_attributes['__tablename__']))
+            
+        # Grab the entity class fields by cleaning the attributes dictionary - discard anything
+        # with underscores in the front or back
+        # Note: Make sure you don't label any important data fields with underscores
+        # in the front or back!
+        entity_fields = dict(filter(lambda i: not (i[0][0] == '_' or i[0][-1] == '_'), 
+                                    entity_attributes.items()))
 
-        metadata.first_name = formatted_data["firstName"]
-        metadata.last_name = formatted_data["lastName"]
-        metadata.gender = formatted_data["gender"]
+        # Ignore the first field, since it's assumed to be a primary key
+        # Populate the entity with values from data_dict
+        for entity_field in list(entity_fields.keys())[1:]:
+            setattr(entity, entity_field, data_dict[entity_field])
 
-        if (
-            formatted_data["noiseLevel"] == "q"
-            or formatted_data["noiseLevel"] == "quiet"
-        ):
-            metadata.noise_level = NoiseLevel.quiet
-        elif (
-            formatted_data["noiseLevel"] == "m"
-            or formatted_data["noiseLevel"] == "medium"
-        ):
-            metadata.noise_level = NoiseLevel.medium
-        elif (
-            formatted_data["noiseLevel"] == "l"
-            or formatted_data["noiseLevel"] == "loud"
-        ):
-            metadata.noise_level = NoiseLevel.loud
-        else:
-            msg = "unexpected values for noiseLevel\n"
-            msg += "expected 'q' or 'm' or 'l' but got '{}'"
-            msg = msg.format(formatted_data["noiseLevel"])
-            raise BadDictionaryValueError(msg)
-
-        metadata.location = formatted_data["location"]
-        metadata.tone = formatted_data["tone"]
-        metadata.timestamp = formatted_data["timestamp"]
-        metadata.username = formatted_data["username"]
-
-        metadata.filename = formatted_data["filename"]
-
-        # insert this new metadata object into the AudioSampleMetaData table
-        self.session.add(metadata)
+        # Perform the actual UPDATE or INSERT
+        print("Saving to database: {}...".format(entity))
+        self.session.add(entity)
         self.session.commit()
-        return True
+        print("\033[92mSaved!\033[00m")
 
-    def save_course(self, course_data: dict):
-        """
-        Save the course into the NimbusDatabase.
-
-        course_data this point looks like:
-        {
-            "dept": CPE,
-            "courseNum": 357,
-            "units": 4,
-            "termsOffered": "F,W,SP",
-            "courseName": "Systems Programming",
-            "raw_concurrent_text": "N/A",
-            "raw_recommended_text": "N/A",
-            "raw_prerequisites_text": "CSC/CPE,102,and,CSC/CPE,103,with,..."
-        }
-
-        Raises:
-            BadDictionaryKeyError - ...
-            BadDictionaryValueError - ...
-
-        Returns:
-            True if all is good, else False
-        """
-        expected_keys = {'dept', 'courseNum', 'units',
-                         'termsOffered', 'courseName', 'raw_concurrent_text',
-                         'raw_recommended_text', 'raw_prerequisites_text'}
-        self.validate_input_keys(course_data, expected_keys)
-
-        course = self.session.query(Courses).filter_by(dept=course_data['dept'],
-                                                       courseNum=course_data['courseNum']).first()
-        if not course:
-            course = Courses()
-
-        course.dept = course_data['dept']
-        course.courseNum = course_data['courseNum']
-        course.termsOffered = course_data['termsOffered']
-        course.units = course_data['units']
-        course.courseName = course_data['courseName']
-        course.raw_concurrent_text = course_data['raw_concurrent_text']
-        course.raw_recommended_text = course_data['raw_recommended_text']
-        course.raw_prerequisites_text = course_data['raw_prerequisites_text']
-
-        self.session.add(course)
-        self.session.commit()
-
-    def save_location(self, location_data: dict):
-        """
-        Save the given location data into the database.
-
-        Example Input:
-        {
-            "building_number": 1,
-            "name": "Administration",
-            "longitude": -120.658561,
-            "latitude": 35.300960
-        }
-        Args:
-            location_data: a dictionary that corresponds to the fields in Locations
-
-        Raises:
-            BadDictionaryKeyError - ...
-            BadDictionaryValueError - ...
-
-        Returns:
-            True if all good, else False
-        """
-        expected_keys = {'building_number', 'name', 'longitude', 'latitude'}
-        self.validate_input_keys(location_data, expected_keys)
-
-        location = self.session.query(Locations).filter_by(name=location_data['name']).first()
-        if not location:
-            location = Locations()
-
-        location.building_number = location_data["building_number"]
-        location.name = location_data["name"]
-        location.longitude = location_data["longitude"]
-        location.latitude = location_data["latitude"]
-
-        self.session.add(location)
-        self.session.commit()
-        return True
-
-    def save_calendar(self, calendar_data: dict):
-        """
-         Save the given calendar into the database.
-
-         Example input:
-         {
-             "date": 7_4_2020,
-             "day": 4,
-             "month": July,
-             "year": 2020,
-             "raw_events_text": ['Academic holiday - Independence Day Observed']
-         }
-
-         Args:
-             calendar_data: a dictionary that corresponds to the fields in Calendar
-
-         Raises:
-             BadDictionaryKeyError - ...
-             BadDictionaryValueError - ...
-
-         Returns:
-             True if all is good, else False
-        """
-        expected_keys = {'date', 'day', 'month', 'year', 'raw_events_text'}
-        self.validate_input_keys(calendar_data, expected_keys)
-
-        calendar = self.session.query(Calendars).filter_by(date=calendar_data['date'],
-                                                           raw_events_text=calendar_data['raw_events_text']).first()
-        if not calendar:
-            calendar = Calendars()
-
-        calendar.date = calendar_data["date"]
-        calendar.day = calendar_data["day"]
-        calendar.month = calendar_data["month"]
-        calendar.year = calendar_data["year"]
-        calendar.raw_events_text = calendar_data["raw_events_text"]
-
-        self.session.add(calendar)
-        self.session.commit()
-        return True
-
-    def save_faculty(self, professor: dict) -> bool:
-        """
-         Save the given professor into the database.
-
-         Example input:
-         {
-             "id": 1,
-             "firstName": "Tim",
-             "lastName": "Kearns",
-             "phoneNumber": "805-123-4567" ,
-             "researchInterests": "algorithms, databases",
-             "email": "tkearns@calpoly.edu"
-         }
-
-         Args:
-             professor: a dictionary that corresponds to the fields in Professor
-
-         Raises:
-             BadDictionaryKeyError - ...
-             BadDictionaryValueError - ...
-
-         Returns:
-             True if all is good, else False
-        """
-
-        professor_data = Professors()
-        professor_data.id = professor["id"]
-        professor_data.firstName = professor["firstName"]
-        professor_data.lastName = professor["lastName"]
-        professor_data.phoneNumber = professor["phoneNumber"]
-        professor_data.researchInterests = professor["researchInterests"]
-        professor_data.email = professor["email"]
-
-        # insert this new professor_data object into the Professors table
-        self.session.add(professor_data)
-        self.session.commit()
         return True
 
     def _execute(self, query: str):
@@ -863,18 +581,16 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
 if __name__ == "__main__":
     db = NimbusMySQLAlchemy()
-
     db._create_all_tables()
 
     data = {
         "building_number": 1,
         "name": "Administration",
         "longitude": -120.658561,
-        "latitude": 35.300960,
+        "latitude": 35.300960
     }
 
-    db.save_location(data)
-
+    db.save_entity(Locations, data)
 
     data = {
         "club_name": "Cal Poly Computer Science and Artificial Intelligence",
@@ -889,7 +605,7 @@ if __name__ == "__main__":
         "affiliation": "None"
     }
 
-    db.save_club(data)
+    db.save_entity(Clubs, data)
 
     data = {
         "section_name": "CSC 480_06",
@@ -906,7 +622,7 @@ if __name__ == "__main__":
         "department": "CENG-Computer Science & Software Engineering"
     }
 
-    db.save_section(data)
+    db.save_entity(Sections, data)
 
     print(
         "\n", "\n", "What clubs does is Kurfess advise?", "\n", "\n",
@@ -961,4 +677,3 @@ if __name__ == "__main__":
 
     print("\n\nQA Tuple list\n\n", db.get_all_qa_pairs(), "\n\n")
     db.return_qa_pair_csv()
-
