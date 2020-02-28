@@ -118,7 +118,7 @@ def save_courses():
     """
     Persists list of courses
     """
-    data = json.loads(request.get_json())
+    data = request.get_json()
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for course in data['courses']:
         try:
@@ -143,7 +143,7 @@ def save_clubs():
     """
     Persists list of clubs
     """
-    data = json.loads(request.get_json())
+    data = request.get_json()
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for club in data['clubs']:
         try:
@@ -168,7 +168,7 @@ def save_locations():
     """
     Persists list of locations
     """
-    data = json.loads(request.get_json())
+    data = request.get_json()
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for location in data['locations']:
         try:
@@ -193,7 +193,7 @@ def save_calendars():
     """
     Persists list of calendars
     """
-    data = json.loads(request.get_json())
+    data = request.get_json()
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for calendar in data['calendars']:
         try:
