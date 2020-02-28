@@ -1,0 +1,529 @@
+questionFormat
+What is [COURSE] about?
+What are the prereqs for [COURSE]?
+Which courses are required to be taken before [COURSE]?
+What courses have [COURSE] as a prereq?
+Which majors require [COURSE]?
+Which majors avoid [COURSE]?
+What are the sections times for [COURSE] next quarter?
+What are the sections times for [COURSE] this quarter?
+How many sections of [COURSE] are being offered this quarter?
+How many sections of [COURSE] are being offered next quarter?
+How many units does [COURSE] count towards?
+When is [COURSE] typically offered?
+During what quarters is [COURSE] typically offered?
+Is [COURSE] going to be offered next quarter?
+Is tutuoring offered for [COURSE]
+Is there any information on [COURSE]?
+Is [COURSE] currently offered?
+Is [COURSE] a 4 unit class?
+Does [COURSE] have any prerequisites?
+What terms is [COURSE] typically offered?
+Which terms is [COURSE] offered?
+Does [COURSE] require consent of instructor?
+Can I get into [COURSE] with instructor's consent?
+What are the prerequisites for [COURSE]?
+What classes do I have to take before [COURSE]?
+What are the recommended prerequisites for [COURSE]?
+What classes do I need in order to take [COURSE]?
+Which classes have [COURSE] as a prerequisite?
+Does [COURSE] have an upper divisional prerequisite?
+Do I need a C- or better in [COURSE] to take any other classes?
+What is the shortest path to taking [COURSE]?
+Which classes require [COURSE] standing?
+Which classes do not require [COURSE] standing?
+When do most people take [COURSE]?
+Is [COURSE] limited in total credit?
+Can I select [COURSE] as a tech elective?
+What is the structure of [COURSE]?
+How many units is [COURSE]?
+Is [COURSE] crosslisted in another department?
+Is [COURSE] credit/no credit grading only?
+What topics are covered in [COURSE]?
+What is the course title for [COURSE]?
+What is [COURSE] also called?
+What is the name of [COURSE]?
+What is the course code for [COURSE]?
+Does [COURSE] include group work?
+Is [COURSE] project based?
+What class should I take after [COURSE]?
+What classes build off [COURSE]?
+Which classes are most similar to [COURSE]?
+What classes should I take with [COURSE]?
+How many units do I need to take to be considered a [COURSE]?
+Can I take [COURSE] credit no credit?
+Can I take [COURSE] pass-fail?
+Is [COURSE] a required course?
+Do I have to take [COURSE]?
+How many hours a week is [COURSE]?
+How much time is spent in [COURSE] per week?
+How many times is [COURSE] offered per year?
+In how many quarters is [COURSE] offered?
+When is [COURSE] offered?
+When is [COURSE] available?
+When can I take [COURSE]?
+Does [COURSE] fulfill more than one requirement?
+Can I use [COURSE] to fulfill more than one requirement?
+How many units does [COURSE] have?
+How many units does [COURSE] fulfill?
+What does [COURSE] fulfill?
+Does [COURSE] fulfill anything?
+What requirements does [COURSE] fulfill?
+How many lectures does [COURSE] have?
+How many times a week does [COURSE] week?
+How many lectures make up [COURSE]?
+Does [COURSE] have a lab?
+Do I have to take a lab with [COURSE]?
+How many labs does [COURSE] have?
+How many prerequisites does [COURSE] have?
+Are there any prerequisites for [COURSE]?
+What classes can I take instead of [COURSE]?
+What are alternatives to [COURSE]?
+Are there any alternatives for [COURSE]?
+How many alternative does [COURSE] Have?
+Can I take something else instead of [COURSE]?
+What courses substitute [COURSE]?
+What STAT courses have [COURSE] as a prereq?
+What courses do you need to take before taking [COURSE]?
+Does [COURSE] have any preqs?
+Is [COURSE] being offered this quarter?
+Can I take [COURSE] this quarter?
+Do I need to take [COURSE] to major in Statistics?
+Is [COURSE] necessary to get a stats degree?
+When's the next time I can take [COURSE]?
+Is [COURSE] being offered soon?
+Does [COURSE] help me get a stats minor?
+Does [COURSE] contribute to my stats minor?
+Has [COURSE] ever been offered by the stats department?
+When has [COURSE] been offered?
+What class is [COURSE]?
+What is the description of [COURSE]?
+What do you learn in [COURSE]?
+What term is [COURSE] typically offered?
+When is [COURSE] usually offered?
+Does [COURSE] fulfill any GE requirements?
+How many prerequisite classes are needed for me to take [COURSE]?
+List classes below [COURSE].
+List classes above [COURSE].
+Does [COURSE] require any MATH classes?
+Which classes have a [COURSE] prerequisite?
+Does [COURSE] require instructor approval?
+Is [COURSE] being offered next quarter?
+Is [COURSE] a graduate level course?
+Is [COURSE] a undergraduate level course?
+Does [COURSE] have non-statistics prerequisites?
+Does [COURSE] have non-statistics and non-math prerequisites?
+Is [COURSE] part of the data science minor?
+What teachers teach [COURSE] this quarter?
+What teachers have taught [COURSE] in the past?
+Does [COURSE] require programming experience?
+When should [COURSE] be taken based on the stat flowchart?
+Are there sections for [COURSE] that are open next quarter?
+Who is the highest ranked teacher teaching [COURSE]?
+Who is the lowest ranked teacher teaching [COURSE]?
+What data science minor courses have [COURSE] as a prerequisite?
+Do I need [COURSE] to complete the data science minor?
+Is [COURSE] an upper level or lower level course?
+When was the last time [COURSE] was offered?
+Is [COURSE] an upper level course?
+Is [COURSE] a lower level course?
+When should I take [COURSE]?
+What is [COURSE]?
+Does the department offer [COURSE].
+What will I learn in [COURSE]?
+Is there a class on [COURSE]?.
+Are there any workshops or study sessions available for [COURSE]?
+What courses are needed to take [COURSE]?
+How much credits is [COURSE] worth?
+What is the number for [COURSE]?
+What courses have [COURSE] as a prerequisite?
+What comes after [COURSE]?
+What is the description for [COURSE]?
+Who should I take [COURSE] with?
+Who typically teaches [COURSE]?
+Does [COURSE] have any non CS/SE prerequisites?
+Is [COURSE] offered on a Credit/No Credit basis?
+Is there a grade prerequesite for [COURSE]?
+Does [COURSE] have any corequisites?
+Does [COURSE] have any concurrent enrollements?
+How is [COURSE] listed?
+Who is the best professor for [COURSE] with?
+Which professors have taught [COURSE]?
+Which quarter is [COURSE] typically offered?
+Does [COURSE] have a prerequisite from another department?
+What course number does [COURSE] have?
+What course name does [COURSE] have?
+How many units of lab does [COURSE] have?
+Are there any recommended classes for [COURSE]?
+Is [COURSE] corsslisted?
+Which departments does [COURSE] have prerequisites in?
+On what level is [COURSE]?
+Which courses require [COURSE]
+Who is the best professor to take for [COURSE]?
+Who teaches [COURSE]?
+Who is usually the professor for [COURSE]?
+Who has taught [COURSE] in the past?
+What is the highest rated polyrating professor for [COURSE]?
+What is the highest rated polyrating professor that is currently teaching [COURSE]?
+What is the highest rated polyrating professor that taught [COURSE] last quarter?
+What is the highest rated polyrating professor that is scheduled to teach [COURSE] next quarter?
+What is the lowest rated polyrating professor for [COURSE]?
+What is the lowest rated polyrating professor that is currently teaching [COURSE]?
+What is the lowest rated polyrating professor that taught [COURSE] last quarter?
+What is the lowest rated polyrating professor that is scheduled to teach [COURSE] next quarter?
+How many professors teach [COURSE]?
+Which professors teach [COURSE]?
+What professor(s) typically teach [COURSE]?
+What professor(s) teach [COURSE] this quarter?
+Which professors are teaching [COURSE] next quarter?
+Who are the professors teaching [COURSE] next quarter?
+Can I get tutoring in [COURSE]?
+Is tutoring available for [COURSE]?
+Is tutoring provided for [COURSE]?
+"During Stat tutoring, can I get help with [COURSE]"
+What courses is [PROF] teaching this quarter?
+What courses is [PROF] teaching next quarter?
+What is [PROF] schedule like this quarter?
+What is [PROF] schedule like next quarter?
+How many courses is [PROF] teaching?
+What are [PROF]'s research areas?
+How many research areas does [PROF] have?
+How many proposals has [PROF] written at Cal Poly?
+Does [PROF] have a website?
+What is [PROF]'s website?
+Where can I learn more about [PROF]?
+Does [PROF] have a Cal Poly website?
+What classes does [PROF] teach?
+What buildings does [PROF] teach in?
+How many students does [PROF] currently teach between all their classes?
+What time are all [PROF]'s classes taught?
+What classes are [PROF] teaching next quarter?
+When are [PROF]'s office hours?
+Does [PROF] have office hours right now?
+Does [PROF] have office hours later today?
+Does [PROF] have office hours tomorrow?
+Where is [PROF]'s office?
+How many office hours does [PROF] have this week?
+What is [PROF]'s email?
+How can I email [PROF]?
+What is the email of [PROF]?
+Is [PROF]'s email listed?
+What is [PROF]'s average PolyRating?
+What classes does [PROF] have PolyRatings for?
+How many PolyRatings does [PROF] have?
+Is [PROF] reviewed on PolyRatings?
+Does [PROF] have a PolyRating?
+When is the most recent PolyRating for [PROF]?
+What level of professor is [PROF]?
+List all [PROF] level professors.
+Is [PROF] a professor at Cal Poly?
+What is professor [PROF]'s first name?
+Does [PROF] currently teach at Cal Poly?
+What is [PROF]'s phone number?
+What is the phone number for [PROF]?
+How many phone numbers are listed for [PROF]?
+Does [PROF] have a phone number listed?
+Is there a phone number listed for [PROF]?
+Which courses does [PROF] teach?
+What is [PROF]'s poly rating?
+Is [PROF] a faculty advisor?
+What are the research interests of [PROF]?
+What research areas are [PROF] interested in?
+What is [PROF] researching?
+What is the average polyrating of [PROF]?
+What is [PROF] rated on polyratings?
+How good of a professor is [PROF]?
+Is [PROF] a good professor?
+Is [PROF] well liked?
+Which of [PROF] has the highest polyrating?
+What is the URL for [PROF]'s polyratings?
+How many different classes will [PROF] teach next quarter?
+What courses has [PROF] taught?
+What courses does [PROF] teach?
+What is [PROF] teaching this quarter?
+Is [PROF] teaching any classes this quarter?
+Where is [PROF] teaching right now?
+Where will [PROF] be teaching next?
+Where did [PROF] go to school?
+What degrees does [PROF] have?
+What schools has [PROF] attended?
+Who are the [PROF] in the CSSE program at Cal Poly?
+What school did [PROF] get their degree from?
+How many degrees does [PROF] have?
+How long has [PROF] taught at Cal Poly?
+What year did [PROF] start at Cal Poly?
+When did [PROF] start teaching at Cal Poly?
+Did [PROF] study at Cal Poly?
+When was [PROF] a professor at Cal Poly?
+What is the highest degree of [PROF]?
+Where did [PROF] get their most recent degree?
+What is [PROF]'s highest degree?
+Is [PROF] still working at Cal Poly?
+Does [PROF] still teach at Cal Poly?
+Has there ever been a professor [PROF] in Cal Poly CSSE?
+Did [PROF] ever teach in the computer science department?
+What published research projects does [PROF] have?
+How many research papers has [PROF] submitted for Cal Poly?
+What papers has [PROF] contributed to the Cal Poly Digital Commons?
+Has [PROF] published any papers?
+What research papers has [PROF] written?
+What senior projects has [PROF] advised?
+How many senior projects has [PROF] advised?
+What senior projects did [PROF] advise last year?
+Whose senior projects has [PROF] advised?
+What is the average length of papers published by [PROF]?
+Where can I learn more about [PROF]'s research?
+In what journals has [PROF] been published?
+What journals has [PROF] published papers in?
+How can I contact [PROF]?
+What is [PROF]'s contact information?
+What number do I call to reach [PROF]?
+How can I reach [PROF]?
+In what room is [PROF]'s office?
+Where can I find [PROF]'s website?
+Does [PROF] have a personal website?
+What is [PROF]'s home page?
+What is the email address of [PROF]?
+What is the office of [PROF]?
+What are the names and emails of all computer science [PROF]?
+Who are the computer science [PROF]s at Cal Poly?
+Who shares an office with [PROF]?
+Does anyone share an office with [PROF]?
+What time are [PROF]'s office hours?
+When can I visit [PROF]'s office?
+Is [PROF] hosting office hours right now?
+Is [PROF] in their office now?
+What is the job title of [PROF]?
+Is [PROF] a lecturer or a professor?
+What is the position of [PROF]?
+What is [PROF]'s job at Cal Poly?
+"In the CSSE department, how many faculty members are [PROF]?"
+How many computer science [PROF] are there at Cal Poly?
+Who are the professors with the last name [PROF]?
+Where is [PROF] right now?
+"At the moment, where is [PROF]?"
+Where is [PROF] currently?
+Where is the next place I can find [PROF]?
+When can I next find [PROF] on campus?
+What are [PROF]'s personal interests?
+What are [PROF]'s professional distinctions?
+Where did [PROF] get their BS?
+Which school did [PROF] get their BS at?
+Which school did [PROF] get their Master's at?
+Where did [PROF] get their Master's?
+Where did [PROF] get their doctorate?
+Which school did [PROF] get their doctorate at?
+When did [PROF] get their BS?
+What year did [PROF] get their BS?
+When did [PROF] get their Master's?
+What year did [PROF] get their Master's?
+When did [PROF] get their doctorate?
+What year did [PROF] get their doctorate?
+What is [PROF]'s title?
+What is the title of [PROF]?
+What is the phone number of [PROF]?
+What building is [PROF]'s office in?
+What time does [PROF] have office hours today?
+What days does [PROF] have office hours?
+Which professors neighbor [PROF]?
+How many professors neighbor [PROF]?
+When will [PROF] be at his/her office?
+Is [PROF] at their office right now?
+How many classes is [PROF] teaching this quarter?
+How many classes is [PROF] teaching next quarter?
+How many polyratings does [PROF] have?
+Does [PROF] recognize student difficulties?
+How well does [PROF] recognize student difficulties?
+Does [PROF] present material clearly?
+How clearly does [PROF] present material?
+What grades has [PROF] given out (on polylearn)?
+What is the average polyratings grade for [PROF]?
+What professional distinctions does [PROF] have?
+Does [PROF] have any areas of research?
+What are the Mathematics/Statistics Support Elective options for [MMC]
+What are the approved technical electives for [MMC]
+Which courses will count as approved external electives for [MMC]
+Is taking the GRE required for acceptance into the 4+1 program for [MMC]?
+What classes are availabe to satisfy the pre-requisite technical elective course for [MMC]?
+Which courses will count as approved pre-requisite technical electives for [MMC]
+What [MMC] electives are offered next quarter?
+What are the electives being offered for [MMC] next quarter?
+Which electives are offered for [MMC] for next quarter?
+What courses are required for the [MMC] minor?
+Which courses do I need to take for the [MMC] minor?
+How many units are required to obtain the 4+1 blended BS/MS degree for [MMC]?
+What courses are required for the [MMC] concentration?
+Which courses do I need to take for the [MMC] concentration?
+What are the life science support elective options for [MMC]
+What are the support course options for [MMC]?
+Which courses are part of the [MMC]?
+Which courses are optional for [MMC]?
+Which courses in [MMC] can I skip through AP Credit?
+Which courses in [MMC] can I skip through IB Credit?
+Which minor or concentration adds the least amount of graduation time to the [MMC]?
+How many general education courses do I need to take for the [MMC] major?
+How many support courses do I need to take for the [MMC] major?
+What is the units break down for [MMC] major?
+How many GE units do I need for the [MMC] major?
+How many support units do I need for the [MMC] major?
+How many units do I need for the [MMC] major?
+"In order to complete the [MMC] major, how many units will I need?"
+How many units do I need for the [MMC] minor?
+How many units does the [MMC] require?
+How many classes per quarter do I have to take for [MMC]?
+How many concentrations are there in [MMC]?
+How many courses are required for [MMC]?
+Can I double major with [MMC]?
+What are the degree requirements for [MMC]?
+How many students are enrolled in [MMC]?
+Is there a BS/MS blend with [MMC]?
+How many units are required for [MMC]?
+Does an inquiry need to be submitted to switch into [MMC]
+What are the minimum requirements to switch into [MMC]
+Does [MMC] contain any free electives?
+What courses are needed to obtain [MMC]
+Is there a GPA requirement to enroll in [MMC]
+How many tech electives are required for [MMC]?
+What are the general education categories required for [MMC] majors?
+Are there any [MMC] classes that can be taken by credit/no credit?
+Can any technical electives for [MMC] be taken by credit/no credit?
+How many GEs do I have to take in [MMC]?
+How many general educations do I have to take in [MMC]?
+How many general education classes do I have to take in [MMC]?
+How many units of electives do I need for [MMC]?
+What is the total number of units of electives needed to graduate in [MMC]?
+How many approved electives do I have to take for the [MMC]?
+What are the approved electives I can take for a [MMC]?
+What are the program educational objectives for the [MMC]?
+What are the learning outcomes of [MMC]?
+What are the learning outcomes for [MMC]?
+What are the [MMC] courses?
+What are the courses required for [MMC]?
+How many courses do we have in [MMC]?
+What are some [MMC] resources that are available?
+What resources are there for [MMC]?
+Where can I get advising for a [MMC]?
+What are the course numbers that are considered independent study in [MMC]?
+How many units do I need for a [MMC]?
+What are the steps to apply for the [MMC]?
+How do I apply for a [MMC]?
+What are the required courses for the [MMC]?
+What are the prerequisites for the [MMC]?
+Where can I get the application for the [MMC]?
+Where can I get the flowchart for the [MMC]?
+What courses should I take each quarter for the [MMC]?
+How many classes do I have to take for [MMC]?
+What is the total number of classes needed to graduate in [MMC]?
+How do I declare [MMC] concentration?
+Who are the minor advisors for [MMC]?
+Who can I contact to get more information about the [MMC]?
+Who can I contact if I have questions about [MMC]?
+Who will help me if I have doubts about [MMC]?
+Where can I get the flowchart for [MMC]?
+What are the GE area required for [MMC]?
+What are the undergraduate courses for [MMC]?
+What are the graduate courses for [MMC]?
+How many GE areas have to be completed for [MMC]?
+What minor would make more sense with [MMC]
+"At best, how long last [MMC]?"
+How many years are necessary to graduate from [MMC]?
+What are the tech electives for [MMC]?
+What courses are electives for [MMC]?
+What electives can I take to get a [MMC]?
+What courses are credit not allowed for [MMC]?
+What are the program objectives of [MMC]?
+How many people are in the classes for [MMC]?
+Who accredits the [MMC]?
+What are the prerequisites for [MMC]?
+Is there a [MMC] Minor?
+What is the [MMC] Minor?
+Is [MMC] a part of another department?
+Who is the advisor for [MMC]?
+How many units to get a Minor in [MMC]?
+How many prerequisites are there for [MMC]?
+How many students take [MMC]?
+Will [MMC] help me get a job?
+How many classes would I have to take to get a Minor in [MMC]?
+How do I learn more about [MMC]?
+Which classes are crosslisted in [DEPT]?
+What [DEPT] courses are required?
+What classes are required from [DEPT]?
+How many [DEPT] courses are required?
+How many courses from [DEPT] are required?
+How many classes of [DEPT] do I have to complete?
+What clubs does the [DEPT] department offer?
+How many clubs are in the [DEPT] department?
+What types of clubs does the [DEPT] department offer?
+How do you sign up to be a [DEPT] tutor?
+What accreditations does [DEPT] have?
+What college does [DEPT] belong to?
+What positions are available in [DEPT]?
+Can I get a job at Cal Poly in [DEPT]?
+Who is the advisor of the [CLUB] club?
+What is the email of the President of the [CLUB] club?
+What type of club is the [CLUB] club?
+What is the email for the advisor of the [CLUB] club?
+What is the [CLUB] club?
+What is the homepage of the [CLUB] club?
+What is the box number of the [CLUB] club?
+What is the email for the [CLUB] club?
+What are the social media accounts for the [CLUB] club?
+How many people follow the [CLUB] club's Facebook page?
+Are there any new posts on the [CLUB] club's Facebook page?
+What is the next event for [CLUB]?
+When is the next event for [CLUB]?
+Who are the officers for [CLUB] club?
+When are the meetings for [CLUB] club?
+When is the next meeting for [CLUB] club?
+Where is [CLUB] located?
+Does [CLUB] have their own room?
+What college is affiliated with the [CLUB] club?
+What are some past events of the [CLUB] club?
+What was the last event of the [CLUB] club?
+When was the last event of [CLUB] club?
+Who is the president of the [CLUB] club?
+Who is the vice president of the [CLUB] club?
+Who is the secretary of the [CLUB] club?
+Who is the treasurer of the [CLUB] club?
+How can I contact [CLUB]?
+What is the phone number of the President of the [CLUB] club?
+What is the phone number of the Advisor of the [CLUB] club?
+How many people posted on the [CLUB] club's Facebook page in the past 30 days?
+How many people joined the [CLUB] club's Facebook page in the past 30 days?
+What resources are used by the [CLUB] club?
+How many followers does the [CLUB] club's Instagram account have?
+How many accounts does the [CLUB]'s Instagram follow?
+When was the [CLUB] established?
+Does the [CLUB] have an office?
+Where is the office of the [CLUB]?
+How many officers does the [CLUB] have?
+How many teams does the [CLUB] have?
+Where will the next event of the [CLUB] be held?
+When will the next event of the [CLUB] be held?
+How many events does the [CLUB] have next week?
+What is the next event of the [CLUB]?
+What is the website link for [CLUB]?
+Is there a website for [CLUB]?
+How do I learn more about [CLUB]?
+What does [CLUB] do?
+Who should I contact for [CLUB]?
+Is there a contact for [CLUB]?
+What is the location of [CLUB]?
+Where is [CLUB]?
+Where can I visit [CLUB] online?
+What is the URL for [CLUB]?
+Can you describe the [CLUB]?
+Could you give me a brief overview of [CLUB]?
+Who is the chief contact for [CLUB]?
+Who should I get in touch with for [CLUB]?
+What is the general contact information for [CLUB]?
+Who is the club adviser for [CLUB]?
+What teachers teach a class in [SECRET_HIDEOUT]?
+Which classes are taught in [SECRET_HIDEOUT]?
+Do any teachers have office hours in [SECRET_HIDEOUT]?
+What professors have offices in [SECRET_HIDEOUT]?
+Which professors have office hours in [SECRET_HIDEOUT]?
+Who are the professors with office hours in [SECRET_HIDEOUT]?
+Whose office is in [SECRET_HIDEOUT]?
+Which professors have offices in building [SECRET_HIDEOUT]?
+How many professors have offices in building [SECRET_HIDEOUT]?
