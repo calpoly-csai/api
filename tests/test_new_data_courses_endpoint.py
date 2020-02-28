@@ -10,7 +10,7 @@ def test_post_one_course():
         "courses": [
             {
                 "dept": "CPE",
-                "courseNum": "357",
+                "courseNum": 357,
                 "units": "4",
                 "termsOffered": "F,W,SP",
                 "courseName": "Systems Programming",
@@ -27,6 +27,11 @@ def test_post_one_course():
     headers = {"Content-Type": "application/json"}
     print("request_json:\n\n", request_json, "\n")
     response = requests.post(URL, data=request_json, headers=headers)
+
+    # printouts
+    print("response.ok", response.ok)
+    print("response.status_code", response.status_code)
+    print("response.text", response.text)
 
     # assertions
     assert response.ok is True
