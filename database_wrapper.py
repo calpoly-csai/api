@@ -36,6 +36,15 @@ UNION_ENTITIES = Union[
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
+default_tag_column_dict = {
+    Calendars: {"date"},
+    Courses: {"courseName", "courseNum", "dept"},
+    Locations: {"building_number", "name"},
+    Professors: {"firstName", "lastName"},
+    Clubs: {"club_name"},
+    Sections: {"section_name"}
+}
+
 
 class BadDictionaryKeyError(Exception):
     """Raised when the given JSON/dict is missing some required fields.
@@ -379,7 +388,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
 
     def get_property_from_entity(
-        self, prop: str, entity: UNION_ENTITIES, identifier: str, tag_column_map: dict
+        self, prop: str, entity: UNION_ENTITIES, identifier: str,
+        tag_column_map: dict = default_tag_column_dict
     ):
         """
         This function implements the abstractmethod to get a column of values
@@ -422,11 +432,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             total_similarity = 0
             tags = []
             for tag_prop in tag_props:
-                total_similarity += self.full_fuzzy_match(row.__dict__[tag_prop], identifier)
-                tags.append(row.__dict__[tag_prop])
+                total_similarity += self.full_fuzzy_match(str(row.__dict__[tag_prop]), identifier)
+                tags.append(str(row.__dict__[tag_prop]))
 
             if total_similarity > MATCH_THRESHOLD:
-                results.append((total_similarity, tags, row.__dict__[prop]))
+                results.append((total_similarity, tags, str(row.__dict__[prop])))
 
         if len(results) < 1:
             return None
