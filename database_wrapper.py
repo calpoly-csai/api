@@ -28,6 +28,8 @@ from Entity.Professors import Professors, ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
 
+from fuzzywuzzy import fuzz
+
 
 UNION_ENTITIES = Union[
     Calendars, Courses, Professors, AudioSampleMetaData, QuestionAnswerPair
@@ -369,18 +371,16 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             for row in data:
                 csv_out.writerow(row)
 
+    def partial_fuzzy_match(self, tag_value, identifier):
+        return fuzz.partial_ratio(tag_value, identifier)
+
+    def full_fuzzy_match(self, tag_value, identifier):
+        return fuzz.ratio(tag_value, identifier)
+
 
     def get_property_from_entity(
-        self, prop: str, entity: UNION_ENTITIES, entity_string: str
-    ) -> List[UNION_ENTITIES]:
-        """
-        ISSUE: 1)Don't know which column/attribute entity_string corresponds to
-                 for conditional filtering
-               2)Current code checks all attribute and returns row that contains
-                 entity string.
-                    -> Complication: return entity that
-        """
-
+        self, prop: str, entity: UNION_ENTITIES, identifier: str, tag_column_map: dict
+    ):
         """
         This function implements the abstractmethod to get a column of values
         from a NimbusDatabase entity.
@@ -395,34 +395,43 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         >>> ["foaad@calpoly.edu"]
 
         Args:
-            prop: ...
-            entity: ...
-            entity_string: ...
+            prop: the relevant property value to retrieve from matching entities
+            entity: the type of entity we want to get the property from
+            identifier: a string that identifies the entity in some way (i.e., a professor's name)
+            tag_column_map: a dictionary mapping entity types to columns that identify the entities
+                ex:
+                {Professors: {"firstName", "lastName"}}
 
         Returns:
-            A list of values for `prop`
-            such that the `entity` matches the `entity_string`.
-
-        Raises:
-            ...
+            A list of values for `prop`,
+            such that the `entity` matches `identifier`.
         """
+
+        MATCH_THRESHOLD = 80
+
         # TODO: be smart by check only Professor.firstName Professor.lastName
         # TODO: only check Course.dept, Course.course_num, Course.course_name
-        props = []
+        tag_props = []
         for k in entity.__dict__:
-            if not k.startswith("_"):
-                props.append(entity.__dict__[k])
+            if k in tag_column_map[entity]:
+                tag_props.append(k)
 
         results = []
-        # FIXME: this is not good querying!
-        # TODO: don't be so lazy!
-        for p in props:
-            query_obj = self.session.query(entity)
-            res = query_obj.filter(p.contains(entity_string)).all()
-            results += res
-        return [x.__dict__.get(prop) for x in results]
+        query_obj = self.session.query(entity)
+        for row in query_obj.all():
+            total_similarity = 0
+            tags = []
+            for tag_prop in tag_props:
+                total_similarity += self.full_fuzzy_match(row.__dict__[tag_prop], identifier)
+                tags.append(row.__dict__[tag_prop])
 
+            if total_similarity > MATCH_THRESHOLD:
+                results.append((total_similarity, tags, row.__dict__[prop]))
 
+        if len(results) < 1:
+            return None
+
+        return sorted(results, key=lambda pair: pair[0])[0][2]
 
     def get_course_properties(
         self, department: str, course_num: Union[str, int]
