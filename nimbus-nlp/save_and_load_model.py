@@ -17,7 +17,7 @@ date_time = now.strftime("_%m_%d_%Y_%H_%M_%S")
 
 
 def save_model(model, model_name):
-    save_path = PROJECT_DIR + '/models/' + model_name + date_time + '.pkl'
+    save_path = PROJECT_DIR + '/models/classification/' + model_name + date_time + '.pkl'
     f = open(save_path, 'wb')
     pickle.dump(model, f)
     f.close()
@@ -25,11 +25,11 @@ def save_model(model, model_name):
 
 
 def load_model(model_name):
-    train_path = PROJECT_DIR + '/models/' + model_name + '.joblib'
+    train_path = PROJECT_DIR + '/models/classification/' + model_name + '.joblib'
     return joblib.load(train_path)
 
 def load_latest_model():
-    train_path = PROJECT_DIR + '/models/'
+    train_path = PROJECT_DIR + '/models/classification/'
     onlyfiles = [f for f in listdir(train_path) if isfile(join(train_path, f))]
     r = [(f, datetime.strptime(re.findall(r'([\d]+_[\d]+_[\d]+_[\d]+_[\d]+_[\d]+)', f)[0], '%m_%d_%Y_%H_%M_%S')) for f in onlyfiles]
     r = sorted(r, key=lambda x: x[1])
