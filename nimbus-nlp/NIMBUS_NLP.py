@@ -12,7 +12,7 @@ from google.cloud import automl_v1
 from google.cloud.automl_v1.proto import service_pb2
 
 # Temporary import for the classifier
-from question_classifier import TrainQuestionClassifier
+from question_classifier import QuestionClassifier
 
 class NIMBUS_NLP:
 
