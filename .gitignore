@@ -115,3 +115,4 @@ config.json
 credentials.json
 folder_id.txt
 settings.yaml
+.export_env_vars

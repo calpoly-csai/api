@@ -3,6 +3,8 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
+import json
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pydrive.auth import GoogleAuth
@@ -111,6 +113,106 @@ def save_a_recording():
     return filename
 
 
+@app.route('/new_data/courses', methods=['POST'])
+def save_courses():
+    """
+    Persists list of courses
+    """
+    data = request.get_json()
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    for course in data['courses']:
+        try:
+            db.save_course(course)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
+@app.route('/new_data/clubs', methods=['POST'])
+def save_clubs():
+    """
+    Persists list of clubs
+    """
+    data = request.get_json()
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    for club in data['clubs']:
+        try:
+            db.save_club(club)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
+@app.route('/new_data/locations', methods=['POST'])
+def save_locations():
+    """
+    Persists list of locations
+    """
+    data = request.get_json()
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    for location in data['locations']:
+        try:
+            db.save_location(location)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
+@app.route('/new_data/calendars', methods=['POST'])
+def save_calendars():
+    """
+    Persists list of calendars
+    """
+    data = request.get_json()
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    for calendar in data['calendars']:
+        try:
+            db.save_calendar(calendar)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
 def create_filename(form):
     """
     Creates a string filename that adheres to the Nimbus foramtting standard.
@@ -119,7 +221,8 @@ def create_filename(form):
         'isWakeWord', 'noiseLevel', 'tone', 'location', 'gender', 'lastName',
         'firstName', 'timestamp', 'username'
     ]
-    values = list(map(lambda key: str(form[key]), order))
+    values = list(
+        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return '_'.join(values) + '.wav'
 
 

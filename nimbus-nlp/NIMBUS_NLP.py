@@ -12,7 +12,7 @@ from google.cloud import automl_v1
 from google.cloud.automl_v1.proto import service_pb2
 
 # Temporary import for the classifier
-from question_classifier import QuestionClassifier
+from question_classifier import TrainQuestionClassifier
 
 class NIMBUS_NLP:
 
@@ -50,9 +50,10 @@ class NIMBUS_NLP:
 
 class Variable_Extraction:
     def __init__(self):
-        self.model_name = "projects/550037488827/locations/us-central1/models/TEN122771468357468160"
-        self.credential_path = os.getcwd() + "\\auth.json" # replace with the path to the credential json
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.credential_path
+
+        self.model_name = None # replace with the project model id
+        credential_path = None # replace with the path to the credential json
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
     def inline_text_payload(self, sent):
         '''
