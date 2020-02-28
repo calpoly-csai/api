@@ -12,7 +12,7 @@ from google.cloud import automl_v1
 from google.cloud.automl_v1.proto import service_pb2
 
 # Temporary import for the classifier
-from question_classifier import TrainQuestionClassifier
+from question_classifier import QuestionClassifier
 
 class NIMBUS_NLP:
 
@@ -38,8 +38,9 @@ class NIMBUS_NLP:
         nlp_props = variable_extraction.extract_variables(input_question)
 
         # Instantiate the question classifier class
-        classifier = TrainQuestionClassifier(save_model=False)
-
+        classifier = QuestionClassifier()
+        classifier.load_latest_classifier()
+        
         # Classify the question and add it to the nlp properties dictionary 
         nlp_props["question class"] = classifier.\
                 classify_question(nlp_props["normalized question"])
@@ -49,8 +50,8 @@ class NIMBUS_NLP:
 
 class Variable_Extraction:
     def __init__(self):
-        self.model_name = None
-        self.credential_path = None
+        self.model_name = "projects/550037488827/locations/us-central1/models/TEN122771468357468160"
+        self.credential_path = os.getcwd() + "\\auth.json" # replace with the path to the credential json
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.credential_path
 
     def inline_text_payload(self, sent):
