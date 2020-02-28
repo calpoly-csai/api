@@ -557,7 +557,15 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
              True if all is good, else False
         """
 
-        club_data = Clubs()
+        expected_keys = {'club_name', 'types', 'desc', 'contact_email',
+                         'contact_email_2', 'contact_person', 'contact_phone',
+                         'box', 'advisor', 'affiliation'}
+        self.validate_input_keys(formatted_data, expected_keys)
+
+        club_data = self.session.query(Clubs).filter_by(club_name=formatted_data['club_name']).first()
+        if not club_data:
+            club_data = Clubs()
+
         club_data.club_name = formatted_data['club_name']
         club_data.types = formatted_data['types']
         club_data.desc = formatted_data['desc']
@@ -697,12 +705,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         course = self.session.query(Courses).filter_by(dept=course_data['dept'],
                                                        courseNum=course_data['courseNum']).first()
         if not course:
-            print("Adding new course: {} {}".format(course_data['dept'],
-                                                    course_data['courseNum']))
             course = Courses()
-        else:
-            print("Updating course: {} {}".format(course_data['dept'],
-                                                  course_data['courseNum']))
 
         course.dept = course_data['dept']
         course.courseNum = course_data['courseNum']
@@ -737,7 +740,13 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         Returns:
             True if all good, else False
         """
-        location = Locations()
+        expected_keys = {'building_number', 'name', 'longitude', 'latitude'}
+        self.validate_input_keys(location_data, expected_keys)
+
+        location = self.session.query(Locations).filter_by(name=location_data['name']).first()
+        if not location:
+            location = Locations()
+
         location.building_number = location_data["building_number"]
         location.name = location_data["name"]
         location.longitude = location_data["longitude"]
@@ -770,8 +779,14 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
          Returns:
              True if all is good, else False
         """
+        expected_keys = {'date', 'day', 'month', 'year', 'raw_events_text'}
+        self.validate_input_keys(calendar_data, expected_keys)
 
-        calendar = Calendars()
+        calendar = self.session.query(Calendars).filter_by(date=calendar_data['date'],
+                                                           raw_events_text=calendar_data['raw_events_text']).first()
+        if not calendar:
+            calendar = Calendars()
+
         calendar.date = calendar_data["date"]
         calendar.day = calendar_data["day"]
         calendar.month = calendar_data["month"]
