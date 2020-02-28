@@ -25,6 +25,7 @@ from Entity.Courses import Courses
 from Entity.Locations import Locations
 from Entity.QuestionAnswerPair import QuestionAnswerPair
 from Entity.Professors import Professors, ProfessorsProperties
+from Entity.RPILogs import RPILogs, RPILogsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
 
@@ -276,6 +277,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
         self.QuestionAnswerPair = QuestionAnswerPair
+        self.RPILogs = RPILogs
 
         with open(config_file) as json_data_file:
             config = json.load(json_data_file)
@@ -345,6 +347,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
+        __safe_create(self.RPILogs)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -792,7 +795,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         calendar.month = calendar_data["month"]
         calendar.year = calendar_data["year"]
         calendar.raw_events_text = calendar_data["raw_events_text"]
-
+        
         self.session.add(calendar)
         self.session.commit()
         return True
@@ -834,6 +837,42 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.session.add(professor_data)
         self.session.commit()
         return True
+
+    def save_rpi_logs(self, rpi_logs: dict) -> bool:
+        """
+         Save the given Rasperry PI logs into the database"
+            
+         Example input:
+         {
+             "normalized_question": "Where is [PROF]'s office?",
+             "entity": "Khosmood",
+             "input_question": "Where is Khosmood's office?",
+             "prediction": "Where is the office of [PROF]?"
+         }
+
+         Args:
+             rpi_logs: a dictionary that corresponds to the fields in RPILogs
+
+         Raises:
+             BadDictionaryKeyError - ...
+             BadDictionaryValueError - ...
+
+         Returns:
+             True if all is good, else False
+         """
+        
+        rpi_data = RPILogs()
+        rpi_data.id = rpi_logs["id"]
+        rpi_data.normalized_question = rpi_logs["normalized_question"]
+        rpi_data.entity = rpi_logs["entity"]
+        rpi_data.input_question = rpi_logs["input_question"]
+        rpi_data.prediction = rpi_logs["prediction"]
+        
+        # insert this new rpi_data object into the RPILogs table
+        self.session.add(rpi_data)
+        self.session.commit()
+        return True
+
 
     def _execute(self, query: str):
         return self.engine.execute(query)
