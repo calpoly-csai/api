@@ -16,6 +16,8 @@ from database_wrapper import (BadDictionaryKeyError, BadDictionaryValueError,
 from modules.formatters import WakeWordFormatter
 from modules.validators import WakeWordValidator, WakeWordValidatorError
 
+from nimbus import Nimbus
+
 BAD_REQUEST = 400
 SUCCESS = 200
 
@@ -24,6 +26,8 @@ CONFIG_FILE_PATH = 'config.json'
 app = Flask(__name__)
 CORS(app)
 
+# TODO: Initialize this somewhere else.
+nimbus = Nimbus()
 
 @app.route('/', methods=['GET', 'POST'])
 def hello():
@@ -60,7 +64,7 @@ def handle_question():
         return "request body should include the question", BAD_REQUEST
 
     response = {
-        "answer": "answer of <<{}>>".format(question),
+        "answer": nimbus.answer_question(question)
     }
 
     if "session" in request_body:

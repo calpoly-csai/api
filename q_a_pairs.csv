@@ -1,0 +1,136 @@
+answer_format,question_format
+[COURSE..desc].,What is [COURSE] about?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What are the prerequisites for [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Which courses are required to be taken before [COURSE]?
+[COURSE] counts for [COURSE..units].,How many units does [COURSE] count towards?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,When is [COURSE] typically offered?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,During what quarters is [COURSE] typically offered?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,Is [COURSE] going to be offered next quarter?
+[COURSE] is [COURSE..units] units.,Is [COURSE] a 4 unit class?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,What terms is [COURSE] typically offered?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,Which terms is [COURSE] offered?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What are the prerequisites for [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What are the prerequisites for [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What classes do I have to take before [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What classes do I have to take before [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What are the recommended prerequisites for [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What are the recommended prerequisites for [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What classes do I need in order to take [COURSE]?
+[COURSE] is [COURSE..units] units.,How many units is [COURSE]?
+[COURSE] is [COURSE..units] units.,How many units is [COURSE]?
+ [COURSE..desc].,What is [COURSE] about?
+[COURSE..desc].,What is [COURSE] about?
+[COURSE..desc].,What topics are covered in [COURSE]?
+[COURSE..desc].,What topics are covered in [COURSE]?
+The title for [COURSE] is [COURSE..courseName].,What is the course title for [COURSE]?
+The title for [COURSE] is [COURSE..courseName].,What is [COURSE] also called?
+The title for [COURSE] is [COURSE..courseName].,What is the name of [COURSE]?
+The title for [COURSE] is [COURSE..courseNum].,What is the course code for [COURSE]?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,How many times is [COURSE] offered per year?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,When is [COURSE] offered?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,When is [COURSE] available?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,When can I take [COURSE]?
+[COURSE] is [COURSE..units] units.,How many units is [COURSE]?
+[COURSE] is [COURSE..units] units.,How many units does [COURSE] have?
+[COURSE] is [COURSE..units] units.,How many units does [COURSE] fulfill?
+[COURSE] fulfills [COURSE..ge_areas],What does [COURSE] fulfill?
+[COURSE] fulfills [COURSE..ge_areas],Does [COURSE] fulfill anything?
+[COURSE] fulfills [COURSE..ge_areas],What requirements does [COURSE] fulfill?
+[COURSE] fulfills [COURSE..ge_areas],How many lectures does [COURSE] have?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Does [COURSE] have any prerequisites?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,How many prerequisites does [COURSE] have?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Are there any prerequisites for [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What courses do you need to take before taking [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Does [COURSE] have any preqs?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,Is [COURSE] being offered this quarter?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,Can I take [COURSE] this quarter?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,When's the next time I can take [COURSE]?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,Is [COURSE] being offered soon?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,When has [COURSE] been offered?
+[COURSE] is [COURSE..units] units.,How many units is [COURSE]?
+The title for [COURSE] is [COURSE..courseName].,What is the name of [COURSE]?
+The title for [COURSE] is [COURSE..courseName].,What class is [COURSE]?
+[COURSE] is about [COURSE..description].,What is the description of [COURSE]?
+[COURSE] is about [COURSE..description].,What do you learn in [COURSE]?
+[COURSE] fulfills [COURSE..ge_areas],Does [COURSE] fulfill any GE requirements?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,How many prerequisite classes are needed for me to take [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Does [COURSE] require any MATH classes?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,Is [COURSE] being offered next quarter?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Does [COURSE] have non-statistics prerequisites?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Does [COURSE] have non-statistics and non-math prerequisites?
+[COURSE..desc].,What is [COURSE]?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,When is [COURSE] typically offered?
+[COURSE] is [COURSE..units] units.,How many units is [COURSE]?
+[COURSE] is about [COURSE..desc].,What class is [COURSE]?
+[COURSE] is about [COURSE..desc].,What will I learn in [COURSE]?
+[COURSE] is about [COURSE..desc].,What class is [COURSE]?
+The title for [COURSE] is [COURSE..courseName].,What is the name of [COURSE]?
+[COURSE] is [COURSE..units] units.,How many units is [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What are the prerequisites for [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,What courses are needed to take [COURSE]?
+[COURSE] is [COURSE..units] units.,How many units is [COURSE]?
+[COURSE] is [COURSE..units] units.,How much credits is [COURSE] worth?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,When is [COURSE] offered?
+The number for [COURSE] is [COURSE..number],What is the number for [COURSE]?
+[COURSE] is about [COURSE..information].,What is the description for [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Does [COURSE] have any non CS/SE prerequisites?
+The corequisites for [COURSE] are [COURSE..raw_concurrent_text],Does [COURSE] have any corequisites?
+The corequisites for [COURSE] are [COURSE..raw_concurrent_text],Does [COURSE] have any concurrent enrollements?
+The number for [COURSE] is [COURSE..number],How is [COURSE] listed?
+[COURSE] is offered during the [COURSE..terms_offered] quarter(s).,Which quarter is [COURSE] typically offered?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Does [COURSE] have a prerequisite from another department?
+The number for [COURSE] is [COURSE..number],What course number does [COURSE] have?
+[COURSE..number] is [COURSE],What course name does [COURSE] have?
+[COURSE..raw_recommended_text] are recommended for [COURSE],Are there any recommended classes for [COURSE]?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Does [COURSE] require consent of instructor?
+The prerequisites for [COURSE] are: [COURSE..raw_prerequisites_text].,Which departments does [COURSE] have prerequisites in?
+[COURSE] fulfills [COURSE..ge_areas],Does [COURSE] fulfill any GE requirements?
+[PROF] has expertise in [PROF..research_interests].,What are [PROF]'s research areas?
+[PROF]'s office is [PROF..office].,Where is [PROF]'s office?
+[PROF]'s email is [PROF..email].,What is [PROF]'s email?
+[PROF]'s email is [PROF..email].,How can I email [PROF]?
+[PROF]'s email is [PROF..email].,What is the email of [PROF]?
+[PROF]'s email is [PROF..email].,Is [PROF]'s email listed?
+[PROF]'s first name is [PROF..first_name],What is professor [PROF]'s first name?
+[PROF]'s phone number is [PROF..phoneNumber].,What is [PROF]'s phone number?
+[PROF]'s phone number is [PROF..phoneNumber].,What is the phone number for [PROF]?
+[PROF]'s phone number is [PROF..phoneNumber].,Does [PROF] have a phone number listed?
+[PROF]'s phone number is [PROF..phoneNumber].,Is there a phone number listed for [PROF]?
+[PROF] has expertise in [PROF..research_interests].,What are the research interests of [PROF]?
+[PROF] has expertise in [PROF..research_interests].,What research areas are [PROF] interested in?
+[PROF] has expertise in [PROF..research_interests].,What is [PROF] researching?
+[PROF]'s email is [PROF..email].,What is [PROF]'s email?
+[PROF]'s email is [PROF..email].,How can I contact [PROF]?
+[PROF]'s phone number is [PROF..phoneNumber].,What is [PROF]'s contact information?
+[PROF]'s phone number is [PROF..phoneNumber].,What is [PROF]'s phone number?
+[PROF]'s phone number is [PROF..phoneNumber].,What number do I call to reach [PROF]?
+[PROF]'s phone number is [PROF..phoneNumber].,How can I reach [PROF]?
+[PROF]'s office is [PROF..office].,Where is [PROF]'s office?
+[PROF]'s office is [PROF..office].,In what room is [PROF]'s office?
+[PROF]'s email is [PROF..email].,What is the email address of [PROF]?
+[PROF]'s office is [PROF..office].,What is the office of [PROF]?
+[PROF]'s office is [PROF..office].,When can I visit [PROF]'s office?
+[PROF]'s email is [PROF..email].,What is the email of [PROF]?
+[PROF]'s phone number is [PROF..phoneNumber].,What is [PROF]'s phone number?
+[PROF]'s phone number is [PROF..phoneNumber].,What is the phone number of [PROF]?
+[PROF]'s office is [PROF..office].,Where is [PROF]'s office?
+[PROF]'s office is [PROF..office].,What building is [PROF]'s office in?
+[PROF] has expertise in [PROF..researchInterests].,Does [PROF] have any areas of research?
+[CLUB] is a [CLUB..types] club.,What type of club is the [CLUB] club?
+[CLUB..desc].,What is the [CLUB] club?
+[CLUB]'s box number is [CLUB..box],What is the box number of the [CLUB] club?
+[CLUB] can contacted by emailing [CLUB..contact_email],What is the email for the [CLUB] club?
+[CLUB] is affiliated with [CLUB..affiliation],What college is affiliated with the [CLUB] club?
+[CLUB] can be contacted at [CLUB..contact_email],How can I contact [CLUB]?
+[CLUB]'s person of contact is [CLUB..contact_person].,What is the phone number of the President of the [CLUB] club?
+The phone number of [CLUB..advisor] is [CLUB..advisor_phone],What is the phone number of the Advisor of the [CLUB] club?
+[CLUB]'s contact information is [CLUB..contact_email].,How do I learn more about [CLUB]?
+[CLUB..desc].,What does [CLUB] do?
+[CLUB]'s person of contact is [CLUB..contact_person].,Who should I contact for [CLUB]?
+[CLUB]'s person of contact is [CLUB..contact_person].,Is there a contact for [CLUB]?
+[CLUB..desc].,Can you describe the [CLUB]?
+[CLUB..desc].,Could you give me a brief overview of [CLUB]?
+[CLUB]'s advisor is [CLUB..advisor].,Who is the chief contact for [CLUB]?
+[CLUB]'s person of contact is [CLUB..contact_person].,Who should I get in touch with for [CLUB]?
+[CLUB]'s contact information is [CLUB..contact_email].,What is the general contact information for [CLUB]?
+[CLUB]'s advisor is [CLUB..advisor].,Who is the club adviser for [CLUB]?
