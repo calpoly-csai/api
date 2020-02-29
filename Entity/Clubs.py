@@ -13,7 +13,8 @@ class Clubs(Base):
     contact_email = Column(String(255))
     contact_email_2 = Column(String(255))
     contact_person = Column(String(255))
-    contact_phone = Column(String(10))
+    # TODO: how big can a phone number be including extionsions and formatting?
+    contact_phone = Column(String(255))
     box = Column(String(3))
     advisor = Column(String(255))
     affiliation = Column(String(255))
