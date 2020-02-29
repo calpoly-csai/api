@@ -4,7 +4,6 @@ import spacy
 import numpy as np
 import sklearn.neighbors
 import pandas as pd
-import sys
 import json
 from nimbus_nlp.save_and_load_model import save_model, load_latest_model, PROJECT_DIR
 

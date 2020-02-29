@@ -1,16 +1,9 @@
-import nl
-import numpy as np
+
 import os
-import pandas as pd
-import re
-import sklearn.neighbors
-import spacy
-import sys
 import json
 
 from google.api_core.client_options import ClientOptions
 from google.cloud import automl_v1
-from google.cloud.automl_v1.proto import service_pb2
 
 # Temporary import for the classifier
 from nimbus_nlp.question_classifier import QuestionClassifier
