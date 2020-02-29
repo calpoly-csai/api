@@ -441,7 +441,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         if len(results) < 1:
             return None
 
-        return sorted(results, key=lambda pair: pair[0])[0][2]
+        sorted_results = sorted(results, key=lambda pair: pair[0])
+        return sorted_results[-1][2]
 
     def get_course_properties(
         self, department: str, course_num: Union[str, int]

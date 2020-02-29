@@ -1,4 +1,4 @@
-import nltk
+import nl
 import numpy as np
 import os
 import pandas as pd
@@ -6,6 +6,7 @@ import re
 import sklearn.neighbors
 import spacy
 import sys
+import json
 
 from google.api_core.client_options import ClientOptions
 from google.cloud import automl_v1
@@ -49,10 +50,19 @@ class NIMBUS_NLP:
     
 
 class Variable_Extraction:
-    def __init__(self):
+    def __init__(self, config_file: str = "config.json"):
 
-        self.model_name = "projects/550037488827/locations/us-central1/models/TEN122771468357468160"
+        with open(config_file) as json_data_file:
+            config = json.load(json_data_file)
+
+        if config.get("GOOGLE_CLOUD_NLP_MODEL_NAME", False):
+            self.model_name = config["GOOGLE_CLOUD_NLP_MODEL_NAME"]
+        else:
+            msg = "config.json is missing {} field.".format("GOOGLE_CLOUD_NLP_MODEL_NAME")
+            raise Exception(msg)
+
         credential_path = os.getcwd() + "/auth.json"
+        # TODO: consider does this even do anything useful?
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
     def inline_text_payload(self, sent):
