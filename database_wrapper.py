@@ -815,6 +815,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
              True if all is good, else False
          """
         
+	# TODO: Add a "tag" 
         rpi_data = RPILogs()
         rpi_data.id = rpi_logs["id"]
         rpi_data.normalized_question = rpi_logs["normalized_question"]
