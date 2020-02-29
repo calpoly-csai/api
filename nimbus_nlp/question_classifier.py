@@ -4,7 +4,6 @@ import spacy
 import numpy as np
 import sklearn.neighbors
 import pandas as pd
-import sys
 import json
 from save_and_load_model import save_model, load_latest_model, PROJECT_DIR
 
@@ -13,6 +12,7 @@ from save_and_load_model import save_model, load_latest_model, PROJECT_DIR
 
 class QuestionClassifier:
     def __init__(self):
+        nltk.download('stopwords')
         self.classifier = None
         self.nlp = spacy.load('en_core_web_sm')
         self.WH_WORDS = {'WDT', 'WP', 'WP$', 'WRB'}
