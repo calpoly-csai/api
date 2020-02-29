@@ -525,10 +525,19 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             True if all is good, else False
         """
 
+        # Maps Entity classes that need extra data formatting to their formatting methods
+        format_method_by_entity = {
+            AudioSampleMetaData : self.format_audio_sample_meta_data_dict
+        }
+
         # Validate input
         self.validate_input_keys(data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
 
-        # Grab the entity class attributes
+        # If the data is supposed to be formatted, format it!
+        if entity_type in format_method_by_entity:
+            data_dict = format_method_by_entity[entity_type](data_dict)
+
+        # Grab the entity class attributes and initialize entity to None
         entity_attributes = entity_type.__dict__
         entity = None
 
@@ -571,6 +580,70 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         print("\033[92mSaved!\033[00m")
 
         return True
+
+    def format_audio_sample_meta_data_dict(self, raw_data_dict: dict) -> dict:
+        """
+        raw_data_dict at this point looks like:
+        {
+            "isWakeWord": True,
+            "firstName": "jj",
+            "lastName": "doe",
+            "gender": "f",
+            "noiseLevel": "q",
+            "location": "here",
+            "tone": "serious-but-not-really",
+            "timestamp": 1577077883,
+            "username": "guest",
+            "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
+        }
+
+        Raises:
+            BadDictionaryValueError - ...
+
+        Returns:
+            A new, formatted data dictionary
+        """
+
+        formatted_data = raw_data_dict
+
+        isWW = raw_data_dict["isWakeWord"]
+        if (isWW == "ww") or (isWW is True):
+            formatted_data.pop('isWakeWord')
+            formatted_data['is_wake_word'] = True
+        elif (isWW == "nww") or (isWW is False):
+            formatted_data.pop('isWakeWord')
+            formatted_data['is_wake_word'] = False
+        else:
+            msg = "unexpected values for isWakeWord\n"
+            msg += "expected 'ww' or True or 'nww' or False but got '{}'"
+            msg = msg.format(raw_data_dict["isWakeWord"])
+            raise BadDictionaryValueError(msg)
+
+        if (
+            raw_data_dict["noiseLevel"] == "q"
+            or raw_data_dict["noiseLevel"] == "quiet"
+        ):
+            formatted_data.pop('noise_level')
+            formatted_data['noise_level'] = NoiseLevel.quiet
+        elif (
+            raw_data_dict["noiseLevel"] == "m"
+            or raw_data_dict["noiseLevel"] == "medium"
+        ):
+            formatted_data.pop('noise_level')
+            formatted_data['noise_level'] = NoiseLevel.medium
+        elif (
+            raw_data_dict["noiseLevel"] == "l"
+            or raw_data_dict["noiseLevel"] == "loud"
+        ):
+            formatted_data.pop('noise_level')
+            formatted_data['noise_level'] = NoiseLevel.loud
+        else:
+            msg = "unexpected values for noiseLevel\n"
+            msg += "expected 'q' or 'm' or 'l' but got '{}'"
+            msg = msg.format(raw_data_dict["noiseLevel"])
+            raise BadDictionaryValueError(msg)
+
+        return formatted_data
 
     def _execute(self, query: str):
         return self.engine.execute(query)
