@@ -19,8 +19,8 @@ class WakeWordFormatter(Formatter):
         # TODO: document this function better
         # TODO: write test cases for this function
         form = data.copy()
-        form['isWakeWord'] = 'ww' if (form[key]) else 'nww'
+        form["isWakeWord"] = "ww" if (form["isWakeWord"]) else "nww"
         form["firstName"] = form["firstName"].title()
         form["lastName"] = form["lastName"].title()
-        form['timestamp'] = int(form[key])
+        form["timestamp"] = int(form["timestamp"])
         return form
