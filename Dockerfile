@@ -46,6 +46,9 @@ WORKDIR /nimbus
 # generate all the special configuration files
 RUN ./setup_special_files_from_env.py
 
+# download the nlp stuff
+RUN ./download_nlp_stuff.sh
+
 # just make sure the file is there
 RUN ls | grep config
 
