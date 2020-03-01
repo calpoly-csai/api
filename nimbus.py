@@ -1,3 +1,11 @@
+# This import fixes a segfault on Ubuntu 18.04.1 LTS.  It doesn't seem to do anything,
+# and doesn't seem to be used by anything, but if its removed, the program segfaults.
+# See issue #90 on github. This segfault does not occur on Mac or Windows.
+# Feel free to debug this if you would like.  Current dev hours counter on this issue:
+# 30 hours
+# Update the counter above if you work on this issue.
+#
+from werkzeug.exceptions import BadRequestKeyError
 from QA import create_qa_mapping, generate_fact_QA
 from nimbus_nlp.NIMBUS_NLP import NIMBUS_NLP
 
