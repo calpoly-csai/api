@@ -31,8 +31,14 @@ from Entity.Sections import Sections, SectionType
 from fuzzywuzzy import fuzz
 
 
+GREEN_COLOR_CODE = "\033[92m"
+YELLOW_COLOR_CODE = "\033[93m"
+PURPLE_COLOR_CODE = "\033[95m"
+CYAN_COLOR_CODE = "\033[96m"
+RESET_COLOR_CODE = "\033[00m"
+
 UNION_ENTITIES = Union[
-    Calendars, Courses, Professors, AudioSampleMetaData, QuestionAnswerPair
+    AudioSampleMetaData, Calendars, Courses, Professors, QuestionAnswerPair
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
@@ -502,21 +508,47 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             .all()
         )
 
-    def save_entity(self, entity_type, data_dict: dict, filter_fields=[]) -> bool:
+    def validate_and_format_entity_data(self, entity_type, data_dict: dict):
         """
-        Save an entity into the database. Can only be used when the key names in data_dict
-        match the entity field names (order shouldn't matter, but cases and spelling do matter).
-
-        Note: INSERTs will be in cyan, and UPDATEs will be in yellow.
+        Validates that the data_dict's fields matches the entity_type's fields, and formats the data_dict
+        if necessary.
 
         data_dict should be a dictionary of field names and values, looking like:
         {
-            "field": value,
+            "fieldOne": valueOne,
             "..."  : ...
         }
 
-        filter_fields is a list of variable names (strings) to match for when running an 
-        update query. If not provided, defaults to an empty list (basically an INSERT)
+        Raises:
+            BadDictionaryKeyError - ...
+            BadDictionaryValueError - ...
+
+        Returns:
+            The formatted data_dict if there was formatted run, otherwise an unmodified data_dict
+        """
+
+        format_method_by_entity = {
+            AudioSampleMetaData : self.format_audio_sample_meta_data_dict
+        }
+
+        # Format data (if needed), and validate data
+        if entity_type in format_method_by_entity:
+            data_dict = format_method_by_entity[entity_type](data_dict)
+
+        self.validate_input_keys(data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
+        return data_dict
+
+
+    def insert_entity(self, entity_type, data_dict: dict) -> bool:
+        """
+        Inserts an entity into the database. The keys of data_dict should follow camelCase
+        so they can be translated into snake_case.
+
+        data_dict should be a dictionary of field names and values, looking like:
+        {
+            "fieldOne": valueOne,
+            "..."  : ...
+        }
 
         Raises:
             BadDictionaryKeyError - ...
@@ -526,63 +558,107 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             True if all is good, else False
         """
 
-        # Maps Entity classes that need extra data formatting to their formatting methods
-        format_method_by_entity = {
-            AudioSampleMetaData : self.format_audio_sample_meta_data_dict
-        }
+        # Validate and format entity data
+        formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
 
-        # Validate input
-        self.validate_input_keys(data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
-
-        # If the data is supposed to be formatted, format it!
-        if entity_type in format_method_by_entity:
-            data_dict = format_method_by_entity[entity_type](data_dict)
-
-        # Grab the entity class attributes and initialize entity to None
+        # Grab the entity class attributes and initialize entity
         entity_attributes = entity_type.__dict__
-        entity = None
+        entity = entity_type()
 
-        # If filter_fields is provided, we can check if we are performing an UPDATE or INSERT.
-        if not filter_fields == []:
-            query = self.session.query(entity_type)
+        # Logging...
+        print("{}Inserting into {}...{}".format(
+              CYAN_COLOR_CODE, entity_attributes['__tablename__'], RESET_COLOR_CODE))
 
-            for field in filter_fields:
-                query = query.filter(getattr(entity_type, field) == data_dict[field])
-
-            entity = query.first()
-            if entity:
-                print("\033[93mUpdating {} in {}...\033[00m".format(
-                      entity, entity_attributes['__tablename__']))
-            else:
-                entity = entity_type()
-                print("\033[96mInserting into {}...\033[00m".format(
-                      entity_attributes['__tablename__']))
-        else:
-            entity = entity_type()
-            print("\033[96mInserting into {}...\033[00m".format(
-                  entity_attributes['__tablename__']))
-            
-        # Grab the entity class fields by cleaning the attributes dictionary - discard anything
-        # with underscores in the front or back
-        # Note: Make sure you don't label any important data fields with underscores
-        # in the front or back!
+        # Grab the entity class fields by cleaning the attributes dictionary 
+        # and discard anything with underscores in the front or back
+        # Note: Make sure you don't label any important data fields with underscores in the front or back!
         entity_fields = dict(filter(lambda i: not (i[0][0] == '_' or i[0][-1] == '_'), 
                                     entity_attributes.items()))
 
         # Ignore the first field, since it's assumed to be a primary key
-        # Populate the entity with values from data_dict
+        # Populate the entity with values from formatted_data
         for entity_field in list(entity_fields.keys())[1:]:
-            setattr(entity, entity_field, data_dict[entity_field])
+            setattr(entity, entity_field, formatted_data[entity_field])
 
-        # Perform the actual UPDATE or INSERT
+        # Perform the INSERT
         print("Saving to database: {}...".format(entity))
         self.session.add(entity)
         self.session.commit()
-        print("\033[92mSaved!\033[00m")
+        print("{}Saved!\n{}".format(GREEN_COLOR_CODE, RESET_COLOR_CODE))
 
         return True
 
-    def format_audio_sample_meta_data_dict(self, raw_data_dict: dict) -> dict:
+    def update_entity(self, entity_type, data_dict: dict, filter_fields: list) -> bool:
+        """
+        Updates an entity in the database. The keys of data_dict should follow camelCase
+        so they can be translated into snake_case.
+
+        data_dict should be a dictionary of field names and values, looking like:
+        {
+            "fieldOne": valueOne,
+            "..."  : ...
+        }
+
+        filter_fields is a list of variable names (strings) to match for when running an 
+        update query. If not provided, raises an error since it's not an update.
+
+        ex: passing in filter_fields=["name", "title"] will check for an existing entity that has the
+        same 'name' and 'title' values in the data_dict.
+
+        Raises:
+            RuntimeError - ...
+            BadDictionaryKeyError - ...
+            BadDictionaryValueError - ...
+
+        Returns:
+            True if all is good, else False
+        """
+
+        # If we're not filtering for anything, we shouldn't be calling update_entity
+        if len(filter_fields) == 0:
+            raise RuntimeError("update_entity for {} requires filter_fields list to filter by.".format(entity_type))
+
+        # Validate and format entity data
+        formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
+
+        # Grab the entity class attributes and initialize entity to None
+        entity_attributes = entity_type.__dict__
+
+        # Run a SELECT query to see if an entity that matches the values under the fields in the filter_fields list exists
+        query = self.session.query(entity_type)
+        for field in filter_fields:
+            query = query.filter(getattr(entity_type, field) == formatted_data[field])
+        entity = query.first()
+        print(entity)
+
+        if entity:
+            print("{}Updating {} in {}...{}".format(
+                  YELLOW_COLOR_CODE, entity, entity_attributes['__tablename__'], RESET_COLOR_CODE))
+        else:
+            entity = entity_type()
+            print("{}Matching Entity not found - Inserting {} in {}...{}".format(
+                  YELLOW_COLOR_CODE, entity, entity_attributes['__tablename__'], RESET_COLOR_CODE))
+
+        # Grab the entity class fields by cleaning the attributes dictionary - 
+        # discard anything with underscores in the front or back
+        # Note: Make sure you don't label any important data fields with underscores in the front or back!
+        entity_fields = dict(filter(lambda i: not (i[0][0] == '_' or i[0][-1] == '_'), 
+                                    entity_attributes.items()))
+
+        # Ignore the first field, since it's assumed to be a primary key
+        # Populate the entity with values from formatted_data
+        for entity_field in list(entity_fields.keys())[1:]:
+            setattr(entity, entity_field, formatted_data[entity_field])
+
+        # Perform the actual UPDATE/INSERT
+        print("Saving to database: {}...".format(entity))
+        self.session.add(entity)
+        self.session.commit()
+        print("{}Saved!\n{}".format(GREEN_COLOR_CODE, RESET_COLOR_CODE))
+
+        return True
+
+    def format_audio_sample_meta_data_dict(self, data_dict: dict) -> dict:
         """
         raw_data_dict at this point looks like:
         {
@@ -605,46 +681,42 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             A new, formatted data dictionary
         """
 
-        formatted_data = raw_data_dict
+        is_wake_word_by_label = {
+            "ww" : True,
+            "nww" : False,
+            True : True,
+            False : False
+        }
 
-        isWW = raw_data_dict["isWakeWord"]
-        if (isWW == "ww") or (isWW is True):
-            formatted_data.pop('isWakeWord')
-            formatted_data['is_wake_word'] = True
-        elif (isWW == "nww") or (isWW is False):
-            formatted_data.pop('isWakeWord')
-            formatted_data['is_wake_word'] = False
+        noise_level_by_label = {
+            "q" : NoiseLevel.quiet,
+            "quiet" : NoiseLevel.quiet,
+            "m" : NoiseLevel.medium,
+            "medium" : NoiseLevel.medium,
+            "l" : NoiseLevel.loud,
+            "loud" : NoiseLevel.loud
+        }
+
+        data_dict["first_name"] = data_dict.pop("firstName")
+        data_dict["last_name"] = data_dict.pop("lastName")
+
+        if data_dict["isWakeWord"] in is_wake_word_by_label:
+            data_dict["is_wake_word"] = is_wake_word_by_label[data_dict.pop("isWakeWord")]
         else:
             msg = "unexpected values for isWakeWord\n"
             msg += "expected 'ww' or True or 'nww' or False but got '{}'"
             msg = msg.format(raw_data_dict["isWakeWord"])
             raise BadDictionaryValueError(msg)
 
-        if (
-            raw_data_dict["noiseLevel"] == "q"
-            or raw_data_dict["noiseLevel"] == "quiet"
-        ):
-            formatted_data.pop('noise_level')
-            formatted_data['noise_level'] = NoiseLevel.quiet
-        elif (
-            raw_data_dict["noiseLevel"] == "m"
-            or raw_data_dict["noiseLevel"] == "medium"
-        ):
-            formatted_data.pop('noise_level')
-            formatted_data['noise_level'] = NoiseLevel.medium
-        elif (
-            raw_data_dict["noiseLevel"] == "l"
-            or raw_data_dict["noiseLevel"] == "loud"
-        ):
-            formatted_data.pop('noise_level')
-            formatted_data['noise_level'] = NoiseLevel.loud
+        if data_dict["noiseLevel"] in noise_level_by_label:
+            data_dict["noise_level"] = noise_level_by_label[data_dict.pop("noiseLevel")]
         else:
             msg = "unexpected values for noiseLevel\n"
             msg += "expected 'q' or 'm' or 'l' but got '{}'"
-            msg = msg.format(raw_data_dict["noiseLevel"])
+            msg = msg.format(data_dict["noiseLevel"])
             raise BadDictionaryValueError(msg)
 
-        return formatted_data
+        return data_dict
 
     def _execute(self, query: str):
         return self.engine.execute(query)
@@ -658,13 +730,28 @@ if __name__ == "__main__":
     db._create_all_tables()
 
     data = {
+        "isWakeWord": True,
+        "firstName": "jj",
+        "lastName": "doe",
+        "gender": "f",
+        "noiseLevel": "q",
+        "location": "here",
+        "tone": "serious-but-not-really",
+        "timestamp": 1577077883,
+        "username": "guest",
+        "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
+    }
+
+    db.insert_entity(AudioSampleMetaData, data)
+
+    data = {
         "building_number": 1,
         "name": "Administration",
         "longitude": -120.658561,
         "latitude": 35.300960
     }
 
-    db.save_entity(Locations, data)
+    db.update_entity(Locations, data, ['building_number'])
 
     data = {
         "club_name": "Cal Poly Computer Science and Artificial Intelligence",
@@ -679,7 +766,7 @@ if __name__ == "__main__":
         "affiliation": "None"
     }
 
-    db.save_entity(Clubs, data)
+    db.insert_entity(Clubs, data)
 
     data = {
         "section_name": "CSC 480_06",
@@ -696,58 +783,5 @@ if __name__ == "__main__":
         "department": "CENG-Computer Science & Software Engineering"
     }
 
-    db.save_entity(Sections, data)
-
-    print(
-        "\n", "\n", "What clubs does is Kurfess advise?", "\n", "\n",
-        db.get_property_from_entity(
-            prop="club_name", entity=Clubs, entity_string="Kurfess"
-        )
-    )
-
-    print(
-        "\n", "\n", "What sections is Kauffman teaching?", "\n", "\n",
-        db.get_property_from_entity(
-            prop="section_name", entity=Sections, entity_string="Kauffman"
-        )
-    )
-
-    print(
-        "\n", "\n", "What is the long & lat of Admin building?", "\n", "\n",
-        [
-            (x, y)
-            for x, y in zip(
-            db.get_property_from_entity(
-                prop="longitude", entity=Locations, entity_string="Admin"
-            ),
-            db.get_property_from_entity(
-                prop="latitude", entity=Locations, entity_string="Admin"
-            ),
-        )
-        ]
-    )
-
-    print(
-        "\n", "\n", "What courses are about Algo?", "\n", "\n",
-        db.get_property_from_entity(
-            prop="courseName", entity=Courses, entity_string="Algo"
-        )
-    )
-
-    print(
-        "\n", "\n", "What courses are about Design?", "\n", "\n",
-        db.get_property_from_entity(
-            prop="courseName", entity=Courses, entity_string="Design"
-        )
-    )
-
-    print(
-        "\n", "\n", "What courses are somehow related to 357?", "\n", "\n",
-        db.get_property_from_entity(
-            prop="courseName", entity=Courses, entity_string="357"
-        )
-    )
-
-
-    print("\n\nQA Tuple list\n\n", db.get_all_qa_pairs(), "\n\n")
-    db.return_qa_pair_csv()
+    db.insert_entity(Sections, data)
+    
