@@ -221,12 +221,14 @@ def docker(c, username=None, app_name="nimbus"):
     cmd += " --build-arg GOOGLE_DRIVE_FOLDER_ID"
     cmd += " --build-arg GOOGLE_CLOUD_NLP_CREDENTIALS"
     cmd += " --build-arg GOOGLE_CLOUD_NLP_MODEL_NAME"
-    cmd += f" -t {username}/{app_name} ."
+    cmd += f" -t \"{username}/{app_name}\" ."
 
     print(f"$ {cmd}\n")
-    c.run(cmd)  # run the docker build
+    c.run(cmd, pty=True)  # run the docker build
 
     # http://www.pyinvoke.org/faq.html#running-local-shell-commands-run
+    # --rm will make sure to remove the container on exit of shell
+    # otherwise docker containers will eat up your storage space
     cmd = f"docker run -it --rm -p 8080:8080  {username}/{app_name}"
     print(f"$ {cmd}\n")
     c.run(cmd, pty=True)  # run the docker run
@@ -250,7 +252,9 @@ def docker_shell(c, image_name=None):
             print("hey run this to make life easier...")
             print(f"export {ENV_KEY}={image_name}")
 
-    cmd = f"docker run -it {image_name} sh"
+    # --rm will make sure to remove the container on exit of shell
+    # otherwise docker containers will eat up your storage space
+    cmd = f"docker run -it --rm {image_name} sh"
     print(f"$ {cmd}\n")
     c.run(cmd, pty=True)  # run the docker interactive shell
 
