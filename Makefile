@@ -2,7 +2,7 @@ all:
 	#
 	# let's `make` life easier xD
 	# 
-	pip install invoke
+	pip3 install invoke
 	invoke list
 
 
