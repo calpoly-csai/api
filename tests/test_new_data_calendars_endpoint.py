@@ -2,7 +2,7 @@ import requests  # noqa
 import json
 
 BASE_URL = "http://0.0.0.0:8080"
-URL = f"{BASE_URL}/new_data/clubs"
+URL = f"{BASE_URL}/new_data/calendars"
 
 
 # TODO: assert other properties like
@@ -12,20 +12,15 @@ URL = f"{BASE_URL}/new_data/clubs"
 #       * if given ....... ????
 
 
-def test_post_one_club():
+def test_post_one_calendar():
     data = {
-        "clubs": [
+        "calendars": [
             {
-                "club_name": "test_club",
-                "types": "Academic, Special Interest",
-                "desc": "description",
-                "contact_email": "test@test.com",
-                "contact_email_2": "test@test.com",
-                "contact_person": "Test Person",
-                "contact_phone": 12223334444,
-                "box": 89,
-                "advisor": "Test Person",
-                "affiliation": None,
+                "date": "7_4_2020",
+                "day": "4",
+                "month": "July",
+                "year": "2020",
+                "raw_events_text": ["TEST EVENT"],
             }
         ]
     }
@@ -46,3 +41,4 @@ def test_post_one_club():
     assert response.ok is True
     assert response.status_code == 200
     assert response.text == "SUCCESS"
+

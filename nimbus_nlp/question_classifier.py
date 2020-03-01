@@ -7,12 +7,16 @@ import pandas as pd
 import sys
 import json
 from nimbus_nlp.save_and_load_model import save_model, load_latest_model, PROJECT_DIR
+import json
+
 
 # TODO: move the functionality in this module into class(es), so that it can be more easily used as a dependency
 
 
 class QuestionClassifier:
+
     def __init__(self):
+        nltk.download('stopwords')
         self.classifier = None
         self.nlp = spacy.load('en_core_web_sm')
         self.WH_WORDS = {'WDT', 'WP', 'WP$', 'WRB'}
