@@ -629,7 +629,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         for field in filter_fields:
             query = query.filter(getattr(entity_type, field) == formatted_data[field])
         entity = query.first()
-        print(entity)
 
         if entity:
             print("{}Updating {} in {}...{}".format(
