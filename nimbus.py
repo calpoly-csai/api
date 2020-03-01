@@ -1,3 +1,4 @@
+from werkzeug.exceptions import BadRequestKeyError
 from QA import create_qa_mapping, generate_fact_QA
 from nimbus_nlp.NIMBUS_NLP import NIMBUS_NLP
 
