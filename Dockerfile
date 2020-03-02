@@ -1,5 +1,15 @@
-FROM python:3.6-stretch
+# FROM python:3.6-stretch
+# FROM python:3.8-buster  # needs pip install numpy
+# FROM python:3.7-stretch
+FROM ubuntu:latest
 RUN apt update
+
+RUN apt-get update \
+  && apt-get install -y python3-pip python3-dev \
+  && cd /usr/local/bin \
+  && ln -s /usr/bin/python3 python \
+  && pip3 install --upgrade pip
+
 
 # put the requirements file into the container
 ADD requirements.txt /nimbus/requirements.txt
