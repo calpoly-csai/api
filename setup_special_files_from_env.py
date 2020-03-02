@@ -2,6 +2,12 @@
 from os import environ
 import json
 from utilities import yaml_utils  # noqa
+from colorama import init
+from termcolor import colored
+
+# initialize colorama
+init()
+
 
 # NimbusDatabase stuff
 SAMPLE_CONFIG_FILE = "config.json_SAMPLE"
@@ -22,7 +28,9 @@ GOOGLE_DRIVE_CREDENTIALS_KEY = "GOOGLE_DRIVE_CREDENTIALS"
 GOOGLE_CLOUD_NLP_CREDENTIALS_FILE = "auth.json"
 GOOGLE_CLOUD_NLP_CREDENTIALS_KEY = "GOOGLE_CLOUD_NLP_CREDENTIALS"
 
-BAD_CONFIG_MSG = "uh oh, config vars not set, check heroku settings"
+BAD_CONFIG_MSG = "uh oh, config vars not set,\n\tmake sure to\n\t" + colored(
+    "source .export_env_vars", "white", "on_cyan", attrs=["bold"]
+)
 assert environ.get("DATABASE_HOSTNAME", None) is not None, BAD_CONFIG_MSG
 assert environ.get("DATABASE_PASSWORD", None) is not None, BAD_CONFIG_MSG
 assert environ.get("DATABASE_USERNAME", None) is not None, BAD_CONFIG_MSG
@@ -36,7 +44,12 @@ assert environ.get("GOOGLE_CLOUD_NLP_CREDENTIALS", None) is not None, BAD_CONFIG
 assert environ.get("GOOGLE_CLOUD_NLP_MODEL_NAME", None) is not None, BAD_CONFIG_MSG  # noqa
 # fmt: on
 
-BAD_CONFIG_MSG_2 = "uh oh, config var is empty string, check docker"
+BAD_CONFIG_MSG_2 = "uh oh, config var , check docker"
+
+BAD_CONFIG_MSG_2 = "uh oh, config var is empty string,\n\tcheck docker OR make sure to\n\t" + colored(
+    "source .export_env_vars", "white", "on_cyan", attrs=["bold"]
+)
+
 assert environ.get("DATABASE_HOSTNAME", None) != "", BAD_CONFIG_MSG_2
 assert environ.get("DATABASE_PASSWORD", None) != "", BAD_CONFIG_MSG_2
 assert environ.get("DATABASE_USERNAME", None) != "", BAD_CONFIG_MSG_2
