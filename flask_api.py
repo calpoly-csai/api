@@ -3,9 +3,6 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
-import json
-import requests
-
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pydrive.auth import GoogleAuth
