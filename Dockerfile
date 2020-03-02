@@ -15,15 +15,21 @@ RUN apt-get update \
   && pip3 install --upgrade pip \
   && chmod 777 /usr/lib/python3/dist-packages/*
 
+# verify permissions set
+RUN ls -lah /usr/lib/python3/dist-packages/
+
 # put the requirements file into the container
 ADD requirements.txt /nimbus/requirements.txt
 
 # install the requirements in the container
-RUN pip install -r /nimbus/requirements.txt
+RUN pip install -r /nimbus/requirements.txt \
+  && chmod 777 /usr/lib/python3/dist-packages/*
+
+# verify permissions set
+RUN ls -lah /usr/lib/python3/dist-packages/
 
 # put all the code into nimbus folder
 ADD . /nimbus
-
 
 # # https://devcenter.heroku.com/articles/container-registry-and-runtime#unsupported-dockerfile-commands
 # # Expose is NOT supported by Heroku
@@ -79,6 +85,9 @@ RUN ls | grep config
 
 # need set WORKDIR for gunicorn
 WORKDIR /nimbus
+
+# verify permissions set
+RUN ls -lah /usr/lib/python3/dist-packages/
 
 # https://github.com/heroku/alpinehelloworld/blob/master/Dockerfile
 # Heroku will set the PORT environment variable
