@@ -59,6 +59,9 @@ RUN ./setup_special_files_from_env.py
 # download the nlp stuff
 RUN ./download_nlp_stuff.sh
 
+# download the nltk stuff
+RUN python3 download_nltk_stuff.py
+
 # just make sure the file is there
 RUN ls | grep config
 

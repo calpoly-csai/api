@@ -57,6 +57,8 @@ scikit-learn = "==0.20.2"
 PyYAML = "==5.3"
 ## avoid  PermissionError: [Errno 13] Permission denied
 six = "==1.13.0"
+## because google-auth 1.11.2 wants setuptools>=40.3.0
+setuptools = ">=40.3.0"
 
 [requires]
 python_version = "3.6"
