@@ -56,11 +56,19 @@ WORKDIR /nimbus
 # generate all the special configuration files
 RUN ./setup_special_files_from_env.py
 
-# download the nlp stuff
-RUN ./download_nlp_stuff.sh
+## download the nlp stuff
+# RUN ./download_nlp_stuff.sh
+#
+## download the nltk stuff
+# RUN python3 download_nltk_stuff.py
 
-# download the nltk stuff
-RUN python3 download_nltk_stuff.py
+# the above "download..." scripts were inconsistent on herkou
+# so lets download the required stuff directly
+RUN python3 -m spacy download en_core_web_sm  
+# TODO: consider en_core_web_lg or en_core_web_md because server can handle it
+# RUN python3 -m spacy download en_core_web_lg
+RUN python3 -m nltk.downloader punkt
+RUN python3 -m nltk.downloader averaged_perceptron_tagger 
 
 # just make sure the file is there
 RUN ls | grep config
