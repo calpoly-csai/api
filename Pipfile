@@ -55,6 +55,8 @@ scikit-learn = "==0.20.2"
 # misc
 ## used to generate settings.yml
 PyYAML = "==5.3"
+## avoid  PermissionError: [Errno 13] Permission denied
+six = "==1.13.0"
 
 [requires]
 python_version = "3.6"
