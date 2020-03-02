@@ -4,12 +4,16 @@
 FROM ubuntu:latest
 RUN apt update
 
+# the chmod will
+# resolve PermissionError on heroku
+# more context in issue #100
+# TODO: make chmod less insecure by only setting needed permissions
 RUN apt-get update \
   && apt-get install -y python3-pip python3-dev \
   && cd /usr/local/bin \
   && ln -s /usr/bin/python3 python \
-  && pip3 install --upgrade pip
-
+  && pip3 install --upgrade pip \
+  && chmod 777 /usr/lib/python3/dist-packages/*
 
 # put the requirements file into the container
 ADD requirements.txt /nimbus/requirements.txt
@@ -75,11 +79,6 @@ RUN ls | grep config
 
 # need set WORKDIR for gunicorn
 WORKDIR /nimbus
-
-# resolve PermissionError on heroku
-# more context in issue #100
-# TODO: make this less insecure
-RUN chmod 777 /usr/lib/python3/dist-packages/*
 
 # https://github.com/heroku/alpinehelloworld/blob/master/Dockerfile
 # Heroku will set the PORT environment variable
