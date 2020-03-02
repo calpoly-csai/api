@@ -1,15 +1,35 @@
-FROM python:3.6-stretch
+# FROM python:3.6-stretch
+# FROM python:3.8-buster  # needs pip install numpy
+# FROM python:3.7-stretch
+FROM ubuntu:latest
 RUN apt update
+
+# the chmod will
+# resolve PermissionError on heroku
+# more context in issue #100
+# TODO: make chmod less insecure by only setting needed permissions
+RUN apt-get update \
+  && apt-get install -y python3-pip python3-dev \
+  && cd /usr/local/bin \
+  && ln -s /usr/bin/python3 python \
+  && pip3 install --upgrade pip \
+  && chmod 777 /usr/lib/python3/dist-packages/*
+
+# verify permissions set
+RUN ls -lah /usr/lib/python3/dist-packages/
 
 # put the requirements file into the container
 ADD requirements.txt /nimbus/requirements.txt
 
 # install the requirements in the container
-RUN pip install -r /nimbus/requirements.txt
+RUN pip install -r /nimbus/requirements.txt \
+  && chmod 777 /usr/lib/python3/dist-packages/*
+
+# verify permissions set
+RUN ls -lah /usr/lib/python3/dist-packages/
 
 # put all the code into nimbus folder
 ADD . /nimbus
-
 
 # # https://devcenter.heroku.com/articles/container-registry-and-runtime#unsupported-dockerfile-commands
 # # Expose is NOT supported by Heroku
@@ -46,14 +66,28 @@ WORKDIR /nimbus
 # generate all the special configuration files
 RUN ./setup_special_files_from_env.py
 
-# download the nlp stuff
-RUN ./download_nlp_stuff.sh
+## download the nlp stuff
+# RUN ./download_nlp_stuff.sh
+#
+## download the nltk stuff
+# RUN python3 download_nltk_stuff.py
+
+# the above "download..." scripts were inconsistent on herkou
+# so lets download the required stuff directly
+RUN python3 -m spacy download en_core_web_sm  
+# TODO: consider en_core_web_lg or en_core_web_md because server can handle it
+# RUN python3 -m spacy download en_core_web_lg
+RUN python3 -m nltk.downloader punkt
+RUN python3 -m nltk.downloader averaged_perceptron_tagger 
 
 # just make sure the file is there
 RUN ls | grep config
 
 # need set WORKDIR for gunicorn
 WORKDIR /nimbus
+
+# verify permissions set
+RUN ls -lah /usr/lib/python3/dist-packages/
 
 # https://github.com/heroku/alpinehelloworld/blob/master/Dockerfile
 # Heroku will set the PORT environment variable

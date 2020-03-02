@@ -1,3 +1,4 @@
+import glob
 import os
 import numpy as np
 import pandas as pd
@@ -29,11 +30,10 @@ def load_model(model_name):
     return joblib.load(train_path)
 
 def load_latest_model():
-    train_path = PROJECT_DIR + '/models/classification/'
-    onlyfiles = [f for f in listdir(train_path) if isfile(join(train_path, f))]
-    r = [(f, datetime.strptime(re.findall(r'([\d]+_[\d]+_[\d]+_[\d]+_[\d]+_[\d]+)', f)[0], '%m_%d_%Y_%H_%M_%S')) for f in onlyfiles]
-    r = sorted(r, key=lambda x: x[1])
-    model_path = r[-1][0]
-    return joblib.load(train_path + model_path)
+    # https://stackoverflow.com/a/39327156
+    train_path = PROJECT_DIR + '/models/classification/*'
+    list_of_files = glob.glob(train_path)
+    latest_file = max(list_of_files, key=os.path.getctime)
+    return joblib.load(latest_file)
 
 

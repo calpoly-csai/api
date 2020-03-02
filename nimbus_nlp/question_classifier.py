@@ -14,13 +14,18 @@ import json
 class QuestionClassifier:
 
     def __init__(self):
-        # Prevents classifier from attempting to download stopwords corpus every run
+        # Prevents classifier from attempting to download nltk assets every run
         try:
             from nltk.corpus import stopwords
+            import nltk.tokenize.punkt
+            import nltk.tag.perceptron
         except ImportError:
+            nltk.download('punkt')
+            nltk.download('averaged_perceptron_tagger')
             nltk.download('stopwords')
             from nltk.corpus import stopwords
-
+            import nltk.tokenize.punkt
+            import nltk.tag.perceptron
         self.classifier = None
         self.nlp = spacy.load('en_core_web_sm')
         self.WH_WORDS = {'WDT', 'WP', 'WP$', 'WRB'}
