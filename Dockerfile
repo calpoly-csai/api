@@ -78,7 +78,8 @@ WORKDIR /nimbus
 
 # resolve PermissionError on heroku
 # more context in issue #100
-RUN chmod +rwx /usr/lib/python3/dist-packages/.wh*
+# TODO: make this less insecure
+RUN chmod 777 /usr/lib/python3/dist-packages/*
 
 # https://github.com/heroku/alpinehelloworld/blob/master/Dockerfile
 # Heroku will set the PORT environment variable
