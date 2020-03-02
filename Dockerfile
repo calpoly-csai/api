@@ -76,6 +76,10 @@ RUN ls | grep config
 # need set WORKDIR for gunicorn
 WORKDIR /nimbus
 
+# resolve PermissionError on heroku
+# more context in issue #100
+RUN chmod +rwx /usr/lib/python3/dist-packages/.wh*
+
 # https://github.com/heroku/alpinehelloworld/blob/master/Dockerfile
 # Heroku will set the PORT environment variable
 # the gunicorn_config.py will check the env vars for PORT
