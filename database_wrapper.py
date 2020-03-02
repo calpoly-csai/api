@@ -92,6 +92,7 @@ EXPECTED_KEYS_BY_ENTITY = {
     ]
 }
 
+
 class BadDictionaryKeyError(Exception):
     """Raised when the given JSON/dict is missing some required fields.
 
@@ -154,7 +155,7 @@ utilities.py
 
 def get_current_time():
     """
-    Useful for answering questions like "Is prof availible now/tomorrow?"
+    Useful for answering questions like "Is prof available now/tomorrow?"
     """
     pass
 

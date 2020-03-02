@@ -4,6 +4,7 @@
 Contains all the handlers for the API. Also the main code to run Flask.
 """
 import json
+import requests
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -275,3 +276,4 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0',
             debug=gunicorn_config.DEBUG_MODE,
             port=gunicorn_config.PORT)
+
