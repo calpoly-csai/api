@@ -704,7 +704,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         else:
             msg = "unexpected values for isWakeWord\n"
             msg += "expected 'ww' or True or 'nww' or False but got '{}'"
-            msg = msg.format(raw_data_dict["isWakeWord"])
+            msg = msg.format(data_dict["isWakeWord"])
             raise BadDictionaryValueError(msg)
 
         if data_dict["noiseLevel"] in noise_level_by_label:
