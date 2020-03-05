@@ -409,7 +409,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
 
-    def _create_database_session(self):
+    def _create_database_session(self) -> None:
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
         print("initialized database session")
@@ -435,13 +435,13 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def partial_fuzzy_match(self, tag_value, identifier):
         return fuzz.partial_ratio(tag_value, identifier)
 
-    def full_fuzzy_match(self, tag_value, identifier):
+    def full_fuzzy_match(self, tag_value: str, identifier: str) -> int:
         return fuzz.ratio(tag_value, identifier)
 
     def get_property_from_entity(
         self, prop: str, entity: UNION_ENTITIES, identifier: str,
         tag_column_map: dict = default_tag_column_dict
-    ):
+    ) -> str:
         """
         This function implements the abstractmethod to get a column of values
         from a NimbusDatabase entity.
