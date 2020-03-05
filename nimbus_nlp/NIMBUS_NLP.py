@@ -19,10 +19,13 @@ from google.cloud import automl_v1
 # Temporary import for the classifier
 from nimbus_nlp.question_classifier import QuestionClassifier
 
+from google.cloud.automl_v1.types import PredictResponse
+from monkeytype.encoding import DUMMY_NAME
+from typing import Dict
 class NIMBUS_NLP:
 
     @staticmethod
-    def predict_question(input_question):
+    def predict_question(input_question: str) -> Dict[str, str]:
         '''
         Runs through variable extraction and the question classifier to
         predict the intended question.
@@ -55,7 +58,7 @@ class NIMBUS_NLP:
 
 class Variable_Extraction:
 
-    def __init__(self, config_file: str = "config.json"):
+    def __init__(self, config_file: str = "config.json") -> None:
 
         with open(config_file) as json_data_file:
             config = json.load(json_data_file)
@@ -70,7 +73,7 @@ class Variable_Extraction:
         # TODO: consider does this even do anything useful?
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
-    def inline_text_payload(self, sent):
+    def inline_text_payload(self, sent: str) -> Dict[str, DUMMY_NAME]:
         '''
         Converts the input sentence into GCP's callable format
 
@@ -82,7 +85,7 @@ class Variable_Extraction:
 
         return {'text_snippet': {'content': sent, 'mime_type': 'text/plain'} }
 
-    def get_prediction(self, sent):
+    def get_prediction(self, sent: str) -> PredictResponse:
         '''
         Obtains the prediction from the input sentence and returns the
         normalized sentence
@@ -109,7 +112,7 @@ class Variable_Extraction:
         # Return the output of the API call
         return request
 
-    def extract_variables(self, sent):
+    def extract_variables(self, sent: str) -> Dict[str, str]:
         '''
         Takes the prediction and replaces the entity with its corresponding tag
 
@@ -146,7 +149,7 @@ class Variable_Extraction:
                }
 
     @staticmethod    
-    def excess_word_removal(entity, tag):
+    def excess_word_removal(entity: str, tag: str) -> str:
         '''
         Checks the tag and determines which excess word removal function to use
 
@@ -163,7 +166,7 @@ class Variable_Extraction:
             return entity
 
     @staticmethod
-    def strip_titles(entity):
+    def strip_titles(entity: str) -> str:
         '''
         Strips titles from input entities
 

@@ -9,6 +9,8 @@ from Entity.Sections import Sections
 from database_wrapper import NimbusMySQLAlchemy
 from pandas import read_csv
 
+from functools import partial
+from typing import Dict, List
 Extracted_Vars = Dict[str, Any]
 DB_Data = Dict[str, Any]
 DB_Query = Callable[[Extracted_Vars], DB_Data]
@@ -33,7 +35,7 @@ class QA:
     A class for wrapping functions used to answer a question.
     """
 
-    def __init__(self, q_format, db_query, format_answer):
+    def __init__(self, q_format: str, db_query: partial, format_answer: partial) -> None:
         """
         Args:
             q_format (str): Question format string
@@ -49,13 +51,13 @@ class QA:
         self.db_query = db_query
         self.format_answer = format_answer
 
-    def _get_data_from_db(self, extracted_vars):
+    def _get_data_from_db(self, extracted_vars: Dict[str, str]) -> str:
         return self.db_query(extracted_vars)
 
-    def _format_answer(self, extracted_vars, db_data):
+    def _format_answer(self, extracted_vars: Dict[str, str], db_data: str) -> str:
         return self.format_answer(extracted_vars, db_data)
 
-    def answer(self, extracted_vars):
+    def answer(self, extracted_vars: Dict[str, str]) -> str:
         db_data = self._get_data_from_db(extracted_vars)
         return self._format_answer(extracted_vars, db_data)
 
@@ -66,7 +68,7 @@ class QA:
         return hash(self.q_format)
 
 
-def create_qa_mapping(qa_list):
+def create_qa_mapping(qa_list: List[QA]) -> Dict[str, QA]:
     """
     Creates a dictionary whose values are QA objects and keys are the question
     formats of those QA objects.
@@ -146,18 +148,18 @@ def create_qa_mapping(qa_list):
 #     return functools.partial(_single_var_string_sub, a_format)
 
 
-def _string_sub(a_format, extracted_info, db_data):
+def _string_sub(a_format: str, extracted_info: Dict[str, str], db_data: str) -> str:
     if db_data is None:
         return None
     else:
         return a_format.format(ex=extracted_info['normalized entity'], db=db_data)
 
 
-def string_sub(a_format):
+def string_sub(a_format: str) -> partial:
     return functools.partial(_string_sub, a_format)
 
 
-def _get_property(prop, extracted_info):
+def _get_property(prop: str, extracted_info: Dict[str, str]) -> str:
     ent_string = extracted_info["normalized entity"]
     ent = tag_lookup[extracted_info['tag']]
     try:
@@ -168,7 +170,7 @@ def _get_property(prop, extracted_info):
         return value
 
 
-def get_property(prop):
+def get_property(prop: str) -> partial:
     return functools.partial(_get_property, prop)
 
 
@@ -186,7 +188,7 @@ def yes_no(a_format, pred=None):
     return functools.partial(_yes_no, a_format, pred)
 
 
-def generate_fact_QA(csv):
+def generate_fact_QA(csv: str) -> List[QA]:
     df = read_csv(csv)
     text_in_brackets = r'\[[^\[\]]*\]'
     qa_objs = []

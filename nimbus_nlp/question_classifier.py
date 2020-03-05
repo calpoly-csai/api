@@ -13,9 +13,11 @@ import json
 # TODO: move the functionality in this module into class(es), so that it can be more easily used as a dependency
 
 
+from spacy.tokens.token import Token
+from typing import Dict, List, Tuple
 class QuestionClassifier:
 
-    def __init__(self):
+    def __init__(self) -> None:
         nltk.download('stopwords')
         nltk.download('punkt')
         nltk.download('averaged_perceptron_tagger')
@@ -38,12 +40,12 @@ class QuestionClassifier:
         save_model(self.classifier, "nlp-model")
 
 
-    def load_latest_classifier(self):
+    def load_latest_classifier(self) -> None:
         self.classifier = load_latest_model()
         with open(PROJECT_DIR+ '/models/features/overall_features.json', 'r') as fp:
             self.overall_features = json.load(fp)
 
-    def get_question_features(self, question):
+    def get_question_features(self, question: str) -> Dict[str, int]:
         # print("using new algorithm")
         """
         Method to extract features from each individual question.
@@ -121,7 +123,7 @@ class QuestionClassifier:
     # Note: this method of extracting the main verb is not perfect, but
     # for single sentence questions that should have no ambiguity about the main verb,
     # it should be sufficient.
-    def extract_main_verb(self, question):
+    def extract_main_verb(self, question: str) -> Token:
         doc = self.nlp(question)
         sents = list(doc.sents)
         if len(sents) == 0:
@@ -129,10 +131,10 @@ class QuestionClassifier:
 
         return sents[0].root
 
-    def get_lemmas(self, words):
+    def get_lemmas(self, words: List[str]) -> List[str]:
         return [self.nlp(word)[0].lemma_ for word in words]
 
-    def is_wh_word(self, pos):
+    def is_wh_word(self, pos: str) -> bool:
         return pos in self.WH_WORDS
 
     def build_question_classifier(self):
@@ -174,7 +176,7 @@ class QuestionClassifier:
 
         return new_classifier
 
-    def filterWHTags(self, question):
+    def filterWHTags(self, question: str) -> List[Tuple[str, str]]:
         # ADD ALL VARIABLES TO THE FEATURE DICT WITH A WEIGHT OF 90
         matches = re.findall(r'(\[(.*?)\])', question)
         for match in matches:
@@ -193,7 +195,7 @@ class QuestionClassifier:
             tag for tag in question_tags if self.is_wh_word(tag[1])]
         return question_tags
 
-    def validate_WH(self, test_question, predicted_question):
+    def validate_WH(self, test_question: str, predicted_question: str) -> bool:
         """
         Assumes that only 1 WH word exists
         Returns True if the WH word in the test question equals the
@@ -221,7 +223,7 @@ class QuestionClassifier:
             i += 1
         return wh_match
 
-    def classify_question(self, test_question):
+    def classify_question(self, test_question: str) -> str:
         """
         Match a user query with a question in the database based on the classifier we trained and overall features we calculated.
         Return relevant question.

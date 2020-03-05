@@ -12,6 +12,7 @@ from os import listdir
 from os.path import isfile, join
 import re
 
+from sklearn.neighbors.classification import KNeighborsClassifier
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 now = datetime.now()
 date_time = now.strftime("_%m_%d_%Y_%H_%M_%S")
@@ -29,7 +30,7 @@ def load_model(model_name):
     train_path = PROJECT_DIR + '/models/classification/' + model_name + '.joblib'
     return joblib.load(train_path)
 
-def load_latest_model():
+def load_latest_model() -> KNeighborsClassifier:
     # https://stackoverflow.com/a/39327156
     train_path = PROJECT_DIR + '/models/classification/*'
     list_of_files = glob.glob(train_path)
