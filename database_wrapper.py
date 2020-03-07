@@ -682,19 +682,19 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         """
 
         is_wake_word_by_label = {
-            "ww" : True,
-            "nww" : False,
-            True : True,
-            False : False
+            "ww": True,
+            "nww": False,
+            True: True,
+            False: False
         }
 
         noise_level_by_label = {
-            "q" : NoiseLevel.quiet,
-            "quiet" : NoiseLevel.quiet,
-            "m" : NoiseLevel.medium,
-            "medium" : NoiseLevel.medium,
-            "l" : NoiseLevel.loud,
-            "loud" : NoiseLevel.loud
+            "q": NoiseLevel.quiet,
+            "quiet": NoiseLevel.quiet,
+            "m": NoiseLevel.medium,
+            "medium": NoiseLevel.medium,
+            "l": NoiseLevel.loud,
+            "loud": NoiseLevel.loud
         }
 
         data_dict["first_name"] = data_dict.pop("firstName")
@@ -705,7 +705,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         else:
             msg = "unexpected values for isWakeWord\n"
             msg += "expected 'ww' or True or 'nww' or False but got '{}'"
-            msg = msg.format(raw_data_dict["isWakeWord"])
+            msg = msg.format(data_dict["isWakeWord"])
             raise BadDictionaryValueError(msg)
 
         if data_dict["noiseLevel"] in noise_level_by_label:

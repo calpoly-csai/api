@@ -7,19 +7,25 @@
 #
 from werkzeug.exceptions import BadRequestKeyError
 from QA import create_qa_mapping, generate_fact_QA
-from nimbus_nlp.NIMBUS_NLP import NimbusNLP
+from nimbus_nlp.question_classifier import QuestionClassifier
+from nimbus_nlp.variable_extractor import VariableExtractor
 
 
 class Nimbus:
 
     def __init__(self):
+
         self.qa_dict = create_qa_mapping(
             generate_fact_QA("q_a_pairs.csv")
         )
-        self.nimbus_nlp = NimbusNLP()
+        # Instantiate variable extractor and question classifier
+        self.variable_extractor = VariableExtractor()
+        self.classifier = QuestionClassifier()
+        # Load classifier model
+        self.classifier.load_latest_classifier()
 
     def answer_question(self, question):
-        ans_dict = self.nimbus_nlp.predict_question(question)
+        ans_dict = self.predict_question(question)
         print(ans_dict)
         try:
             qa = self.qa_dict[ans_dict["question class"]]
@@ -37,6 +43,29 @@ class Nimbus:
             else:
                 return answer
 
+    def predict_question(self, question):
+        """
+        Runs through variable extraction and the question classifier to
+        predict the intended question.
+
+        Args: input_question (string) - user input question to answer
+
+        Return: nlp_props (dict) - contains the user"s input question,
+                                   the variable extracted input question,
+                                   the entity extracted, and the predicted
+                                   answer
+
+        """
+
+        # Get dictionary of extracted variables + info from question
+        nlp_props = self.variable_extractor.extract_variables(question)
+
+        # Add classified question to nlp_props dictionary
+        nlp_props["question class"] = self.classifier. \
+            classify_question(nlp_props["normalized question"])
+
+        return nlp_props
+
 
 if __name__ == "__main__":
     nimbus = Nimbus()
@@ -45,5 +74,4 @@ if __name__ == "__main__":
     # print(nimbus.answer_question("What are the prerequisites for CPE 357?"))
     while True:
         q = input("Enter a question: ")
-        print(nimbus.answer_question(q))
         print(nimbus.answer_question(q))

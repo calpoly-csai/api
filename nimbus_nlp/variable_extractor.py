@@ -3,46 +3,6 @@ import json
 from google.api_core.client_options import ClientOptions
 from google.cloud import automl_v1
 
-# Temporary import for the classifier
-from nimbus_nlp.question_classifier import QuestionClassifier
-
-
-# Made this an instantiable class to prevent the overhead of instantiating
-# a variable extractor and question classifier for every question.
-# Consider: Does this even need to be a class? Its functionality could be
-# moved to the Nimbus class of nimbus.py
-class NimbusNLP:
-
-    def __init__(self):
-        # Instantiate variable extractor and question classifier
-        self.variable_extractor = VariableExtractor()
-        self.classifier = QuestionClassifier()
-        # Load classifier model
-        self.classifier.load_latest_classifier()
-
-    def predict_question(self, input_question):
-        """
-        Runs through variable extraction and the question classifier to
-        predict the intended question.
-
-        Args: input_question (string) - user input question to answer
-
-        Return: nlp_props (dict) - contains the user"s input question,
-                                   the variable extracted input question,
-                                   the entity extracted, and the predicted
-                                   answer
-
-        """
-
-        # Get dictionary of extracted variables + info from question
-        nlp_props = self.variable_extractor.extract_variables(input_question)
-
-        # Add classified question to nlp_props dictionary
-        nlp_props["question class"] = self.classifier.\
-            classify_question(nlp_props["normalized question"])
-        
-        return nlp_props
-    
 
 class VariableExtractor:
 
@@ -180,17 +140,3 @@ class VariableExtractor:
         # returns the original entity string 
         # if there is no title in the word
         return entity
-
-
-#TODO: Add the Question_Classifier code directly into this file
-# Is this really necessary? Separation of dependencies might be good here.
-class Question_Classifier:
-    pass
-
-
-if __name__ == "__main__":
-    nimbus_nlp = NimbusNLP()
-    while True:
-        question = input("Enter a question: ")
-        answer = nimbus_nlp.predict_question(question)
-        print(answer)

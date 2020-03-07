@@ -1,4 +1,5 @@
 from typing import Callable, Dict, Any
+import csv
 import functools
 import re
 from Entity.Courses import Courses
@@ -7,7 +8,6 @@ from Entity.Professors import Professors
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections
 from database_wrapper import NimbusMySQLAlchemy
-from pandas import read_csv
 
 Extracted_Vars = Dict[str, Any]
 DB_Data = Dict[str, Any]
@@ -186,13 +186,22 @@ def yes_no(a_format, pred=None):
     return functools.partial(_yes_no, a_format, pred)
 
 
-def generate_fact_QA(csv):
-    df = read_csv(csv)
+def generate_fact_QA(f):
+    with open(f, 'r') as csv_file:
+        reader = csv.DictReader(csv_file)
+        q_formats = []
+        a_formats = []
+        num_rows = 0
+        for row in reader:
+            num_rows += 1
+            q_formats.append(row['question_format'])
+            a_formats.append(row['answer_format'])
+
     text_in_brackets = r'\[[^\[\]]*\]'
     qa_objs = []
-    for i in range(len(df)):
-        q = df['question_format'][i]
-        a = df['answer_format'][i]
+    for i in range(num_rows):
+        q = q_formats[i]
+        a = a_formats[i]
         matches = re.findall(text_in_brackets, a)
         extracted = None
         if len(matches) == 1:
