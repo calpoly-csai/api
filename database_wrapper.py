@@ -17,6 +17,7 @@ from typing import List, Optional, Union
 
 import sqlalchemy
 from sqlalchemy import create_engine, inspect
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
@@ -48,11 +49,11 @@ default_tag_column_dict = {
     Locations: {"building_number", "name"},
     Professors: {"firstName", "lastName"},
     Clubs: {"club_name"},
-    Sections: {"section_name"}
+    Sections: {"section_name"},
 }
 
 EXPECTED_KEYS_BY_ENTITY = {
-    AudioSampleMetaData : [
+    AudioSampleMetaData: [
         "is_wake_word",
         "first_name",
         "last_name",
@@ -64,7 +65,7 @@ EXPECTED_KEYS_BY_ENTITY = {
         "username",
         "filename",
     ],
-    Clubs : [
+    Clubs: [
         "club_name",
         "types",
         "desc",
@@ -74,15 +75,10 @@ EXPECTED_KEYS_BY_ENTITY = {
         "contact_phone",
         "box",
         "advisor",
-        "affiliation"
+        "affiliation",
     ],
-    Locations : [
-        "building_number",
-        "name",
-        "longitude",
-        "latitude"
-    ],
-    Sections : [
+    Locations: ["building_number", "name", "longitude", "latitude"],
+    Sections: [
         "section_name",
         "instructor",
         "alias",
@@ -94,9 +90,10 @@ EXPECTED_KEYS_BY_ENTITY = {
         "start",
         "end",
         "location",
-        "department"
-    ]
+        "department",
+    ],
 }
+
 
 class BadDictionaryKeyError(Exception):
     """Raised when the given JSON/dict is missing some required fields.
@@ -330,7 +327,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     """
 
     def __init__(self, config_file: str = "config.json") -> None:
-        self.engine = None  # gets set according to config_file
+        self.engine = self._create_engine(config_file)
         self.Clubs = Clubs
         self.Sections = Sections
         self.Calendars = Calendars
@@ -339,7 +336,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
         self.QuestionAnswerPair = QuestionAnswerPair
+        self.inspector = inspect(self.engine)
+        self._create_database_session()
+        print("initialized NimbusMySQLAlchemy")
 
+    def _create_engine(self, config_file: str) -> Engine:
         with open(config_file) as json_data_file:
             config = json.load(json_data_file)
 
@@ -354,19 +355,18 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 mysql_config["password"],
                 mysql_config["host"],
                 mysql_config["port"],
-                mysql_config["database"],
+                mysql_config["database"]
             )
-            self.engine = create_engine(SQLALCHEMY_DATABASE_URI)
+            engine = create_engine(SQLALCHEMY_DATABASE_URI)
 
-            if self.engine is None:
+            if engine is not None:
+                return engine
+            else:
                 raise BadConfigFileError("failed to connect to MySQL")
+
         else:
             msg = "config.json is missing {} field.".format("mysql")
             raise BadConfigFileError(msg)
-
-        self.inspector = inspect(self.engine)
-        self._create_database_session()
-        print("initialized NimbusMySQLAlchemy")
 
     @staticmethod
     def validate_input_keys(input_data: dict, expected_keys: set):
@@ -426,9 +426,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def return_qa_pair_csv(self):
         data = self.get_all_qa_pairs()
 
-        with open('qa_pair.csv', 'w') as out:
+        with open("qa_pair.csv", "w") as out:
             csv_out = csv.writer(out)
-            csv_out.writerow(['question_format', 'answer_format'])
+            csv_out.writerow(["question_format", "answer_format"])
             for row in data:
                 csv_out.writerow(row)
 
@@ -439,8 +439,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         return fuzz.ratio(tag_value, identifier)
 
     def get_property_from_entity(
-        self, prop: str, entity: UNION_ENTITIES, identifier: str,
-        tag_column_map: dict = default_tag_column_dict
+        self,
+        prop: str,
+        entity: UNION_ENTITIES,
+        identifier: str,
+        tag_column_map: dict = default_tag_column_dict,
     ):
         """
         This function implements the abstractmethod to get a column of values
@@ -528,7 +531,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         """
 
         format_method_by_entity = {
-            AudioSampleMetaData : self.format_audio_sample_meta_data_dict
+            AudioSampleMetaData: self.format_audio_sample_meta_data_dict
         }
 
         # Format data (if needed), and validate data
@@ -537,7 +540,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         self.validate_input_keys(data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
         return data_dict
-
 
     def insert_entity(self, entity_type, data_dict: dict) -> bool:
         """
@@ -558,26 +560,23 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             True if all is good, else False
         """
 
-        # Validate and format entity data
+        # Get formatted data, entity attributes, and entity object
         formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
-
-        # Grab the entity class attributes and initialize entity
         entity_attributes = entity_type.__dict__
         entity = entity_type()
 
         # Logging...
         print("{}Inserting into {}...{}".format(
-              CYAN_COLOR_CODE, entity_attributes['__tablename__'], RESET_COLOR_CODE))
+              CYAN_COLOR_CODE, entity_attributes["__tablename__"], RESET_COLOR_CODE))
 
-        # Grab the entity class fields by cleaning the attributes dictionary 
-        # and discard anything with underscores in the front or back
+        # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
-        entity_fields = dict(filter(lambda i: not (i[0][0] == '_' or i[0][-1] == '_'), 
-                                    entity_attributes.items()))
+        entity_fields = list(dict(filter(lambda i: not (i[0][0] == "_" or i[0][-1] == "_"),
+                                         entity_attributes.items(),)).keys())[1:]
 
         # Ignore the first field, since it's assumed to be a primary key
         # Populate the entity with values from formatted_data
-        for entity_field in list(entity_fields.keys())[1:]:
+        for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
 
         # Perform the INSERT
@@ -599,7 +598,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "..."  : ...
         }
 
-        filter_fields is a list of variable names (strings) to match for when running an 
+        filter_fields is a list of variable names (strings) to match for when running an
         update query. If not provided, raises an error since it's not an update.
 
         ex: passing in filter_fields=["name", "title"] will check for an existing entity that has the
@@ -616,12 +615,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         # If we're not filtering for anything, we shouldn't be calling update_entity
         if len(filter_fields) == 0:
-            raise RuntimeError("update_entity for {} requires filter_fields list to filter by.".format(entity_type))
+            msg = "update_entity for {} requires filter_fields list to filter by."
+            raise RuntimeError(msg.format(entity_type))
 
-        # Validate and format entity data
+        # Get formatted data and entity attributes
         formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
-
-        # Grab the entity class attributes and initialize entity to None
         entity_attributes = entity_type.__dict__
 
         # Run a SELECT query to see if an entity that matches the values under the fields in the filter_fields list exists
@@ -630,23 +628,23 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             query = query.filter(getattr(entity_type, field) == formatted_data[field])
         entity = query.first()
 
+        # Logging...
         if entity:
             print("{}Updating {} in {}...{}".format(
-                  YELLOW_COLOR_CODE, entity, entity_attributes['__tablename__'], RESET_COLOR_CODE))
+                YELLOW_COLOR_CODE, entity, entity_attributes["__tablename__"], RESET_COLOR_CODE))
         else:
             entity = entity_type()
             print("{}Matching Entity not found - Inserting {} in {}...{}".format(
-                  YELLOW_COLOR_CODE, entity, entity_attributes['__tablename__'], RESET_COLOR_CODE))
+                YELLOW_COLOR_CODE, entity, entity_attributes["__tablename__"], RESET_COLOR_CODE))
 
-        # Grab the entity class fields by cleaning the attributes dictionary - 
-        # discard anything with underscores in the front or back
+        # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
-        entity_fields = dict(filter(lambda i: not (i[0][0] == '_' or i[0][-1] == '_'), 
-                                    entity_attributes.items()))
+        entity_fields = list(dict(filter(lambda i: not (i[0][0] == "_" or i[0][-1] == "_"),
+                                         entity_attributes.items())).keys())[1:]
 
         # Ignore the first field, since it's assumed to be a primary key
         # Populate the entity with values from formatted_data
-        for entity_field in list(entity_fields.keys())[1:]:
+        for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
 
         # Perform the actual UPDATE/INSERT
@@ -659,7 +657,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
     def format_audio_sample_meta_data_dict(self, data_dict: dict) -> dict:
         """
-        raw_data_dict at this point looks like:
+        data_dict at this point looks like:
         {
             "isWakeWord": True,
             "firstName": "jj",
@@ -680,20 +678,15 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             A new, formatted data dictionary
         """
 
-        is_wake_word_by_label = {
-            "ww" : True,
-            "nww" : False,
-            True : True,
-            False : False
-        }
+        is_wake_word_by_label = {"ww": True, "nww": False, True: True, False: False}
 
         noise_level_by_label = {
-            "q" : NoiseLevel.quiet,
-            "quiet" : NoiseLevel.quiet,
-            "m" : NoiseLevel.medium,
-            "medium" : NoiseLevel.medium,
-            "l" : NoiseLevel.loud,
-            "loud" : NoiseLevel.loud
+            "q": NoiseLevel.quiet,
+            "quiet": NoiseLevel.quiet,
+            "m": NoiseLevel.medium,
+            "medium": NoiseLevel.medium,
+            "l": NoiseLevel.loud,
+            "loud": NoiseLevel.loud,
         }
 
         data_dict["first_name"] = data_dict.pop("firstName")
@@ -704,7 +697,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         else:
             msg = "unexpected values for isWakeWord\n"
             msg += "expected 'ww' or True or 'nww' or False but got '{}'"
-            msg = msg.format(raw_data_dict["isWakeWord"])
+            msg = msg.format(data_dict["isWakeWord"])
             raise BadDictionaryValueError(msg)
 
         if data_dict["noiseLevel"] in noise_level_by_label:
@@ -738,7 +731,7 @@ if __name__ == "__main__":
         "tone": "serious-but-not-really",
         "timestamp": 1577077883,
         "username": "guest",
-        "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
+        "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav",  # noqa because too hard.
     }
 
     db.insert_entity(AudioSampleMetaData, data)
@@ -747,10 +740,10 @@ if __name__ == "__main__":
         "building_number": 1,
         "name": "Administration",
         "longitude": -120.658561,
-        "latitude": 35.300960
+        "latitude": 35.300960,
     }
 
-    db.update_entity(Locations, data, ['building_number'])
+    db.update_entity(Locations, data, ["building_number"])
 
     data = {
         "club_name": "Cal Poly Computer Science and Artificial Intelligence",
@@ -762,7 +755,7 @@ if __name__ == "__main__":
         "contact_phone": "7349723564",
         "box": "89",
         "advisor": "Franz Kurfess",
-        "affiliation": "None"
+        "affiliation": "None",
     }
 
     db.insert_entity(Clubs, data)
@@ -775,12 +768,11 @@ if __name__ == "__main__":
         "phone": "+1.805.756.2824",
         "office": "014-0254A",
         "type": SectionType.lab,
-        "days": set({'M', 'W', 'F'}),
+        "days": set({"M", "W", "F"}),
         "start": "10:10 AM",
         "end": "11:00 AM",
         "location": "014-0257",
-        "department": "CENG-Computer Science & Software Engineering"
+        "department": "CENG-Computer Science & Software Engineering",
     }
 
     db.insert_entity(Sections, data)
-    
