@@ -22,7 +22,7 @@ pytest = "==5.3.4"
 pyre-check = "==0.0.41"
 ## like the Unix `make` but better
 invoke = "==1.4.1"
-
+memory-profiler = "*"
 
 [packages]
 # REST API
@@ -61,6 +61,8 @@ six = "==1.11.0"
 idna = "==2.6"
 ## because google-auth 1.11.2 wants setuptools>=40.3.0
 setuptools = ">=40.3.0"
+colorama = "*"
+termcolor = "*"
 
 [requires]
 python_version = "3.6"
