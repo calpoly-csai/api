@@ -375,14 +375,14 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             msg = msg.format(expected_keys, set(input_data.keys()))
             raise BadDictionaryKeyError(msg)
 
-        # assert that the formatted_data does not have extra keys
+        # assert that the input_data does not have extra keys
         for k in input_data:
             if k not in expected_keys:
                 msg = "expected: {} but got: {}"
                 msg = msg.format(expected_keys, set(input_data.keys()))
                 raise BadDictionaryKeyError(msg)
 
-        # assert that the keys_i_care_about are in formatted_data
+        # assert that the keys_i_care_about are in input_data
         for k in expected_keys:
             if k not in input_data:
                 msg = "expected: {} but got: {}"
@@ -415,7 +415,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         print("initialized database session")
 
     def get_all_qa_pairs(self):
-
         qa_entity = QuestionAnswerPair
 
         query_session = self.session.query(qa_entity.question_format, qa_entity.answer_format)
