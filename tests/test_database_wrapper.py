@@ -27,14 +27,14 @@ TEST_AUDIO_SAMPLE_META_DATA_DATA_DICT = {
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 @patch.object(NimbusMySQLAlchemy, "_create_database_session")
-def test_validate_input_keys(mock_create_engine ,mock_validate):
+def test_validate_input_keys(mock_create_session, mock_create_engine):
     test_db = NimbusMySQLAlchemy()
     test_db.validate_input_keys(TEST_ENTITY_DATA_DICT, TEST_ENTITY_DATA_DICT.keys())
 
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 @patch.object(NimbusMySQLAlchemy, "_create_database_session")
-def test_validate_input_keys_no_input(mock_create_engine ,mock_validate):
+def test_validate_input_keys_no_input(mock_create_session, mock_create_engine):
     test_db = NimbusMySQLAlchemy
     with pytest.raises(BadDictionaryKeyError):
         test_db.validate_input_keys({}, [])
@@ -42,7 +42,7 @@ def test_validate_input_keys_no_input(mock_create_engine ,mock_validate):
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 @patch.object(NimbusMySQLAlchemy, "_create_database_session")
-def test_validate_input_keys_extra_keys(mock_create_engine ,mock_validate):
+def test_validate_input_keys_extra_keys(mock_create_session, mock_create_engine):
     test_db = NimbusMySQLAlchemy
     extra_key_dict = dict(TEST_ENTITY_DATA_DICT)
     extra_key_dict["value_extra"] = "test4"
@@ -52,7 +52,7 @@ def test_validate_input_keys_extra_keys(mock_create_engine ,mock_validate):
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 @patch.object(NimbusMySQLAlchemy, "_create_database_session")
-def test_validate_input_keys_missing_keys(mock_create_engine ,mock_validate):
+def test_validate_input_keys_missing_keys(mock_create_session, mock_create_engine):
     test_db = NimbusMySQLAlchemy
     missing_key_dict = {"value_one": "test1"}
     with pytest.raises(BadDictionaryKeyError):
@@ -62,7 +62,7 @@ def test_validate_input_keys_missing_keys(mock_create_engine ,mock_validate):
 @patch.object(NimbusMySQLAlchemy, "validate_and_format_entity_data")
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 @patch.object(NimbusMySQLAlchemy, "_create_database_session")
-def test_insert_entity(mock_create_session, mock_create_engine ,mock_validate):
+def test_insert_entity(mock_create_session, mock_create_engine, mock_validate):
     # Setup mocks and test_db instance
     mock_validate.return_value = TEST_ENTITY_DATA_DICT
     test_db = NimbusMySQLAlchemy()
@@ -135,7 +135,7 @@ def test_update_entity_match(mock_create_session, mock_create_engine, mock_valid
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 @patch.object(NimbusMySQLAlchemy, "_create_database_session")
-def test_update_entity_no_filter_fields_error(mock_create_engine, mock_create_session):
+def test_update_entity_no_filter_fields_error(mock_create_session, mock_create_engine):
     test_db = NimbusMySQLAlchemy()
     with pytest.raises(RuntimeError, match="filter"):
         test_db.update_entity(TestEntity, TEST_ENTITY_DATA_DICT, [])
@@ -143,7 +143,7 @@ def test_update_entity_no_filter_fields_error(mock_create_engine, mock_create_se
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 @patch.object(NimbusMySQLAlchemy, "_create_database_session")
-def test_invalid_entity_type(mock_create_engine, mock_create_session):
+def test_invalid_entity_type(mock_create_session, mock_create_engine):
     test_db = NimbusMySQLAlchemy()
     with pytest.raises(KeyError):
         test_db.insert_entity(TestEntity, TEST_ENTITY_DATA_DICT)
@@ -153,14 +153,14 @@ def test_invalid_entity_type(mock_create_engine, mock_create_session):
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 @patch.object(NimbusMySQLAlchemy, "_create_database_session")
-def test_format_audio_sample_meta_data_dict(mock_create_engine, mock_create_session):
+def test_format_audio_sample_meta_data_dict(mock_create_session, mock_create_engine):
     test_db = NimbusMySQLAlchemy()
     test_db.format_audio_sample_meta_data_dict(dict(TEST_AUDIO_SAMPLE_META_DATA_DATA_DICT))
 
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 @patch.object(NimbusMySQLAlchemy, "_create_database_session")
-def test_format_audio_sample_meta_data_dict_bad_input(mock_create_engine, mock_create_session):
+def test_format_audio_sample_meta_data_dict_bad_input(mock_create_session, mock_create_engine):
     test_db = NimbusMySQLAlchemy()
     invalid_is_wake_word = dict(TEST_AUDIO_SAMPLE_META_DATA_DATA_DICT)
     invalid_is_wake_word["isWakeWord"] = "test"
