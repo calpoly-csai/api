@@ -375,14 +375,14 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             msg = msg.format(expected_keys, set(input_data.keys()))
             raise BadDictionaryKeyError(msg)
 
-        # assert that the formatted_data does not have extra keys
+        # assert that the input_data does not have extra keys
         for k in input_data:
             if k not in expected_keys:
                 msg = "expected: {} but got: {}"
                 msg = msg.format(expected_keys, set(input_data.keys()))
                 raise BadDictionaryKeyError(msg)
 
-        # assert that the keys_i_care_about are in formatted_data
+        # assert that the keys_i_care_about are in input_data
         for k in expected_keys:
             if k not in input_data:
                 msg = "expected: {} but got: {}"
@@ -415,7 +415,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         print("initialized database session")
 
     def get_all_qa_pairs(self):
-
         qa_entity = QuestionAnswerPair
 
         query_session = self.session.query(qa_entity.question_format, qa_entity.answer_format)
@@ -710,69 +709,5 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         return data_dict
 
-    def _execute(self, query: str):
-        return self.engine.execute(query)
-
     def __del__(self):
         print("NimbusMySQLAlchemy closed")
-
-
-if __name__ == "__main__":
-    db = NimbusMySQLAlchemy()
-    db._create_all_tables()
-
-    data = {
-        "isWakeWord": True,
-        "firstName": "jj",
-        "lastName": "doe",
-        "gender": "f",
-        "noiseLevel": "q",
-        "location": "here",
-        "tone": "serious-but-not-really",
-        "timestamp": 1577077883,
-        "username": "guest",
-        "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav",  # noqa because too hard.
-    }
-
-    db.insert_entity(AudioSampleMetaData, data)
-
-    data = {
-        "building_number": 1,
-        "name": "Administration",
-        "longitude": -120.658561,
-        "latitude": 35.300960,
-    }
-
-    db.update_entity(Locations, data, ["building_number"])
-
-    data = {
-        "club_name": "Cal Poly Computer Science and Artificial Intelligence",
-        "types": "Academic, Special Interest",
-        "desc": "The Computer Science and Artificial Intelligence club provides...",
-        "contact_email": "maikens@calpoly.edu",
-        "contact_email_2": "fkurfess@calpoly.edu",
-        "contact_person": "Miles Aikens",
-        "contact_phone": "7349723564",
-        "box": "89",
-        "advisor": "Franz Kurfess",
-        "affiliation": "None",
-    }
-
-    db.insert_entity(Clubs, data)
-
-    data = {
-        "section_name": "CSC 480_06",
-        "instructor": "Kauffman, Daniel Alexander",
-        "alias": "dkauffma",
-        "title": "Instructor AY",
-        "phone": "+1.805.756.2824",
-        "office": "014-0254A",
-        "type": SectionType.lab,
-        "days": set({"M", "W", "F"}),
-        "start": "10:10 AM",
-        "end": "11:00 AM",
-        "location": "014-0257",
-        "department": "CENG-Computer Science & Software Engineering",
-    }
-
-    db.insert_entity(Sections, data)
