@@ -14,33 +14,29 @@ import json
 
 
 class QuestionClassifier:
-
     def __init__(self):
-        nltk.download('stopwords')
-        nltk.download('punkt')
-        nltk.download('averaged_perceptron_tagger')
+        nltk.download("stopwords")
+        nltk.download("punkt")
+        nltk.download("averaged_perceptron_tagger")
         self.classifier = None
-        self.nlp = spacy.load('en_core_web_sm')
-        self.WH_WORDS = {'WDT', 'WP', 'WP$', 'WRB'}
+        self.nlp = spacy.load("en_core_web_sm")
+        self.WH_WORDS = {"WDT", "WP", "WP$", "WRB"}
         self.overall_features = {}
 
     def train_model(self):
         self.save_model = save_model
-
 
         # REPLACE WITH API EVENTUALLY
         self.file_path = "question_set_clean.csv"
 
         # The possible WH word tags returned through NLTK part of speech tagging
 
-
         self.classifier = self.build_question_classifier()
         save_model(self.classifier, "nlp-model")
 
-
     def load_latest_classifier(self):
         self.classifier = load_latest_model()
-        with open(PROJECT_DIR+ '/models/features/overall_features.json', 'r') as fp:
+        with open(PROJECT_DIR + "/models/features/overall_features.json", "r") as fp:
             self.overall_features = json.load(fp)
 
     def get_question_features(self, question):
@@ -54,16 +50,16 @@ class QuestionClassifier:
         main_verb = str(self.extract_main_verb(question))
 
         # ADD ALL VARIABLES TO THE FEATURE DICT WITH A WEIGHT OF 90
-        matches = re.findall(r'(\[(.*?)\])', question)
+        matches = re.findall(r"(\[(.*?)\])", question)
         for match in matches:
-            question = question.replace(match[0], '')
+            question = question.replace(match[0], "")
             features[match[0]] = 90
 
-        question = re.sub('[^a-zA-Z0-9]', ' ', question)
+        question = re.sub("[^a-zA-Z0-9]", " ", question)
 
         # PRE-PROCESSING: TOKENIZE SENTENCE, AND LOWER AND STEM EACH WORD
         words = nltk.word_tokenize(question)
-        words = [word.lower() for word in words if '[' and ']' not in word]
+        words = [word.lower() for word in words if "[" and "]" not in word]
 
         filtered_words = self.get_lemmas(words)
 
@@ -80,7 +76,10 @@ class QuestionClassifier:
 
         # ADD FIRST WORD AND NON-STOP WORDS TO FEATURE DICT
         filtered_words = [
-            word for word in filtered_words if word not in nltk.corpus.stopwords.words('english')]
+            word
+            for word in filtered_words
+            if word not in nltk.corpus.stopwords.words("english")
+        ]
         for word in filtered_words:
             # ADD EACH WORD NOT ALREADY PRESENT IN FEATURE SET WITH WEIGHT OF 30
             if word not in features:
@@ -96,21 +95,24 @@ class QuestionClassifier:
         features = {}
 
         # ADD ALL VARIABLES TO THE FEATURE DICT WITH A WEIGHT OF 90
-        matches = re.findall(r'(\[(.*?)\])', question)
+        matches = re.findall(r"(\[(.*?)\])", question)
         for match in matches:
-            question = question.replace(match[0], '')
+            question = question.replace(match[0], "")
             features[match[0]] = 90
-        question = re.sub('[^a-zA-Z0-9]', ' ', question)
+        question = re.sub("[^a-zA-Z0-9]", " ", question)
 
         # PRE-PROCESSING: TOKENIZE SENTENCE, AND LOWER AND STEM EACH WORD
         words = nltk.word_tokenize(question)
-        words = [word.lower() for word in words if '[' and ']' not in word]
+        words = [word.lower() for word in words if "[" and "]" not in word]
         filtered_words = self.get_lemmas(words)
 
         # ADD FIRST WORD AND NON-STOP WORDS TO FEATURE DICT
         features[filtered_words[0]] = 60
         filtered_words = [
-            word for word in filtered_words if word not in nltk.corpus.stopwords.words('english')]
+            word
+            for word in filtered_words
+            if word not in nltk.corpus.stopwords.words("english")
+        ]
         for word in filtered_words:
             features[word] = 30
 
@@ -142,11 +144,13 @@ class QuestionClassifier:
         """
 
         # READ QUESTIONS
-        questions = pd.read_csv('question_set_clean.csv')
-        questions['features'] = questions['questionFormat'].apply(self.get_question_features)
+        questions = pd.read_csv("question_set_clean.csv")
+        questions["features"] = questions["questionFormat"].apply(
+            self.get_question_features
+        )
         # old alg: questions['features'] = questions['questionFormat'].apply(self.get_question_features_old_algorithm)
 
-        question_features = questions['features'].values.tolist()
+        question_features = questions["features"].values.tolist()
 
         # BUILD OVERALL FEATURE SET FROM INDIVIDUAL QUESTION FEATURE VECTORS
         for feature in question_features:
@@ -155,7 +159,6 @@ class QuestionClassifier:
                     self.overall_features[key] = 0
         self.overall_features["not related"] = 0
 
-
         vectors = []
         for feature in question_features:
             vector = dict.fromkeys(self.overall_features, 0)
@@ -163,34 +166,33 @@ class QuestionClassifier:
                 vector[key] = feature[key]
             vectors.append(np.array(list(vector.values())))
 
-        y_train = questions['questionFormat']
+        y_train = questions["questionFormat"]
         vectors = np.array(vectors)
         y_train = np.array(y_train)
         new_classifier = sklearn.neighbors.KNeighborsClassifier(n_neighbors=1)
         new_classifier.fit(vectors, y_train)
 
-        with open(PROJECT_DIR+ '/models/features/overall_features.json', 'w') as fp:
+        with open(PROJECT_DIR + "/models/features/overall_features.json", "w") as fp:
             json.dump(self.overall_features, fp)
 
         return new_classifier
 
     def filterWHTags(self, question):
         # ADD ALL VARIABLES TO THE FEATURE DICT WITH A WEIGHT OF 90
-        matches = re.findall(r'(\[(.*?)\])', question)
+        matches = re.findall(r"(\[(.*?)\])", question)
         for match in matches:
-            question = question.replace(match[0], '')
+            question = question.replace(match[0], "")
 
-        question = re.sub('[^a-zA-Z0-9]', ' ', question)
+        question = re.sub("[^a-zA-Z0-9]", " ", question)
 
         # PRE-PROCESSING: TOKENIZE SENTENCE, AND LOWER AND STEM EACH WORD
         words = nltk.word_tokenize(question)
-        words = [word.lower() for word in words if '[' and ']' not in word]
+        words = [word.lower() for word in words if "[" and "]" not in word]
 
         filtered_words = self.get_lemmas(words)
 
         question_tags = nltk.pos_tag(filtered_words)
-        question_tags = [
-            tag for tag in question_tags if self.is_wh_word(tag[1])]
+        question_tags = [tag for tag in question_tags if self.is_wh_word(tag[1])]
         return question_tags
 
     def validate_WH(self, test_question, predicted_question):
@@ -216,7 +218,7 @@ class QuestionClassifier:
         min_tag_len = min(len(test_tags), len(predicted_tags))
         wh_match = True
         i = 0
-        while (wh_match and i < min_tag_len):
+        while wh_match and i < min_tag_len:
             wh_match = wh_match and (test_tags[i][0] == predicted_tags[i][0])
             i += 1
         return wh_match
@@ -229,17 +231,17 @@ class QuestionClassifier:
         if self.classifier is None:
             raise ValueError("Classifier not initialized")
 
-        #if self.use_new:
+        # if self.use_new:
         test_features = self.get_question_features(test_question)
-        #else:
+        # else:
         #    test_features = self.get_question_features_old_algorithm(
         #        test_question)
         test_vector = dict.fromkeys(self.overall_features, 0)
         for key in test_features:
             if key in test_vector:
                 test_vector[key] = test_features[key]
-            #else:
-                # IF A WORD IS NOT IN THE EXISTING FEATURE SET, IT MAY BE A QUESTION WE CANNOT ANSWER.
+            # else:
+            # IF A WORD IS NOT IN THE EXISTING FEATURE SET, IT MAY BE A QUESTION WE CANNOT ANSWER.
             #    test_vector["not related"] += 250
         test_vector = np.array(list(test_vector.values()))
         test_vector = test_vector.reshape(1, -1)
@@ -253,7 +255,7 @@ class QuestionClassifier:
         # Uncomment to print whether the WH words match
         # print("WH Words Match?:", wh_words_match)
 
-        if (not wh_words_match):
+        if not wh_words_match:
             return "WH Words Don't Match"
 
         return predicted_question
@@ -278,7 +280,7 @@ def main():
     # print(classifier.get_question_features("This is a normal sentence."))
     # print(classifier.get_question_features("[COURSE] is taught by who?"))
     # print(classifier.get_question_features("How do I register for classes?"))
-    #classifier.train_model()
+    # classifier.train_model()
     classifier.load_latest_classifier()
     print(classifier.classify_question("Which [PROF] teaches [COURSE]?"))
 

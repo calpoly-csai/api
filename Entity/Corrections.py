@@ -1,7 +1,12 @@
 class Corrections:
-
-    def __init__(self, correctionId, rawText, correctionText,
-                 tableNameToCorrect, columnNameToCorrect):
+    def __init__(
+        self,
+        correctionId,
+        rawText,
+        correctionText,
+        tableNameToCorrect,
+        columnNameToCorrect,
+    ):
         self.correctionId = correctionId
         self.rawText = rawText
         self.correctionText = correctionText

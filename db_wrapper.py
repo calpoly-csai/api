@@ -6,9 +6,7 @@ import time
 
 
 def connect():
-    cxn = m.connect(host=CONFIG['host'],
-                    user=CONFIG['user'],
-                    passwd=CONFIG['password'])
+    cxn = m.connect(host=CONFIG["host"], user=CONFIG["user"], passwd=CONFIG["password"])
     return cxn
 
 
@@ -20,7 +18,7 @@ def get_databases(cxn):
         a tuple of strings of database names
     """
     cursor = cxn.cursor()
-    cursor.execute('SHOW DATABASES')
+    cursor.execute("SHOW DATABASES")
     # cursor.fetchall() returns a list of singleton tuples
     tups = cursor.fetchall()
     cursor.close()
@@ -35,12 +33,12 @@ def get_tables(cxn, database_name):
     Returns:
         a tuple of strings of database names
     """
-    acceptable_list = ['dev']
+    acceptable_list = ["dev"]
     assert database_name in acceptable_list, "unexpected database_name"
 
     cursor = cxn.cursor()
-    cursor.execute('use ' + database_name)
-    cursor.execute('show tables')
+    cursor.execute("use " + database_name)
+    cursor.execute("show tables")
     # cursor.fetchall() returns a list of singleton tuples
     tups = cursor.fetchall()
     cursor.close()
@@ -55,7 +53,7 @@ def run_create_script(cxn, filename):
         True if succeeded
     """
     c = cxn.cursor()
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         c.execute(f.read())
     time.sleep(2)
     c.close()
@@ -99,8 +97,8 @@ def courses_offered(cxn, course):
 
     c.execute("use dev")
 
-    query = "SELECT courseName, termsOffered from Courses where courseName like \"%"
-    query += course + "%\""
+    query = 'SELECT courseName, termsOffered from Courses where courseName like "%'
+    query += course + '%"'
 
     print(query)
     c.execute(query)
@@ -127,16 +125,16 @@ def does_professor_teach_course(cxn, profLastName, profFirstName, course):
 
     c.execute("use dev")
 
-    query = "SELECT c.courseName from Courses c INNER JOIN Professors p on c.Professors_id = p.id where p.lastName like \"%"
-    query += profLastName + "%\""
+    query = 'SELECT c.courseName from Courses c INNER JOIN Professors p on c.Professors_id = p.id where p.lastName like "%'
+    query += profLastName + '%"'
 
     # this can be an article of discussion for matching professor names
     if profFirstName != "":
-        query += " and p.firstName likel \"%"
-        query += profFirstName + "%\""
+        query += ' and p.firstName likel "%'
+        query += profFirstName + '%"'
 
-    query += " and courseName like \"%"
-    query += course + "%\""
+    query += ' and courseName like "%'
+    query += course + '%"'
 
     print(query)
     c.execute(query)
@@ -152,9 +150,9 @@ if __name__ == "__main__":
     cxn = connect()
 
     print("getting databases...", get_databases(cxn))
-    print("getting tables...", get_tables(cxn, 'dev'))
+    print("getting tables...", get_tables(cxn, "dev"))
 
-    script = join(CONFIG['sql_dir'], CONFIG['create_file'])
+    script = join(CONFIG["sql_dir"], CONFIG["create_file"])
 
     # print("running create script...")
     # assert run_create_script(cxn, script) == True, "uh oh failed to create"
@@ -162,7 +160,7 @@ if __name__ == "__main__":
     cxn.close()
     cxn = connect()
 
-    print("getting tables...", get_tables(cxn, 'dev'))
+    print("getting tables...", get_tables(cxn, "dev"))
 
     print(courses_offered(cxn, "CSC 357"))
 

@@ -5,7 +5,6 @@ from werkzeug.exceptions import BadRequestKeyError
 
 
 class Validator:
-
     def __init__(self):
         super().__init__()
 
@@ -43,27 +42,22 @@ class WakeWordValidator(Validator):
     def __init__(self, validators=None):
         super().__init__()
         self.validators = validators or {
-            'isWakeWord':
-                lambda val: type(val) == str and
-                (val == 'true' or val == 'false'),
-            'noiseLevel':
-                lambda level: type(level) == str and level in 'qml' and len(
-                    level) == 1,
-            'tone':
-                lambda tone: type(tone) == str,
-            'location':
-                lambda location: type(location) == str,
-            'gender':
-                lambda gender: type(gender) == str and gender in 'mf' and len(
-                    gender) == 1,
-            'lastName':
-                lambda lastName: type(lastName) == str,
-            'firstName':
-                lambda firstName: type(firstName) == str,
-            'timestamp':
-                lambda timestamp: str.isdigit(timestamp),
-            'username':
-                lambda username: type(username) == str,
+            "isWakeWord": lambda val: type(val) == str
+            and (val == "true" or val == "false"),
+            "noiseLevel": lambda level: type(level) == str
+            and level in "qml"
+            and len(level) == 1,
+            "tone": lambda tone: type(tone) == str,
+            "location": lambda location: type(location) == str,
+            "gender": lambda gender: type(gender) == str
+            and gender in "mf"
+            and len(gender) == 1,
+            "lastName": lambda lastName: type(lastName) == str,
+            "firstName": lambda firstName: type(firstName) == str,
+            "timestamp": lambda timestamp: str.isdigit(timestamp),
+            "username": lambda username: type(username) == str,
+            "emphasis": lambda emphasis: type(emphasis) == str,
+            "script": lambda script: type(script) == str,
         }
 
     def validate(self, data):
@@ -76,7 +70,7 @@ class WakeWordValidator(Validator):
             validator = self.validators[key]
             try:
                 value = data[key]
-                if (not validator(value)):
+                if not validator(value):
                     issues[key] = WakeWordValidatorIssue.INVALID
             except BadRequestKeyError as e:
                 print("caught BadRequestKeyError: ", e.args)
@@ -91,17 +85,21 @@ class WakeWordValidator(Validator):
         form = data.copy()
         for key in issues:
             issue = issues[key]
-            if (issue == WakeWordValidatorIssue.DOES_NOT_EXIST):
-                if (key == 'username'):
-                    form[key] = 'guest'
-                    print('fixed username', form[key])
-                elif (key == 'timestamp'):
+            if issue == WakeWordValidatorIssue.DOES_NOT_EXIST:
+                if key == "username":
+                    form[key] = "guest"
+                    print("fixed username", form[key])
+                elif key == "timestamp":
                     form[key] = int(time.time())
-                    print('fixed timestamp', form[key])
+                    print("fixed timestamp", form[key])
+                elif key == "script" and form["isWakeWord"] == "ww":
+                    form[key] = "nimbus"
+                    print("Added 'script' value of 'nimbus'")
                 else:
                     raise WakeWordValidatorError(
-                        f"Required audio metadata '{key}' was not provided")
-            elif (issue == WakeWordValidatorIssue.INVALID):
+                        f"Required audio metadata '{key}' was not provided"
+                    )
+            elif issue == WakeWordValidatorIssue.INVALID:
                 # TODO: anticipate invalid entries and correct them.
                 raise WakeWordValidatorError(
                     f"{key} has invalid value of {form[key]} with a type of {type(form[key])}"

@@ -16,11 +16,11 @@ Answer_Formatter = Callable[[Extracted_Vars, DB_Data], str]
 
 
 tag_lookup = {
-    'PROF': Professors,
-    'CLUB': Clubs,
-    'COURSE': Courses,
-    'SECRET_HIDEOUT': Locations,
-    'SECTION': Sections
+    "PROF": Professors,
+    "CLUB": Clubs,
+    "COURSE": Courses,
+    "SECRET_HIDEOUT": Locations,
+    "SECTION": Sections,
 }
 
 # TODO: Initialize this somewhere else. Currently here because of _get_property()
@@ -150,7 +150,7 @@ def _string_sub(a_format, extracted_info, db_data):
     if db_data is None:
         return None
     else:
-        return a_format.format(ex=extracted_info['normalized entity'], db=db_data)
+        return a_format.format(ex=extracted_info["normalized entity"], db=db_data)
 
 
 def string_sub(a_format):
@@ -159,9 +159,11 @@ def string_sub(a_format):
 
 def _get_property(prop, extracted_info):
     ent_string = extracted_info["normalized entity"]
-    ent = tag_lookup[extracted_info['tag']]
+    ent = tag_lookup[extracted_info["tag"]]
     try:
-        value = db.get_property_from_entity(prop=prop, entity=ent, identifier=ent_string)
+        value = db.get_property_from_entity(
+            prop=prop, entity=ent, identifier=ent_string
+        )
     except IndexError:
         return None
     else:
@@ -174,12 +176,14 @@ def get_property(prop):
 
 def _yes_no(a_format, pred, extracted_info, db_data):
     if pred is None:
-        result = 'Yes' if db_data else 'No'
+        result = "Yes" if db_data else "No"
     elif type(pred) == str:
-        result = 'Yes' if re.search(pred, db_data) else 'No'
+        result = "Yes" if re.search(pred, db_data) else "No"
     else:
-        result = 'Yes' if pred(db_data) else 'No'
-    return a_format.format(y_n=result, yes_no=result, ex=extracted_info['normalized entity'])
+        result = "Yes" if pred(db_data) else "No"
+    return a_format.format(
+        y_n=result, yes_no=result, ex=extracted_info["normalized entity"]
+    )
 
 
 def yes_no(a_format, pred=None):
@@ -188,30 +192,26 @@ def yes_no(a_format, pred=None):
 
 def generate_fact_QA(csv):
     df = read_csv(csv)
-    text_in_brackets = r'\[[^\[\]]*\]'
+    text_in_brackets = r"\[[^\[\]]*\]"
     qa_objs = []
     for i in range(len(df)):
-        q = df['question_format'][i]
-        a = df['answer_format'][i]
+        q = df["question_format"][i]
+        a = df["answer_format"][i]
         matches = re.findall(text_in_brackets, a)
         extracted = None
         if len(matches) == 1:
             db_data = matches[0]
-        elif '..' in matches[1]:
+        elif ".." in matches[1]:
             db_data = matches[1]
             extracted = matches[0]
         else:
             db_data = matches[0]
             extracted = matches[1]
-        prop = db_data.split('..', 1)[1][0:-1]
-        a = a.replace(db_data, '{db}')
+        prop = db_data.split("..", 1)[1][0:-1]
+        a = a.replace(db_data, "{db}")
         if extracted is not None:
-            a = a.replace(extracted, '{ex}')
-        o = QA(
-            q_format=q,
-            db_query=get_property(prop),
-            format_answer=string_sub(a)
-        )
+            a = a.replace(extracted, "{ex}")
+        o = QA(q_format=q, db_query=get_property(prop), format_answer=string_sub(a))
         qa_objs.append(o)
 
     return qa_objs

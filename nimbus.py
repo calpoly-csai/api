@@ -11,11 +11,8 @@ from nimbus_nlp.NIMBUS_NLP import NIMBUS_NLP
 
 
 class Nimbus:
-
     def __init__(self):
-        self.qa_dict = create_qa_mapping(
-            generate_fact_QA("q_a_pairs.csv")
-        )
+        self.qa_dict = create_qa_mapping(generate_fact_QA("q_a_pairs.csv"))
 
     def answer_question(self, question):
         ans_dict = NIMBUS_NLP.predict_question(question)
@@ -27,10 +24,13 @@ class Nimbus:
         else:
             answer = qa.answer(ans_dict)
             if answer is None:
-                return("I'm sorry, I understand your question but was unable to find an answer. "
-                       "Please try another question.")
+                return (
+                    "I'm sorry, I understand your question but was unable to find an answer. "
+                    "Please try another question."
+                )
             else:
                 return answer
+
 
 if __name__ == "__main__":
     nimbus = Nimbus()
