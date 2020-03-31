@@ -18,7 +18,15 @@ from database_wrapper import (
     NimbusMySQLAlchemy,
 )
 from modules.formatters import WakeWordFormatter
-from modules.validators import WakeWordValidator, WakeWordValidatorError
+from modules.validators import (
+    WakeWordValidator,
+    WakeWordValidatorError,
+    PhrasesValidator,
+    PhrasesValidatorError,
+)
+
+from Entity.AudioSampleMetaData import AudioSampleMetaData
+from Entity.QuestionAnswerPair import QuestionAnswerPair
 
 from nimbus import Nimbus
 
@@ -91,7 +99,7 @@ def save_a_recording():
     if issues:
         try:
             data = validator.fix(data, issues)
-        except WakeWordValidatorError as err:
+        except FormatterValidatorError as err:
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
@@ -123,6 +131,38 @@ def save_a_recording():
         raise e
 
     return f"Successfully stored audiofile as '{filename}''", SUCCESS
+
+
+@app.route("/new_data/phrase", methods=["POST"])
+def save_query_phrase():
+    validator = PhrasesValidator()
+    data = request.get_json()
+    try:
+        issues = validator.validate(data)
+    except:
+        return (
+            "Please format the query data: {question: {text: string, variables: list}, answer: {text: string, variables: list}}",
+            BAD_REQUEST,
+        )
+    if issues:
+        try:
+            data = validator.fix(data, issues)
+        except PhrasesValidatorError as err:
+            print("error", err)
+            return str(err), BAD_REQUEST
+
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    try:
+        phrase_saved = db.insert_entity(QuestionAnswerPair, data)
+    except (BadDictionaryKeyError, BadDictionaryValueError, NimbusDatabaseError) as e:
+        return str(e), BAD_REQUEST
+    except Exception as e:
+        raise e
+
+    if phrase_saved:
+        return "Phrase has been saved", SUCCESS
+    else:
+        return "An error was encountered while saving to database", BAD_REQUEST
 
 
 @app.route("/new_data/courses", methods=["POST"])

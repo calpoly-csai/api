@@ -1,21 +1,47 @@
 import time
 import enum
+from abc import ABC
 
 from werkzeug.exceptions import BadRequestKeyError
 
 
-class Validator:
+class Validator(ABC):
     def __init__(self):
         super().__init__()
 
-    def validate(self, data):
-        """Takes in a dictionary of data and returns a dictionary of issues"""
+    def validate(self, data: dict) -> dict:
+        """
+        Takes in a dictionary of data and returns a dictionary of issues
+        Parameters
+        ----------
+        - `data : dict` form data to validate
+
+        Returns
+        -------
+        dict
+            issues with the data
+        """
         return data
 
-    def fix(self, data, issues):
+    def fix(self, data: dict, issues) -> dict:
         """
         Takes measures to fill in missing data in form, cloning, mutating and then returning the data.
         If not possible, raises error.
+
+        Parameters
+        ----------
+        - `data : dict` form data to fix
+        - `issues: dict|list` lists of issues to fix for each form section
+
+        Returns
+        -------
+        dict
+            A fixed copy of the data
+
+        Raises
+        ------
+        Exception
+            when the issue with the data are not fixable.
         """
         return data
 
@@ -104,4 +130,87 @@ class WakeWordValidator(Validator):
                 raise WakeWordValidatorError(
                     f"{key} has invalid value of {form[key]} with a type of {type(form[key])}"
                 )
+        return form
+
+
+class PhrasesValidatorError(Exception):
+    """Unfixable data corruption in a query phrase object"""
+
+    def __init__(self, message: str):
+        super().__init__(self, message)
+        self.message = message
+
+
+class PhrasesValidatorIssue(enum.Enum):
+    INVALID = 0
+    DELIMITER_MISMATCH = 1
+    TOKEN_VAR_MISMATCH = 2
+
+
+class PhrasesValidator(Validator):
+    """Validates new query phrases passed from the web app"""
+
+    def __init__(self):
+        super().__init__()
+        self.error_messages = {
+            PhrasesValidatorIssue.INVALID: "An unknown error occurred",
+            PhrasesValidatorIssue.DELIMITER_MISMATCH: "The {field_name} field has mismatched bracket token delimiters (square braces).",
+            PhrasesValidatorIssue.TOKEN_VAR_MISMATCH: "The {field_name} field has a differing number of format tokens and variables. Please pass the same number or tokens as variables",
+        }
+
+    def validate(self, data: dict) -> dict:
+        """
+        Ensures that:
+        1. All tokens have an opening and closing delimiter.
+        2. The number of tokens equals the number of provided variables.
+
+        Parameters
+        ----------
+        `data : dict` A question answer pairing {question: {format: str, variables: str}, answer: {format: str, variables: str}}
+        """
+        issues = {"question": [], "answer": []}
+        for field, form in data.items():
+            # All tokens have an opening and closing delimiter
+            if form["format"].count("]") != form["format"].count("["):
+                issues[field].append(PhrasesValidatorIssue.DELIMITER_MISMATCH)
+            # Number of tokens must equal number of variables
+            if len(form["variables"]) != form["format"].count("["):
+                issues[field].append(PhrasesValidatorIssue.TOKEN_VAR_MISMATCH)
+        return issues
+
+    def fix(self, data: dict, issues: dict) -> dict:
+        """
+        Fixes phrases data. 
+        - Critical issues:
+            1. Question delimiters don't match up.
+            2. Question tokens don't the number of provided variables.
+        - Non critical issues:
+            1. Anything wrong with the answer. In this case only the question will be stored.
+
+        Parameters
+        ----------
+        - `data : dict` A question answer pairing - {question: {format: str, variables: str}, answer: {format: str, variables: str}}
+        - `issues: dict` lists of PhrasesValidatorIssues for the quesion answer pairing - {}
+
+        Returns
+        -------
+        dict
+            A fixed copy of the data
+
+        Raises
+        ------
+        PhrasesValidatorError
+            when the issue with the phrase data is not fixable.
+
+        """
+        form = data.copy()
+        question = issues["question"]
+        answer = issues["answer"]
+        if len(question):
+            err_msg = self.error_messages[question[0]].format(field_name="question")
+            print(f"error message {err_msg}")
+            raise PhrasesValidatorError(err_msg)
+        if len(answer):
+            form["answer"]["format"] = ""
+            form["answer"]["variables"] = []
         return form

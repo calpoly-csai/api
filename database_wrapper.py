@@ -24,7 +24,7 @@ from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Calendars import Calendars
 from Entity.Courses import Courses
 from Entity.Locations import Locations
-from Entity.QuestionAnswerPair import QuestionAnswerPair
+from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
 from Entity.Professors import Professors, ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
@@ -93,6 +93,13 @@ EXPECTED_KEYS_BY_ENTITY = {
         "end",
         "location",
         "department",
+    ],
+    QuestionAnswerPair: [
+        "can_we_answer",
+        "verified",
+        "answer_type",
+        "question_format",
+        "answer_format",
     ],
 }
 
@@ -536,7 +543,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         """
 
         format_method_by_entity = {
-            AudioSampleMetaData: self.format_audio_sample_meta_data_dict
+            AudioSampleMetaData: self.format_audio_sample_meta_data_dict,
+            QuestionAnswerPair: self.format_query_phrase_dict,
         }
 
         # Format data (if needed), and validate data
@@ -745,6 +753,32 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             raise BadDictionaryValueError(msg)
 
         return data_dict
+
+    def format_query_phrase_dict(self, phrases: dict) -> dict:
+        """
+        Formats query phrase to be saved to the server.
+        
+        Parameters
+        ----------
+        `phrases : dict` A question answer pair:
+        - {question: {format: str, variables: str}, answer: {format: str, variables: str}}
+
+        Raises
+        ------
+        BadDictionaryValueError
+
+        Returns
+        -------
+        dict
+            formatted for the server
+        """
+        return {
+            "can_we_answer": False,
+            "verified": False,
+            "answer_type": AnswerType.other,  # Will change after verified
+            "question_format": phrases["question"]["format"],
+            "answer_format": phrases["answer"]["format"],
+        }
 
     def __del__(self):
         print("NimbusMySQLAlchemy closed")
