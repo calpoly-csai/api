@@ -261,7 +261,8 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
     and stores the data to the database
 
     Ex: def process_office_hours(
-                        path_to_csv = "/path/to/office_hours.csv"
+                        current_prof: dict,
+                        db: NimbusMySQLAlchemy
                         )
 
     """
