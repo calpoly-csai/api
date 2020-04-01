@@ -117,6 +117,31 @@ def save_a_recording():
     return filename
 
 
+@app.route('/new_data/office_hours', methods=['POST'])
+def save_office_hours():
+    """
+    Persists list of office hours
+    """
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    data = request.get_json()
+    for professor in data:
+        try:
+            process_office_hours(data[professor], db)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
 @app.route('/new_data/courses', methods=['POST'])
 def save_courses():
     """
@@ -230,6 +255,90 @@ def create_filename(form):
     return '_'.join(values) + '.wav'
 
 
+def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
+    """
+    Takes the path to a CSV, reads the data row-by-row,
+    and stores the data to the database
+
+    Ex: def process_office_hours(
+                        path_to_csv = "/path/to/office_hours.csv"
+                        )
+
+    """
+    # Set the entity type as the OfficeHours entity class
+    entity_type = db.OfficeHours
+    
+    # Check if the current entity is already within the database
+    if (db.get_property_from_entity(
+            prop="Name",
+            entity=entity_type,
+            identifier=current_prof["Name"]) != None):
+
+        update_office_hours = True
+
+    else:    
+        update_office_hours = False
+
+    # String for adding each day of office hours
+    office_hours = ""
+
+    # Split name for first and last name
+    split_name = current_prof["Name"].split(',')
+
+    # Extract each property for the entity
+    last_name = split_name[0].replace('"', '')
+    first_name = split_name[1].replace('"', '')
+    
+    # Check that each extracted property is not empty then add it to
+    # the office hours string
+    if current_prof["Monday"] != '':
+
+        # Check that the current property does not contain digits which
+        # implies that it is alternative information about availability
+        if (any(char.isdigit() for char in current_prof["Monday"]) == False):
+            office_hours = current_prof["Monday"]
+
+        # Otherwise it is a time
+        else:
+            office_hours += ("Monday " + current_prof["Monday"] + ", ") 
+
+    if current_prof["Tuesday"] != '':
+        office_hours += ("Tuesday " + current_prof["Tuesday"] + ", ") 
+
+    if current_prof["Wednesday"] != '':
+        office_hours += ("Wednesday " + current_prof["Wednesday"] + ", ") 
+
+    if current_prof["Thursday"] != '':
+        office_hours += ("Thursday " + current_prof["Thursday"] + ", ") 
+
+    if current_prof["Friday"] != '' and current_prof["Friday"] != '\n':
+        office_hours += ("Friday " + current_prof["Friday"] + ", ") 
+
+    # Generate the data structure for the database entry
+    sql_data = {
+            "Name"          : last_name + ", " + first_name,
+            "LastName"      : last_name,
+            "FirstName"     : first_name,
+            "Office"        : current_prof["Office"],
+            "Phone"         : current_prof["Phone"],
+            "Email"         : current_prof["Email"],
+            "Monday"        : current_prof["Monday"],
+            "Tuesday"       : current_prof["Tuesday"],
+            "Wednesday"     : current_prof["Wednesday"],
+            "Thursday"      : current_prof["Thursday"],
+            "Friday"        : current_prof["Friday"],
+            "OfficeHours"   : office_hours
+            }
+
+    # Update the entity properties if the entity already exists
+    if (update_office_hours == True):
+        db.update_entity(entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"])
+
+    # Otherwise, add the entity to the database
+    else:
+        db.insert_entity(entity_type=entity_type, data_dict=sql_data)
+
+
 def resample_audio():
     """
     Resample the audio file to adhere to the Nimbus audio sampling standard.
@@ -274,4 +383,4 @@ def convert_to_mfcc():
 if __name__ == '__main__':
     app.run(host='0.0.0.0',
             debug=gunicorn_config.DEBUG_MODE,
-            port=gunicorn_config.PORT)
+            port=gunicorn_config.PORT) 
