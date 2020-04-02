@@ -24,7 +24,7 @@ from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Calendars import Calendars
 from Entity.Courses import Courses
 from Entity.Locations import Locations
-from Entity.QuestionAnswerPair import QuestionAnswerPair
+from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
 from Entity.Professors import Professors, ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
@@ -91,6 +91,13 @@ EXPECTED_KEYS_BY_ENTITY = {
         "end",
         "location",
         "department",
+    ],
+    QuestionAnswerPair: [
+        "can_we_answer",
+        "verified",
+        "answer_type",
+        "question_format",
+        "answer_format",
     ],
 }
 
@@ -355,7 +362,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 mysql_config["password"],
                 mysql_config["host"],
                 mysql_config["port"],
-                mysql_config["database"]
+                mysql_config["database"],
             )
             engine = create_engine(SQLALCHEMY_DATABASE_URI)
 
@@ -417,7 +424,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def get_all_qa_pairs(self):
         qa_entity = QuestionAnswerPair
 
-        query_session = self.session.query(qa_entity.question_format, qa_entity.answer_format)
+        query_session = self.session.query(
+            qa_entity.question_format, qa_entity.answer_format
+        )
         result = query_session.all()
 
         return result
@@ -485,7 +494,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             total_similarity = 0
             tags = []
             for tag_prop in tag_props:
-                total_similarity += self.full_fuzzy_match(str(row.__dict__[tag_prop]), identifier)
+                total_similarity += self.full_fuzzy_match(
+                    str(row.__dict__[tag_prop]), identifier
+                )
                 tags.append(str(row.__dict__[tag_prop]))
 
             if total_similarity > MATCH_THRESHOLD:
@@ -530,7 +541,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         """
 
         format_method_by_entity = {
-            AudioSampleMetaData: self.format_audio_sample_meta_data_dict
+            AudioSampleMetaData: self.format_audio_sample_meta_data_dict,
+            QuestionAnswerPair: self.format_query_phrase_dict,
         }
 
         # Format data (if needed), and validate data
@@ -565,13 +577,22 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         entity = entity_type()
 
         # Logging...
-        print("{}Inserting into {}...{}".format(
-              CYAN_COLOR_CODE, entity_attributes["__tablename__"], RESET_COLOR_CODE))
+        print(
+            "{}Inserting into {}...{}".format(
+                CYAN_COLOR_CODE, entity_attributes["__tablename__"], RESET_COLOR_CODE
+            )
+        )
 
         # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
-        entity_fields = list(dict(filter(lambda i: not (i[0][0] == "_" or i[0][-1] == "_"),
-                                         entity_attributes.items(),)).keys())[1:]
+        entity_fields = list(
+            dict(
+                filter(
+                    lambda i: not (i[0][0] == "_" or i[0][-1] == "_"),
+                    entity_attributes.items(),
+                )
+            ).keys()
+        )[1:]
 
         # Ignore the first field, since it's assumed to be a primary key
         # Populate the entity with values from formatted_data
@@ -629,17 +650,35 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         # Logging...
         if entity:
-            print("{}Updating {} in {}...{}".format(
-                YELLOW_COLOR_CODE, entity, entity_attributes["__tablename__"], RESET_COLOR_CODE))
+            print(
+                "{}Updating {} in {}...{}".format(
+                    YELLOW_COLOR_CODE,
+                    entity,
+                    entity_attributes["__tablename__"],
+                    RESET_COLOR_CODE,
+                )
+            )
         else:
             entity = entity_type()
-            print("{}Matching Entity not found - Inserting {} in {}...{}".format(
-                YELLOW_COLOR_CODE, entity, entity_attributes["__tablename__"], RESET_COLOR_CODE))
+            print(
+                "{}Matching Entity not found - Inserting {} in {}...{}".format(
+                    YELLOW_COLOR_CODE,
+                    entity,
+                    entity_attributes["__tablename__"],
+                    RESET_COLOR_CODE,
+                )
+            )
 
         # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
-        entity_fields = list(dict(filter(lambda i: not (i[0][0] == "_" or i[0][-1] == "_"),
-                                         entity_attributes.items())).keys())[1:]
+        entity_fields = list(
+            dict(
+                filter(
+                    lambda i: not (i[0][0] == "_" or i[0][-1] == "_"),
+                    entity_attributes.items(),
+                )
+            ).keys()
+        )[1:]
 
         # Ignore the first field, since it's assumed to be a primary key
         # Populate the entity with values from formatted_data
@@ -692,7 +731,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         data_dict["last_name"] = data_dict.pop("lastName")
 
         if data_dict["isWakeWord"] in is_wake_word_by_label:
-            data_dict["is_wake_word"] = is_wake_word_by_label[data_dict.pop("isWakeWord")]
+            data_dict["is_wake_word"] = is_wake_word_by_label[
+                data_dict.pop("isWakeWord")
+            ]
         else:
             msg = "unexpected values for isWakeWord\n"
             msg += "expected 'ww' or True or 'nww' or False but got '{}'"
@@ -708,6 +749,32 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             raise BadDictionaryValueError(msg)
 
         return data_dict
+
+    def format_query_phrase_dict(self, phrases: dict) -> dict:
+        """
+        Formats query phrase to be saved to the server.
+        
+        Parameters
+        ----------
+        `phrases : dict` A question answer pair:
+        - {question: {format: str, variables: str}, answer: {format: str, variables: str}}
+
+        Raises
+        ------
+        BadDictionaryValueError
+
+        Returns
+        -------
+        dict
+            formatted for the server
+        """
+        return {
+            "can_we_answer": False,
+            "verified": False,
+            "answer_type": AnswerType.other,  # Will change after verified
+            "question_format": phrases["question"]["format"],
+            "answer_format": phrases["answer"]["format"],
+        }
 
     def __del__(self):
         print("NimbusMySQLAlchemy closed")
