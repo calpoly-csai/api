@@ -23,6 +23,8 @@ from modules.validators import (
     WakeWordValidatorError,
     PhrasesValidator,
     PhrasesValidatorError,
+    FeedbackValidator,
+    FeedbackValidatorError
 )
 
 from Entity.AudioSampleMetaData import AudioSampleMetaData
@@ -163,6 +165,36 @@ def save_query_phrase():
         return "An error was encountered while saving to database", SERVER_ERROR
 
 
+@app.route("/new_data/feedback", methods=["POST"])
+def save_feedback():
+    validator = FeedbackValidator()
+    data = request.get_json()
+    try:
+        issues = validator.validate(data)
+    except:
+        return (
+            "Please format the query data: {question: String, answer: String, type: String, timestamp: int}",
+            BAD_REQUEST,
+        )
+    if issues:
+        try:
+            data = validator.fix(data, issues)
+        except FeedbackValidatorError as err:
+            print("error:", err)
+            return str(err), BAD_REQUEST
+    return "IT WORKED", SUCCESS
+
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    try:
+        phrase_saved = db.insert_entity(QuestionAnswerPair, data)
+    except (BadDictionaryKeyError, BadDictionaryValueError) as e:
+        return str(e), BAD_REQUEST
+    except NimbusDatabaseError as e:
+        return str(e), SERVER_ERROR
+    except Exception as e:
+        raise e
+
+
 @app.route("/new_data/courses", methods=["POST"])
 def save_courses():
     """
@@ -278,7 +310,8 @@ def create_filename(form):
         "timestamp",
         "username",
     ]
-    values = list(map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
+    values = list(
+        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return "_".join(values) + ".wav"
 
 
@@ -323,4 +356,5 @@ def convert_to_mfcc():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE, port=gunicorn_config.PORT)
+    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE,
+            port=gunicorn_config.PORT)
