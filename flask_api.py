@@ -17,6 +17,14 @@ from database_wrapper import (
     NimbusDatabaseError,
     NimbusMySQLAlchemy,
 )
+from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
+from Entity.Calendars import Calendars
+from Entity.Clubs import Clubs
+from Entity.Courses import Courses
+from Entity.Locations import Locations
+from Entity.Professors import Professors, ProfessorsProperties
+from Entity.QuestionAnswerPair import QuestionAnswerPair
+from Entity.Sections import Sections, SectionType
 from modules.formatters import WakeWordFormatter
 from modules.validators import (
     WakeWordValidator,
@@ -24,9 +32,6 @@ from modules.validators import (
     PhrasesValidator,
     PhrasesValidatorError,
 )
-
-from Entity.AudioSampleMetaData import AudioSampleMetaData
-from Entity.QuestionAnswerPair import QuestionAnswerPair
 
 from nimbus import Nimbus
 
@@ -113,7 +118,7 @@ def save_a_recording():
 
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     try:
-        db.save_audio_sample_meta_data(formatted_data)
+        db.insert_entity(AudioSampleMetaData, formatted_data)
     except BadDictionaryKeyError as e:
         return str(e), BAD_REQUEST
     except BadDictionaryValueError as e:
@@ -172,7 +177,7 @@ def save_courses():
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for course in data["courses"]:
         try:
-            db.save_course(course)
+            db.insert_entity(Courses, course)
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -197,7 +202,7 @@ def save_clubs():
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for club in data["clubs"]:
         try:
-            db.save_club(club)
+            db.insert_entity(Clubs, club)
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -222,7 +227,7 @@ def save_locations():
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for location in data["locations"]:
         try:
-            db.save_location(location)
+            db.insert_entity(Locations, location)
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -247,7 +252,7 @@ def save_calendars():
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for calendar in data["calendars"]:
         try:
-            db.save_calendar(calendar)
+            db.insert_entity(Calendars, calendar)
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
