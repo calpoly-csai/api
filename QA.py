@@ -23,11 +23,6 @@ tag_lookup = {
     'SECTION': Sections
 }
 
-# TODO: Initialize this somewhere else. Currently here because of _get_property()
-# Move into the Nimbus class below if possible.
-db = NimbusMySQLAlchemy()
-
-
 class QA:
     """
     A class for wrapping functions used to answer a question.
@@ -161,6 +156,7 @@ def _get_property(prop, extracted_info):
     ent_string = extracted_info["normalized entity"]
     ent = tag_lookup[extracted_info['tag']]
     try:
+        db = NimbusMySQLAlchemy()
         value = db.get_property_from_entity(prop=prop, entity=ent, identifier=ent_string)
     except IndexError:
         return None

@@ -44,9 +44,6 @@ CONFIG_FILE_PATH = "config.json"
 app = Flask(__name__)
 CORS(app)
 
-# TODO: Initialize this somewhere else.
-nimbus = Nimbus()
-
 
 @app.route("/", methods=["GET", "POST"])
 def hello():
@@ -82,6 +79,7 @@ def handle_question():
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
 
+    nimbus = Nimbus()
     response = {"answer": nimbus.answer_question(question)}
 
     if "session" in request_body:
