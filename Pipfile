@@ -22,7 +22,7 @@ pytest = "==5.3.4"
 pyre-check = "==0.0.41"
 ## like the Unix `make` but better
 invoke = "==1.4.1"
-
+coverage = "*"
 
 [packages]
 # REST API

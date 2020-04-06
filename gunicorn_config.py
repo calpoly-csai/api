@@ -7,3 +7,4 @@ DEBUG_MODE = int(environ.get("DEBUG_MODE", 1))
 # Gunicorn config
 bind = ":" + str(PORT)
 workers = 3
+threads = 3
