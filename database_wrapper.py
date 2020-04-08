@@ -27,7 +27,8 @@ from Entity.Locations import Locations
 from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
 from Entity.Professors import Professors, ProfessorsProperties
 from Entity.Clubs import Clubs
-from Entity.Sections import Sections, SectionType
+from Entity.Sections import Sections
+from Entity.ProfessorSectionView import ProfessorSectionView
 
 from fuzzywuzzy import fuzz
 
@@ -50,6 +51,7 @@ default_tag_column_dict = {
     Professors: {"firstName", "lastName"},
     Clubs: {"club_name"},
     Sections: {"section_name"},
+    ProfessorSectionView: {"firstName", "lastName"}
 }
 
 EXPECTED_KEYS_BY_ENTITY = {
@@ -343,6 +345,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
         self.QuestionAnswerPair = QuestionAnswerPair
+        self.ProfessorSectionViews = ProfessorSectionView
         self.inspector = inspect(self.engine)
         self._create_database_session()
         print("initialized NimbusMySQLAlchemy")
@@ -415,6 +418,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
+        __safe_create(self.ProfessorSectionViews)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -475,6 +479,35 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 {Professors: {"firstName", "lastName"}}
 
         Returns:
+            The closest value of `prop`,
+            such that the `entity` matches `identifier`.
+        """
+        return self._get_property_from_entity(
+            prop,
+            entity,
+            identifier,
+            tag_column_map
+        )[-1][2]
+
+    def _get_property_from_entity(
+        self,
+        prop: str,
+        entity: UNION_ENTITIES,
+        identifier: str,
+        tag_column_map: dict = default_tag_column_dict,
+    ):
+        """
+        Returns a full list of matching entities. Used by get_property_from_entity()
+
+        Args:
+            prop: the relevant property value to retrieve from matching entities
+            entity: the type of entity we want to get the property from
+            identifier: a string that identifies the entity in some way (i.e., a professor's name)
+            tag_column_map: a dictionary mapping entity types to columns that identify the entities
+                ex:
+                {Professors: {"firstName", "lastName"}}
+
+        Returns:
             A list of values for `prop`,
             such that the `entity` matches `identifier`.
         """
@@ -506,7 +539,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             return None
 
         sorted_results = sorted(results, key=lambda pair: pair[0])
-        return sorted_results[-1][2]
+        return sorted_results
 
     def get_course_properties(
         self, department: str, course_num: Union[str, int]
