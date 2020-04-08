@@ -23,6 +23,7 @@ class QuestionAnswerPair(Base):
     id = Column(Integer, primary_key=True)
     # SQLAlchemy resolves Boolean to TINYINT within MYSQL
     can_we_answer = Column(Boolean)
+    verified = Column(Boolean)
     answer_type = Column(Enum(AnswerType))
     question_format = Column(Text)
     answer_format = Column(Text)

@@ -9,17 +9,30 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
 import gunicorn_config
-from database_wrapper import (BadDictionaryKeyError, BadDictionaryValueError,
-                              NimbusDatabaseError, NimbusMySQLAlchemy)
+from database_wrapper import (
+    BadDictionaryKeyError,
+    BadDictionaryValueError,
+    NimbusDatabaseError,
+    NimbusMySQLAlchemy,
+)
 from modules.formatters import WakeWordFormatter
-from modules.validators import WakeWordValidator, WakeWordValidatorError
+from modules.validators import (
+    WakeWordValidator,
+    WakeWordValidatorError,
+    PhrasesValidator,
+    PhrasesValidatorError,
+)
+
+from Entity.AudioSampleMetaData import AudioSampleMetaData
+from Entity.QuestionAnswerPair import QuestionAnswerPair
 
 from nimbus import Nimbus
 
 BAD_REQUEST = 400
 SUCCESS = 200
+SERVER_ERROR = 500
 
-CONFIG_FILE_PATH = 'config.json'
+CONFIG_FILE_PATH = "config.json"
 
 app = Flask(__name__)
 CORS(app)
@@ -27,14 +40,15 @@ CORS(app)
 # TODO: Initialize this somewhere else.
 nimbus = Nimbus()
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route("/", methods=["GET", "POST"])
 def hello():
-    if (request.method == 'POST'):
+    if request.method == "POST":
         request_body = request.get_json()
-        return jsonify({'you sent': request_body})
+        return jsonify({"you sent": request_body})
     else:
         response_code = 42
-        response_json = jsonify({'name': 'hello {}'.format(str(app))})
+        response_json = jsonify({"name": "hello {}".format(str(app))})
         return response_json, response_code
 
 
@@ -42,7 +56,7 @@ def generate_session_token() -> str:
     return "SOME_NEW_TOKEN"
 
 
-@app.route('/ask', methods=['POST'])
+@app.route("/ask", methods=["POST"])
 def handle_question():
     """
     POST (not GET) request because the `question` is submitted
@@ -56,24 +70,22 @@ def handle_question():
 
     request_body = request.get_json()
 
-    question = request_body.get('question', None)
+    question = request_body.get("question", None)
 
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
 
-    response = {
-        "answer": nimbus.answer_question(question)
-    }
+    response = {"answer": nimbus.answer_question(question)}
 
     if "session" in request_body:
-        response['session'] = request_body["session"]
+        response["session"] = request_body["session"]
     else:
-        response['session'] = generate_session_token()
+        response["session"] = generate_session_token()
 
     return jsonify(response), SUCCESS
 
 
-@app.route('/new_data/wakeword', methods=['POST'])
+@app.route("/new_data/wakeword", methods=["POST"])
 def save_a_recording():
     """Given the audio metadata & audio file, resamples it, saves to storage.
     """
@@ -84,7 +96,7 @@ def save_a_recording():
     if issues:
         try:
             data = validator.fix(data, issues)
-        except WakeWordValidatorError as err:
+        except FormatterValidatorError as err:
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
@@ -95,7 +107,7 @@ def save_a_recording():
     save_audiofile(filename, request.files["wav_file"])
 
     # Let's also save the filename to the database for quick reference
-    formatted_data['filename'] = filename
+    formatted_data["filename"] = filename
 
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     try:
@@ -114,15 +126,74 @@ def save_a_recording():
 
     return filename
 
+  
+@app.route('/new_data/office_hours', methods=['POST'])
+def save_office_hours():
+    """
+    Persists list of office hours
+    """
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    data = request.get_json()
+    for professor in data:
+        try:
+            process_office_hours(data[professor], db)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
 
-@app.route('/new_data/courses', methods=['POST'])
+    return "SUCCESS"
+
+  
+@app.route("/new_data/phrase", methods=["POST"])
+def save_query_phrase():
+    validator = PhrasesValidator()
+    data = request.get_json()
+    try:
+        issues = validator.validate(data)
+    except:
+        return (
+            "Please format the query data: {question: {text: string, variables: list}, answer: {text: string, variables: list}}",
+            BAD_REQUEST,
+        )
+    if issues:
+        try:
+            data = validator.fix(data, issues)
+        except PhrasesValidatorError as err:
+            print("error", err)
+            return str(err), BAD_REQUEST
+
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    try:
+        phrase_saved = db.insert_entity(QuestionAnswerPair, data)
+    except (BadDictionaryKeyError, BadDictionaryValueError) as e:
+        return str(e), BAD_REQUEST
+    except NimbusDatabaseError as e:
+        return str(e), SERVER_ERROR
+    except Exception as e:
+        raise e
+
+    if phrase_saved:
+        return "Phrase has been saved", SUCCESS
+    else:
+        return "An error was encountered while saving to database", SERVER_ERROR
+
+
+@app.route("/new_data/courses", methods=["POST"])
 def save_courses():
     """
     Persists list of courses
     """
     data = request.get_json()
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
-    for course in data['courses']:
+    for course in data["courses"]:
         try:
             db.save_course(course)
         except BadDictionaryKeyError as e:
@@ -140,14 +211,14 @@ def save_courses():
     return "SUCCESS"
 
 
-@app.route('/new_data/clubs', methods=['POST'])
+@app.route("/new_data/clubs", methods=["POST"])
 def save_clubs():
     """
     Persists list of clubs
     """
     data = request.get_json()
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
-    for club in data['clubs']:
+    for club in data["clubs"]:
         try:
             db.save_club(club)
         except BadDictionaryKeyError as e:
@@ -165,14 +236,14 @@ def save_clubs():
     return "SUCCESS"
 
 
-@app.route('/new_data/locations', methods=['POST'])
+@app.route("/new_data/locations", methods=["POST"])
 def save_locations():
     """
     Persists list of locations
     """
     data = request.get_json()
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
-    for location in data['locations']:
+    for location in data["locations"]:
         try:
             db.save_location(location)
         except BadDictionaryKeyError as e:
@@ -190,14 +261,14 @@ def save_locations():
     return "SUCCESS"
 
 
-@app.route('/new_data/calendars', methods=['POST'])
+@app.route("/new_data/calendars", methods=["POST"])
 def save_calendars():
     """
     Persists list of calendars
     """
     data = request.get_json()
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
-    for calendar in data['calendars']:
+    for calendar in data["calendars"]:
         try:
             db.save_calendar(calendar)
         except BadDictionaryKeyError as e:
@@ -220,12 +291,103 @@ def create_filename(form):
     Creates a string filename that adheres to the Nimbus foramtting standard.
     """
     order = [
-        'isWakeWord', 'noiseLevel', 'tone', 'location', 'gender', 'lastName',
-        'firstName', 'timestamp', 'username'
+        "isWakeWord",
+        "noiseLevel",
+        "tone",
+        "location",
+        "gender",
+        "lastName",
+        "firstName",
+        "timestamp",
+        "username",
     ]
-    values = list(
-        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
-    return '_'.join(values) + '.wav'
+    values = list(map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
+    return "_".join(values) + ".wav"
+
+
+def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
+    """
+    Takes the path to a CSV, reads the data row-by-row,
+    and stores the data to the database
+
+    Ex: def process_office_hours(
+                        current_prof: dict,
+                        db: NimbusMySQLAlchemy
+                        )
+
+    """
+    # Set the entity type as the OfficeHours entity class
+    entity_type = db.OfficeHours
+    
+    # Check if the current entity is already within the database
+    if (db.get_property_from_entity(
+            prop="Name",
+            entity=entity_type,
+            identifier=current_prof["Name"]) != None):
+
+        update_office_hours = True
+
+    else:    
+        update_office_hours = False
+
+    # String for adding each day of office hours
+    office_hours = ""
+
+    # Split name for first and last name
+    split_name = current_prof["Name"].split(',')
+
+    # Extract each property for the entity
+    last_name = split_name[0].replace('"', '')
+    first_name = split_name[1].replace('"', '')
+    
+    # Check that each extracted property is not empty then add it to
+    # the office hours string
+    if current_prof["Monday"] != '':
+
+        # Check that the current property does not contain digits which
+        # implies that it is alternative information about availability
+        if (any(char.isdigit() for char in current_prof["Monday"]) == False):
+            office_hours = current_prof["Monday"]
+
+        # Otherwise it is a time
+        else:
+            office_hours += ("Monday " + current_prof["Monday"] + ", ") 
+
+    if current_prof["Tuesday"] != '':
+        office_hours += ("Tuesday " + current_prof["Tuesday"] + ", ") 
+
+    if current_prof["Wednesday"] != '':
+        office_hours += ("Wednesday " + current_prof["Wednesday"] + ", ") 
+
+    if current_prof["Thursday"] != '':
+        office_hours += ("Thursday " + current_prof["Thursday"] + ", ") 
+
+    if current_prof["Friday"] != '' and current_prof["Friday"] != '\n':
+        office_hours += ("Friday " + current_prof["Friday"] + ", ") 
+
+    # Generate the data structure for the database entry
+    sql_data = {
+            "Name"          : last_name + ", " + first_name,
+            "LastName"      : last_name,
+            "FirstName"     : first_name,
+            "Office"        : current_prof["Office"],
+            "Phone"         : current_prof["Phone"],
+            "Email"         : current_prof["Email"],
+            "Monday"        : current_prof["Monday"],
+            "Tuesday"       : current_prof["Tuesday"],
+            "Wednesday"     : current_prof["Wednesday"],
+            "Thursday"      : current_prof["Thursday"],
+            "Friday"        : current_prof["Friday"],
+            "OfficeHours"   : office_hours
+            }
+
+    # Update the entity properties if the entity already exists
+    if (update_office_hours == True):
+        db.update_entity(entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"])
+
+    # Otherwise, add the entity to the database
+    else:
+        db.insert_entity(entity_type=entity_type, data_dict=sql_data)
 
 
 def resample_audio():
@@ -246,14 +408,13 @@ def save_audiofile(filename, content):
     # parent is our automatically uploaded file folder.  The ID should be read in from
     # folder_id.txt since we probably shouldn't have that ID floating around on GitHub"""
     folder_id = get_folder_id()
-    file = drive.CreateFile({
-        "parents": [{
-            "kind": "drive#fileLink",
-            "id": folder_id
-        }],
-        'title': filename,
-        'mimeType': 'audio/wav'
-    })
+    file = drive.CreateFile(
+        {
+            "parents": [{"kind": "drive#fileLink", "id": folder_id}],
+            "title": filename,
+            "mimeType": "audio/wav",
+        }
+    )
     # Set the content of the file to the POST request's wav_file parameter.
     file.content = content
     file.Upload()  # Upload file.
@@ -273,4 +434,3 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0',
             debug=gunicorn_config.DEBUG_MODE,
             port=gunicorn_config.PORT)
-
