@@ -13,8 +13,6 @@ import json
 import csv
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
-import pymysql
-pymysql.install_as_MySQLdb()
 
 
 import sqlalchemy
