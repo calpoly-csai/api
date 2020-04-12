@@ -8,6 +8,9 @@ import sys
 import json
 from nimbus_nlp.save_and_load_model import save_model, load_latest_model, PROJECT_DIR
 import json
+from database_wrapper import NimbusMySQLAlchemy
+db = NimbusMySQLAlchemy()
+
 
 
 # TODO: move the functionality in this module into class(es), so that it can be more easily used as a dependency
@@ -26,10 +29,6 @@ class QuestionClassifier:
 
     def train_model(self):
         self.save_model = save_model
-
-
-        # REPLACE WITH API EVENTUALLY
-        self.file_path = "question_set_clean.csv"
 
         # The possible WH word tags returned through NLTK part of speech tagging
 
@@ -142,7 +141,9 @@ class QuestionClassifier:
         """
 
         # READ QUESTIONS
-        questions = pd.read_csv('question_set_clean.csv')
+        question_list = db.get_all_answerable_pairs()
+        question_list = [q[0] for q in question_list]
+        questions = pd.DataFrame(question_list, columns = ['questionFormat'])
         questions['features'] = questions['questionFormat'].apply(self.get_question_features)
         # old alg: questions['features'] = questions['questionFormat'].apply(self.get_question_features_old_algorithm)
 

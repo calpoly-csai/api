@@ -178,7 +178,7 @@ class NimbusDatabase(ABC):
     should implement these operations such as `connect`
     """
 
-    def __init__(self, config_file: str = "config_SAMPLE.json") -> None:
+    def __init__(self, config_file: str = "config.json") -> None:
         """
         Inits Nimbus Database using the hostname, username, password
         found inside the config_file.
@@ -335,7 +335,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     """
     """
 
-    def __init__(self, config_file: str = "config_SAMPLE.json") -> None:
+    def __init__(self, config_file: str = "config.json") -> None:
         self.engine = self._create_engine(config_file)
         self.Clubs = Clubs
         self.Sections = Sections
