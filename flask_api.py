@@ -24,11 +24,12 @@ from modules.validators import (
     PhrasesValidator,
     PhrasesValidatorError,
     FeedbackValidator,
-    FeedbackValidatorError
+    FeedbackValidatorError,
 )
 
 from Entity.AudioSampleMetaData import AudioSampleMetaData
 from Entity.QuestionAnswerPair import QuestionAnswerPair
+from Entity.QueryFeedback import QueryFeedback
 
 from nimbus import Nimbus
 
@@ -182,17 +183,21 @@ def save_feedback():
         except FeedbackValidatorError as err:
             print("error:", err)
             return str(err), BAD_REQUEST
-    return "IT WORKED", SUCCESS
 
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     try:
-        phrase_saved = db.insert_entity(QuestionAnswerPair, data)
+        feedback_saved = db.insert_entity(QueryFeedback, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
         return str(e), BAD_REQUEST
     except NimbusDatabaseError as e:
         return str(e), SERVER_ERROR
     except Exception as e:
         raise e
+
+    if feedback_saved:
+        return "Feedback has been saved", SUCCESS
+    else:
+        return "An error was encountered while saving to database", SERVER_ERROR
 
 
 @app.route("/new_data/courses", methods=["POST"])
@@ -310,8 +315,7 @@ def create_filename(form):
         "timestamp",
         "username",
     ]
-    values = list(
-        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
+    values = list(map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return "_".join(values) + ".wav"
 
 
@@ -356,5 +360,4 @@ def convert_to_mfcc():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE,
-            port=gunicorn_config.PORT)
+    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE, port=gunicorn_config.PORT)

@@ -25,6 +25,7 @@ from Entity.Calendars import Calendars
 from Entity.Courses import Courses
 from Entity.Locations import Locations
 from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
+from Entity.QueryFeedback import QueryFeedback
 from Entity.Professors import Professors, ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
@@ -99,6 +100,7 @@ EXPECTED_KEYS_BY_ENTITY = {
         "question_format",
         "answer_format",
     ],
+    QueryFeedback: ["question", "answer", "answer_type", "timestamp",],
 }
 
 
@@ -543,6 +545,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         format_method_by_entity = {
             AudioSampleMetaData: self.format_audio_sample_meta_data_dict,
             QuestionAnswerPair: self.format_query_phrase_dict,
+            QueryFeedback: self.format_query_feedback_dict,
         }
 
         # Format data (if needed), and validate data
@@ -778,3 +781,35 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
     def __del__(self):
         print("NimbusMySQLAlchemy closed")
+
+    def format_query_feedback_dict(self, feedback: dict) -> dict:
+        """
+            Formats query feedback to be saved to the server.
+            
+            Parameters
+            ----------
+            `feedback : dict` A query feedback:
+            - {question: String, answer: String, type: String, timestamp: Datetime}
+
+            Raises
+            ------
+            BadDictionaryValueError
+
+            Returns
+            -------
+            dict
+                formatted for the server
+            """
+        answer_string_to_type = {
+            "fact": AnswerType.fact,
+            "related": AnswerType.related,
+            "stats": AnswerType.statistics,
+            "other": AnswerType.other,
+        }
+
+        return {
+            "question": feedback["question"],
+            "answer": feedback["answer"],
+            "answer_type": answer_string_to_type[feedback["type"]],
+            "timestamp": feedback["timestamp"],
+        }
