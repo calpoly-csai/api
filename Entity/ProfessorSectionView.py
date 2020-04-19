@@ -15,7 +15,7 @@ class SectionType(enum.Enum):
 
 
 class ProfessorSectionView(Base):
-    __tablename__ = "Professor_Teaches_Section_2"
+    __tablename__ = "Professor_Teaches_Section"
     id = Column(Integer, primary_key=True)
     id_sections = Column(Integer)
     profAliasId = Column(Integer)
