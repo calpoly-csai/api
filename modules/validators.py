@@ -1,6 +1,8 @@
 import time
 import enum
 from abc import ABC
+import datetime
+import re
 
 from werkzeug.exceptions import BadRequestKeyError
 
@@ -208,4 +210,134 @@ class PhrasesValidator(Validator):
         if len(answer):
             form["answer"]["format"] = ""
             form["answer"]["variables"] = []
+        return form
+
+
+class FeedbackValidatorError(Exception):
+    """Unfixable data corruption in a query phrase object"""
+
+    def __init__(self, message: str):
+        super().__init__(self, message)
+        self.message = message
+
+
+class FeedbackValidatorIssue(enum.Enum):
+    MISSING_QUESTION = 0
+    INVALID_TIMESTAMP = 1
+    INVALID_TYPE = 2
+    MISSING_ANSWER = 3
+    CONVERT_UNIX_TO_DATETIME = 4
+
+
+class FeedbackValidator(Validator):
+    """Validates new query phrases passed from the web app"""
+
+    def __init__(self):
+        super().__init__()
+        self.error_messages = {
+            FeedbackValidatorIssue.MISSING_QUESTION: "Please provide a question in the passed data",
+            FeedbackValidatorIssue.INVALID_TIMESTAMP: "Timestamp automatically set to current time",
+            FeedbackValidatorIssue.CONVERT_UNIX_TO_DATETIME: "",
+            FeedbackValidatorIssue.INVALID_TYPE: "Type not provided. Automatically set to OTHER",
+            FeedbackValidatorIssue.MISSING_ANSWER: "Please provide an answer in the passed data",
+        }
+
+    def validate(self, data: dict) -> dict:
+        """
+        Ensures that:
+        1. Timestamp is valid
+        2. A correct answer type is assigned
+        3. A question exists
+        4. An answer exists
+
+        Parameters
+        ----------
+        `data : dict` A feedback object {type: String, timestamp: datetime, question: String, answer: String}
+        """
+        issues = []
+        no_content = re.compile("\W")
+        # Timestamp is valid
+        if "timestamp" not in data or type(data["timestamp"]) != int:
+            issues.append(FeedbackValidatorIssue.INVALID_TIMESTAMP)
+
+        elif "timestamp" in data and type(data["timestamp"]) == int:
+            issues.append(FeedbackValidatorIssue.CONVERT_UNIX_TO_DATETIME)
+
+        # A correct type is assigned
+        if (
+            "type" not in data
+            or type(data["type"]) != str
+            or data["type"] not in ["fact", "related", "stats", "other"]
+        ):
+            issues.append(FeedbackValidatorIssue.INVALID_TYPE)
+
+        #  A question exists
+        if (
+            "question" not in data
+            or type(data["question"]) != str
+            or no_content.match(data["question"])
+        ):
+            issues.append(FeedbackValidatorIssue.MISSING_QUESTION)
+
+        # An answer exists
+        if (
+            "answer" not in data
+            or type(data["answer"]) != str
+            or no_content.match(data["answer"])
+        ):
+            issues.append(FeedbackValidatorIssue.MISSING_ANSWER)
+
+        return issues
+
+    def fix(self, data: dict, issues: dict) -> dict:
+        """
+        Fixes feedback data. 
+        - Critical issues:
+            1. An invalid timestamp is present
+            2. An invalid type is present
+            3. No question or answer is provided
+
+        Parameters
+        ----------
+        - `data : dict` A feedback object {type: String, timestamp: datetime, question: String, answer: String}
+        - `issues: dict` lists of FeedbackValidatorIssues
+
+        Returns
+        -------
+        dict
+            A fixed copy of the data
+
+        Raises
+        ------
+        FeedbackValidatorError
+            when the issue with the feedback data is not fixable.
+
+        """
+
+        form = data.copy()
+
+        for issue in issues:
+            # fixes invalid timestamp (set to current datetime)
+            if issue == FeedbackValidatorIssue.INVALID_TIMESTAMP:
+                print("Inferred query timestamp on server")
+                form["timestamp"] = datetime.datetime.now()
+
+            # converts a valid unix timestamp to a Python Datetime object
+            elif issue == FeedbackValidatorIssue.CONVERT_UNIX_TO_DATETIME:
+                form["timestamp"] = datetime.datetime.fromtimestamp(form["timestamp"])
+
+            # fixes invalid type (set to OTHER)
+            elif issue == FeedbackValidatorIssue.INVALID_TYPE:
+                print(f"Changed query type from invalid form to 'other'")
+                form["type"] = "other"
+
+            # raises errors for missing answer or missing questions
+            elif issue == FeedbackValidatorIssue.MISSING_ANSWER:
+                raise FeedbackValidatorError(
+                    self.error_messages[FeedbackValidatorIssue.MISSING_ANSWER]
+                )
+            elif issue == FeedbackValidatorIssue.MISSING_QUESTION:
+                raise FeedbackValidatorError(
+                    self.error_messages[FeedbackValidatorIssue.MISSING_QUESTION]
+                )
         return form

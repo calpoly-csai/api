@@ -23,10 +23,13 @@ from modules.validators import (
     WakeWordValidatorError,
     PhrasesValidator,
     PhrasesValidatorError,
+    FeedbackValidator,
+    FeedbackValidatorError,
 )
 
 from Entity.AudioSampleMetaData import AudioSampleMetaData
 from Entity.QuestionAnswerPair import QuestionAnswerPair
+from Entity.QueryFeedback import QueryFeedback
 
 from nimbus import Nimbus
 
@@ -184,6 +187,40 @@ def save_query_phrase():
 
     if phrase_saved:
         return "Phrase has been saved", SUCCESS
+    else:
+        return "An error was encountered while saving to database", SERVER_ERROR
+
+
+@app.route("/new_data/feedback", methods=["POST"])
+def save_feedback():
+    validator = FeedbackValidator()
+    data = request.get_json()
+    try:
+        issues = validator.validate(data)
+    except:
+        return (
+            "Please format the query data: {question: String, answer: String, type: String, timestamp: int}",
+            BAD_REQUEST,
+        )
+    if issues:
+        try:
+            data = validator.fix(data, issues)
+        except FeedbackValidatorError as err:
+            print("error:", err)
+            return str(err), BAD_REQUEST
+
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    try:
+        feedback_saved = db.insert_entity(QueryFeedback, data)
+    except (BadDictionaryKeyError, BadDictionaryValueError) as e:
+        return str(e), BAD_REQUEST
+    except NimbusDatabaseError as e:
+        return str(e), SERVER_ERROR
+    except Exception as e:
+        raise e
+
+    if feedback_saved:
+        return "Feedback has been saved", SUCCESS
     else:
         return "An error was encountered while saving to database", SERVER_ERROR
 
