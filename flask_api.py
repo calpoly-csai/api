@@ -168,39 +168,6 @@ def save_query_phrase():
     else:
         return "An error was encountered while saving to database", SERVER_ERROR
 
-@app.route("/new_data/phrase", methods=["POST"])
-def save_query_phrase():
-    validator = PhrasesValidator()
-    data = request.get_json()
-    try:
-        issues = validator.validate(data)
-    except:
-        return (
-            "Please format the query data: {question: {text: string, variables: list}, answer: {text: string, variables: list}}",
-            BAD_REQUEST,
-        )
-    if issues:
-        try:
-            data = validator.fix(data, issues)
-        except PhrasesValidatorError as err:
-            print("error", err)
-            return str(err), BAD_REQUEST
-
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
-    try:
-        phrase_saved = db.insert_entity(QuestionAnswerPair, data)
-    except (BadDictionaryKeyError, BadDictionaryValueError) as e:
-        return str(e), BAD_REQUEST
-    except NimbusDatabaseError as e:
-        return str(e), SERVER_ERROR
-    except Exception as e:
-        raise e
-
-    if phrase_saved:
-        return "Phrase has been saved", SUCCESS
-    else:
-        return "An error was encountered while saving to database", SERVER_ERROR
-
 
 @app.route("/new_data/courses", methods=["POST"])
 def save_courses():
