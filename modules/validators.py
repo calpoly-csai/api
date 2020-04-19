@@ -323,20 +323,20 @@ class FeedbackValidator(Validator):
                 form["timestamp"] = datetime.datetime.now()
 
             # converts a valid unix timestamp to a Python Datetime object
-            if issue == FeedbackValidatorIssue.CONVERT_UNIX_TO_DATETIME:
+            elif issue == FeedbackValidatorIssue.CONVERT_UNIX_TO_DATETIME:
                 form["timestamp"] = datetime.datetime.fromtimestamp(form["timestamp"])
 
             # fixes invalid type (set to OTHER)
-            if issue == FeedbackValidatorIssue.INVALID_TYPE:
+            elif issue == FeedbackValidatorIssue.INVALID_TYPE:
                 print(f"Changed query type from invalid form to 'other'")
                 form["type"] = "other"
 
             # raises errors for missing answer or missing questions
-            if issue == FeedbackValidatorIssue.MISSING_ANSWER:
+            elif issue == FeedbackValidatorIssue.MISSING_ANSWER:
                 raise FeedbackValidatorError(
                     self.error_messages[FeedbackValidatorIssue.MISSING_ANSWER]
                 )
-            if issue == FeedbackValidatorIssue.MISSING_QUESTION:
+            elif issue == FeedbackValidatorIssue.MISSING_QUESTION:
                 raise FeedbackValidatorError(
                     self.error_messages[FeedbackValidatorIssue.MISSING_QUESTION]
                 )
