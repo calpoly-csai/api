@@ -11,6 +11,10 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
 import gunicorn_config
+from Entity.Calendars import Calendars
+from Entity.Clubs import Clubs
+from Entity.Courses import Courses
+from Entity.Locations import Locations
 from database_wrapper import (
     BadDictionaryKeyError,
     BadDictionaryValueError,
@@ -193,11 +197,11 @@ def save_courses():
     """
     Persists list of courses
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for course in data["courses"]:
         try:
-            db.save_course(course)
+            db.update_entity(Courses, course, ['dept', 'courseNum'])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -218,11 +222,11 @@ def save_clubs():
     """
     Persists list of clubs
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for club in data["clubs"]:
         try:
-            db.save_club(club)
+            db.update_entity(Clubs, club, ['club_name'])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -243,11 +247,11 @@ def save_locations():
     """
     Persists list of locations
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for location in data["locations"]:
         try:
-            db.save_location(location)
+            db.update_entity(Locations, location, ['longitude', 'latitude'])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -268,11 +272,11 @@ def save_calendars():
     """
     Persists list of calendars
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for calendar in data["calendars"]:
         try:
-            db.save_calendar(calendar)
+            db.update_entity(Calendars, calendar, ['date', 'raw_events_text'])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
