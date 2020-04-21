@@ -8,8 +8,7 @@ import sys
 import json
 from nimbus_nlp.save_and_load_model import save_model, load_latest_model, PROJECT_DIR
 import json
-from database_wrapper import NimbusMySQLAlchemy
-db = NimbusMySQLAlchemy()
+from QA import db
 
 
 
@@ -142,6 +141,7 @@ class QuestionClassifier:
 
         # READ QUESTIONS
         question_list = db.get_all_answerable_pairs()
+        #print(question_list)
         question_list = [q[0] for q in question_list]
         questions = pd.DataFrame(question_list, columns = ['questionFormat'])
         questions['features'] = questions['questionFormat'].apply(self.get_question_features)
@@ -279,7 +279,7 @@ def main():
     # print(classifier.get_question_features("This is a normal sentence."))
     # print(classifier.get_question_features("[COURSE] is taught by who?"))
     # print(classifier.get_question_features("How do I register for classes?"))
-    #classifier.train_model()
+    classifier.train_model()
     classifier.load_latest_classifier()
     print(classifier.classify_question("Which [PROF] teaches [COURSE]?"))
 
