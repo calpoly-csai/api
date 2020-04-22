@@ -4,8 +4,6 @@ import spacy
 import numpy as np
 import sklearn.neighbors
 import pandas as pd
-import sys
-import json
 from nimbus_nlp.save_and_load_model import save_model, load_latest_model, PROJECT_DIR
 import json
 
@@ -16,9 +14,18 @@ import json
 class QuestionClassifier:
 
     def __init__(self):
-        nltk.download('stopwords')
-        nltk.download('punkt')
-        nltk.download('averaged_perceptron_tagger')
+        # Prevents classifier from attempting to download nltk assets every run
+        try:
+            from nltk.corpus import stopwords
+            import nltk.tokenize.punkt
+            import nltk.tag.perceptron
+        except ImportError:
+            nltk.download('punkt')
+            nltk.download('averaged_perceptron_tagger')
+            nltk.download('stopwords')
+            from nltk.corpus import stopwords
+            import nltk.tokenize.punkt
+            import nltk.tag.perceptron
         self.classifier = None
         self.nlp = spacy.load('en_core_web_sm')
         self.WH_WORDS = {'WDT', 'WP', 'WP$', 'WRB'}
@@ -27,20 +34,17 @@ class QuestionClassifier:
     def train_model(self):
         self.save_model = save_model
 
-
         # REPLACE WITH API EVENTUALLY
         self.file_path = "question_set_clean.csv"
 
         # The possible WH word tags returned through NLTK part of speech tagging
 
-
         self.classifier = self.build_question_classifier()
         save_model(self.classifier, "nlp-model")
 
-
     def load_latest_classifier(self):
         self.classifier = load_latest_model()
-        with open(PROJECT_DIR+ '/models/features/overall_features.json', 'r') as fp:
+        with open(PROJECT_DIR + '/models/features/overall_features.json', 'r') as fp:
             self.overall_features = json.load(fp)
 
     def get_question_features(self, question):

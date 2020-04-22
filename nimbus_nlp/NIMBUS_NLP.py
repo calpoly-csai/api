@@ -1,16 +1,3 @@
-
-import nltk
-import numpy as np
-import os
-import pandas as pd
-import re
-import sklearn.neighbors
-import spacy
-import sys
-
-from google.api_core.client_options import ClientOptions
-from google.cloud import automl_v1
-from google.cloud.automl_v1.proto import service_pb2
 import os
 import json
 from google.api_core.client_options import ClientOptions
@@ -19,41 +6,45 @@ from google.cloud import automl_v1
 # Temporary import for the classifier
 from nimbus_nlp.question_classifier import QuestionClassifier
 
-class NIMBUS_NLP:
 
-    @staticmethod
-    def predict_question(input_question):
-        '''
+# Made this an instantiable class to prevent the overhead of instantiating
+# a variable extractor and question classifier for every question.
+# Consider: Does this even need to be a class? Its functionality could be
+# moved to the Nimbus class of nimbus.py
+class NimbusNLP:
+
+    def __init__(self):
+        # Instantiate variable extractor and question classifier
+        self.variable_extractor = VariableExtractor()
+        self.classifier = QuestionClassifier()
+        # Load classifier model
+        self.classifier.load_latest_classifier()
+
+    def predict_question(self, input_question):
+        """
         Runs through variable extraction and the question classifier to
         predict the intended question.
 
         Args: input_question (string) - user input question to answer
 
-        Return: nlp_props (dict) - contains the user's input question,
+        Return: nlp_props (dict) - contains the user"s input question,
                                    the variable extracted input question,
                                    the entity extracted, and the predicted
                                    answer
 
-        '''
+        """
 
-        # Instantiate the variable extraction class
-        variable_extraction = Variable_Extraction()
+        # Get dictionary of extracted variables + info from question
+        nlp_props = self.variable_extractor.extract_variables(input_question)
 
-        # Obtain the properties from variable extraction
-        nlp_props = variable_extraction.extract_variables(input_question)
-
-        # Instantiate the question classifier class
-        classifier = QuestionClassifier()
-        classifier.load_latest_classifier()
-        
-        # Classify the question and add it to the nlp properties dictionary 
-        nlp_props["question class"] = classifier.\
-                classify_question(nlp_props["normalized question"])
+        # Add classified question to nlp_props dictionary
+        nlp_props["question class"] = self.classifier.\
+            classify_question(nlp_props["normalized question"])
         
         return nlp_props
     
 
-class Variable_Extraction:
+class VariableExtractor:
 
     def __init__(self, config_file: str = "config.json"):
 
@@ -68,34 +59,35 @@ class Variable_Extraction:
 
         credential_path = os.getcwd() + "/auth.json"
         # TODO: consider does this even do anything useful?
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credential_path
 
-    def inline_text_payload(self, sent):
-        '''
-        Converts the input sentence into GCP's callable format
+    @staticmethod
+    def inline_text_payload(sent):
+        """
+        Converts the input sentence into GCP"s callable format
 
         Args: sent (string) - input sentence
 
         Return: (dict) - GCP NER input format
 
-        '''
+        """
 
-        return {'text_snippet': {'content': sent, 'mime_type': 'text/plain'} }
+        return {"text_snippet": {"content": sent, "mime_type": "text/plain"} }
 
     def get_prediction(self, sent):
-        '''
+        """
         Obtains the prediction from the input sentence and returns the
         normalized sentence
 
         Args: sent (string) - input sentence
 
         Return: request (PredictObject) - predictiton output
-        ''' 
+        """
         
         params = {}
         
         # Setup API 
-        options = ClientOptions(api_endpoint='automl.googleapis.com')
+        options = ClientOptions(api_endpoint="automl.googleapis.com")
         
         # Create prediction object
         predictor = automl_v1.PredictionServiceClient(client_options=options)
@@ -110,7 +102,7 @@ class Variable_Extraction:
         return request
 
     def extract_variables(self, sent):
-        '''
+        """
         Takes the prediction and replaces the entity with its corresponding tag
 
         Args: sent (string) - input sentence
@@ -120,7 +112,7 @@ class Variable_Extraction:
                             "normalized entity" - stripped entity
                             "input question" - input question from the user
                             "normalized question" - variable-replaced question
-        '''
+        """
 
         # Make the prediction
         request = self.get_prediction(sent)
@@ -132,10 +124,10 @@ class Variable_Extraction:
         tag = request.payload[0].display_name
 
         # Removes excessive words from the entity
-        normalized_entity = Variable_Extraction.excess_word_removal(entity, tag)
+        normalized_entity = VariableExtractor.excess_word_removal(entity, tag)
 
         # Replaces the entity of input question with its corresponding tag
-        normalized_question = sent.replace(entity, '[' + tag + ']')
+        normalized_question = sent.replace(entity, "[" + tag + "]")
         
         return {
                     "entity"                : entity,
@@ -147,31 +139,31 @@ class Variable_Extraction:
 
     @staticmethod    
     def excess_word_removal(entity, tag):
-        '''
+        """
         Checks the tag and determines which excess word removal function to use
 
         Args: entity (string) - extracted entity from the input question
 
         Return: (string) - returns the normalized entity string
 
-        '''
+        """
 
-        if (tag == 'PROF'):
-            return Variable_Extraction.strip_titles(entity)
+        if tag == "PROF":
+            return VariableExtractor.strip_titles(entity)
 
         else:
             return entity
 
     @staticmethod
     def strip_titles(entity):
-        '''
+        """
         Strips titles from input entities
 
         Args: entity (string) - extracted entity from the input question
 
         Return: norm_entity (string) - the normalized, title-stripped entity
 
-        '''
+        """
 
         # list of titles for removal
         titles = {"professor", "dr.", "dr", "doctor", "prof", "instructor", "mrs.",\
@@ -189,12 +181,16 @@ class Variable_Extraction:
         # if there is no title in the word
         return entity
 
+
 #TODO: Add the Question_Classifier code directly into this file
+# Is this really necessary? Separation of dependencies might be good here.
 class Question_Classifier:
     pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
+    nimbus_nlp = NimbusNLP()
     while True:
         question = input("Enter a question: ")
-        answer = NIMBUS_NLP.predict_question(question)
+        answer = nimbus_nlp.predict_question(question)
         print(answer)
