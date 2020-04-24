@@ -8,14 +8,14 @@ from typing import Tuple
 
 # TODO: move the functionality in this module into class(es), so that it can be more easily used as a dependency
 
-class QuestionClassifier:
 
+class QuestionClassifier:
     def __init__(self, file_path="question_set_clean.csv"):
         self.classifier = None
 
         # Disable named entity recognition for speed
-        self.nlp = spacy.load('en_core_web_sm', disable=["ner"])
-        self.WH_WORDS = {'WDT', 'WP', 'WP$', 'WRB'}
+        self.nlp = spacy.load("en_core_web_sm", disable=["ner"])
+        self.WH_WORDS = {"WDT", "WP", "WP$", "WRB"}
         self.overall_features = {}
 
     # Added question pairs as a parameter to remove database_wrapper as a dependency
@@ -34,8 +34,9 @@ class QuestionClassifier:
 
         vectors = []
         for feature in question_features:
-            vector_gen = [feature[k] if k in feature else 0
-                          for k in self.overall_features]
+            vector_gen = [
+                feature[k] if k in feature else 0 for k in self.overall_features
+            ]
             vectors.append(np.array(vector_gen))
 
         vectors = np.array(vectors)
@@ -43,7 +44,7 @@ class QuestionClassifier:
         new_classifier = sklearn.neighbors.KNeighborsClassifier(n_neighbors=1)
         new_classifier.fit(vectors, y_train)
 
-        with open(PROJECT_DIR + '/models/features/overall_features.json', 'w') as fp:
+        with open(PROJECT_DIR + "/models/features/overall_features.json", "w") as fp:
             json.dump(self.overall_features, fp)
 
         return new_classifier
@@ -54,7 +55,7 @@ class QuestionClassifier:
 
     def load_latest_classifier(self):
         self.classifier = load_latest_model()
-        with open(PROJECT_DIR + '/models/features/overall_features.json', 'r') as fp:
+        with open(PROJECT_DIR + "/models/features/overall_features.json", "r") as fp:
             self.overall_features = json.load(fp)
 
     def is_wh_word(self, token):
@@ -81,7 +82,7 @@ class QuestionClassifier:
             # Add [VARIABLES] with weight 90.
             # token.i returns the index of the token, and token.nbor(n) return the token
             # n places away. Only the left neighbor is tested for brevity.
-            elif token.i != 0 and token.nbor(-1).text == '[':
+            elif token.i != 0 and token.nbor(-1).text == "[":
                 features[token.text] = 90
 
             # Add WH words with weight 60
@@ -109,8 +110,9 @@ class QuestionClassifier:
         doc = self.nlp(question)
         test_features = self.get_question_features(doc)
 
-        array_gen = [test_features[k] if k in test_features else 0
-                     for k in self.overall_features]
+        array_gen = [
+            test_features[k] if k in test_features else 0 for k in self.overall_features
+        ]
         test_array = np.array(array_gen)
 
         # Flatten array into a vector

@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 # This is the way SQLAlchemy initializes their special classes
 Base = declarative_base()
 
+
 class OfficeHours(Base):
     __tablename__ = "OfficeHours"
 
@@ -23,7 +24,16 @@ class OfficeHours(Base):
 
     def __repr__(self):
         return "<Office Hours (Name={}, Office={}, Email={}, Monday={}, Tuesday={}, Wednesday={}, Thursday={}, Friday={})>".format(
-            self.Name, self.Office, self.Email, self.Monday, self.Tuesday, self.Wednesday, self.Thursday, self.Friday)
+            self.Name,
+            self.Office,
+            self.Email,
+            self.Monday,
+            self.Tuesday,
+            self.Wednesday,
+            self.Thursday,
+            self.Friday,
+        )
+
 
 if __name__ == "__main__":
 

@@ -16,11 +16,11 @@ Answer_Formatter = Callable[[Extracted_Vars, DB_Data], str]
 
 
 tag_lookup = {
-    'PROF': Profs,
-    'CLUB': Clubs,
-    'COURSE': Courses,
-    'SECRET_HIDEOUT': Locations,
-    'SECTION': Sections
+    "PROF": Profs,
+    "CLUB": Clubs,
+    "COURSE": Courses,
+    "SECRET_HIDEOUT": Locations,
+    "SECTION": Sections,
 }
 
 
@@ -73,7 +73,7 @@ def _string_sub(a_format, extracted_info, db_data):
     if None in db_data.values():
         return None
     else:
-        return a_format.format(ex=extracted_info['normalized entity'], **db_data)
+        return a_format.format(ex=extracted_info["normalized entity"], **db_data)
 
 
 def string_sub(a_format):
@@ -82,9 +82,11 @@ def string_sub(a_format):
 
 def _get_property(prop: str, extracted_info: Extracted_Vars, db: NimbusMySQLAlchemy):
     ent_string = extracted_info["normalized entity"]
-    ent = tag_lookup[extracted_info['tag']]
+    ent = tag_lookup[extracted_info["tag"]]
     try:
-        value = db.get_property_from_entity(prop=prop, entity=ent, identifier=ent_string)
+        value = db.get_property_from_entity(
+            prop=prop, entity=ent, identifier=ent_string
+        )
     except IndexError:
         return {f"db_{prop}": None}
     else:
@@ -95,7 +97,9 @@ def get_property(prop: str):
     return functools.partial(_get_property, prop)
 
 
-def _generic_answer_formatter(a_format: str, pred: Any, extracted_info: Extracted_Vars, db_data: DB_Data):
+def _generic_answer_formatter(
+    a_format: str, pred: Any, extracted_info: Extracted_Vars, db_data: DB_Data
+):
 
     if type(pred) == str:
         t_f = re.search(pred, db_data)
@@ -104,17 +108,18 @@ def _generic_answer_formatter(a_format: str, pred: Any, extracted_info: Extracte
     else:
         t_f = bool(db_data)
 
-    y_n = 'Yes' if t_f else 'No'
-    _not = '' if t_f else 'not'
-    not_not = 'not' if t_f else ''
+    y_n = "Yes" if t_f else "No"
+    _not = "" if t_f else "not"
+    not_not = "not" if t_f else ""
 
     return a_format.format(
-        y_n=y_n, yes_no=y_n,
+        y_n=y_n,
+        yes_no=y_n,
         _not=_not,
         not_not=not_not,
         t_f=t_f,
         db=db_data,
-        ex=extracted_info
+        ex=extracted_info,
     )
 
 
@@ -122,9 +127,9 @@ def generic_answer_formatter(a_format: str, pred: Any = None):
     return functools.partial(_generic_answer_formatter, a_format, pred)
 
 
-def _grammatical_join(substrings: list, last_two_join: str = 'and'):
+def _grammatical_join(substrings: list, last_two_join: str = "and"):
     if len(substrings) == 0:
-        return ''
+        return ""
     elif len(substrings) == 1:
         return substrings[0]
     elif len(substrings) == 2:
@@ -144,15 +149,15 @@ def _format_prof_office_hours(prof: str, days: str):
     hours = lambda x: x[1]
 
     week = []
-    for token in days.split(', '):
+    for token in days.split(", "):
         try:
-            d, h = token.split(' ', 1)
+            d, h = token.split(" ", 1)
         except ValueError:
             continue
         week.append((d, h))
 
     if not week:
-        return f'{prof} currently has no office hours'
+        return f"{prof} currently has no office hours"
 
     week.sort(key=hours)
     groups = []
@@ -162,18 +167,20 @@ def _format_prof_office_hours(prof: str, days: str):
         keys.append(key)
 
     if keys[0] == "on leave":
-        return f'{prof} is currently on leave'
+        return f"{prof} is currently on leave"
 
     substrings = []
     for g in groups:
         ds = [d for d, _ in g]
-        k = hours(g[0]).replace('-', 'to')
+        k = hours(g[0]).replace("-", "to")
         substrings.append(f"{_grammatical_join(ds)} {k}")
 
     return f"{prof} has office hours {_grammatical_join(substrings)}"
 
 
-def _chain_db_access(fns: List[DB_Query], extracted_vars: Extracted_Vars, db: NimbusMySQLAlchemy) -> DB_Data:
+def _chain_db_access(
+    fns: List[DB_Query], extracted_vars: Extracted_Vars, db: NimbusMySQLAlchemy
+) -> DB_Data:
     """
     Combines behavior of a list of database access functions
 
@@ -201,7 +208,7 @@ def chain_db_access(fns: List[DB_Query]) -> DB_Query:
 
 
 def generate_qa_pairs(qa_pairs: Tuple[str, str], db: NimbusMySQLAlchemy):
-    text_in_brackets = r'\[[^\[\]]*\]'
+    text_in_brackets = r"\[[^\[\]]*\]"
     qa_objs = []
     for pair in qa_pairs:
         q = pair[0]
@@ -233,7 +240,7 @@ def generate_qa_pairs(qa_pairs: Tuple[str, str], db: NimbusMySQLAlchemy):
             q_format=q,
             db_query=chain_db_access(db_access_fns),
             format_answer=string_sub(a),
-            db=db
+            db=db,
         )
         qa_objs.append(o)
 

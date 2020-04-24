@@ -26,7 +26,7 @@ class ProfessorSectionView(Base):
     phone = Column(String(255))
     office = Column(String(255))
     type = Column(Enum(SectionType))
-    days = Column(SET('M', 'T', 'W', 'R', 'F'))
+    days = Column(SET("M", "T", "W", "R", "F"))
     start = Column(String(255))
     end = Column(String(255))
     location = Column(String(255))

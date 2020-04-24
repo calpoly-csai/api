@@ -5,7 +5,6 @@ from google.cloud import automl_v1
 
 
 class VariableExtractor:
-
     def __init__(self, config_file: str = "config.json"):
 
         with open(config_file) as json_data_file:
@@ -14,7 +13,9 @@ class VariableExtractor:
         if config.get("GOOGLE_CLOUD_NLP_MODEL_NAME", False):
             self.model_name = config["GOOGLE_CLOUD_NLP_MODEL_NAME"]
         else:
-            msg = "config.json is missing {} field.".format("GOOGLE_CLOUD_NLP_MODEL_NAME")
+            msg = "config.json is missing {} field.".format(
+                "GOOGLE_CLOUD_NLP_MODEL_NAME"
+            )
             raise Exception(msg)
 
         credential_path = os.getcwd() + "/auth.json"
@@ -29,7 +30,7 @@ class VariableExtractor:
         Return: (dict) - GCP NER input format
         """
 
-        return {"text_snippet": {"content": sent, "mime_type": "text/plain"} }
+        return {"text_snippet": {"content": sent, "mime_type": "text/plain"}}
 
     def get_prediction(self, sent):
         """
@@ -83,11 +84,11 @@ class VariableExtractor:
         normalized_question = sent.replace(entity, "[" + tag + "]")
 
         return {
-            "entity"                : entity,
-            "tag"                   : tag,
-            "normalized entity"     : normalized_entity,
-            "input question"        : sent,
-            "normalized question"   : normalized_question
+            "entity": entity,
+            "tag": tag,
+            "normalized entity": normalized_entity,
+            "input question": sent,
+            "normalized question": normalized_question,
         }
 
     @staticmethod
@@ -113,8 +114,21 @@ class VariableExtractor:
         """
 
         # list of titles for removal
-        titles = {"professor", "dr.", "dr", "doctor", "prof", "instructor", "mrs.", \
-                  "mr.", "ms.", "mrs", "mr", "ms", "mister"}
+        titles = {
+            "professor",
+            "dr.",
+            "dr",
+            "doctor",
+            "prof",
+            "instructor",
+            "mrs.",
+            "mr.",
+            "ms.",
+            "mrs",
+            "mr",
+            "ms",
+            "mister",
+        }
 
         # tokenizes the entity
         for name in entity.split():

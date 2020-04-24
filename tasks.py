@@ -221,7 +221,7 @@ def docker(c, username=None, app_name="nimbus"):
     cmd += " --build-arg GOOGLE_DRIVE_FOLDER_ID"
     cmd += " --build-arg GOOGLE_CLOUD_NLP_CREDENTIALS"
     cmd += " --build-arg GOOGLE_CLOUD_NLP_MODEL_NAME"
-    cmd += f" -t \"{username}/{app_name}\" ."
+    cmd += f' -t "{username}/{app_name}" .'
 
     print(f"$ {cmd}\n")
     c.run(cmd, pty=True)  # run the docker build
@@ -257,4 +257,3 @@ def docker_shell(c, image_name=None):
     cmd = f"docker run -it --rm {image_name} sh"
     print(f"$ {cmd}\n")
     c.run(cmd, pty=True)  # run the docker interactive shell
-

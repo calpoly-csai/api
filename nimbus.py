@@ -13,13 +13,10 @@ from database_wrapper import NimbusMySQLAlchemy
 
 
 class Nimbus:
-
     def __init__(self, db: NimbusMySQLAlchemy):
         self.db = db
         qa_pairs = db.get_all_answerable_pairs()
-        self.qa_dict = create_qa_mapping(
-            generate_qa_pairs(qa_pairs, db)
-        )
+        self.qa_dict = create_qa_mapping(generate_qa_pairs(qa_pairs, db))
         # Instantiate variable extractor and question classifier
         self.variable_extractor = VariableExtractor()
         self.classifier = QuestionClassifier()
@@ -40,8 +37,10 @@ class Nimbus:
             if answer is None:
                 # Printed when a database query was made and a null value was returned.
                 # Should be handled in the QA class in the future.
-                return("I'm sorry, I understand your question but was unable to find an answer. "
-                       "Please try another question.")
+                return (
+                    "I'm sorry, I understand your question but was unable to find an answer. "
+                    "Please try another question."
+                )
             else:
                 return answer
 
@@ -60,8 +59,9 @@ class Nimbus:
         nlp_props = self.variable_extractor.extract_variables(question)
 
         # Add classified question to nlp_props dictionary
-        nlp_props["question class"] = self.classifier. \
-            classify_question(nlp_props["normalized question"])
+        nlp_props["question class"] = self.classifier.classify_question(
+            nlp_props["normalized question"]
+        )
 
         return nlp_props
 
@@ -70,10 +70,6 @@ if __name__ == "__main__":
     ve = VariableExtractor()
     db = NimbusMySQLAlchemy()
     qa_pairs = db.get_all_answerable_pairs()
-    qa_dict = create_qa_mapping(
-        generate_qa_pairs(qa_pairs, db)
-    )
+    qa_dict = create_qa_mapping(generate_qa_pairs(qa_pairs, db))
     extracted = ve.extract_variables("How do I zoom Dr. Khosmood?")
-    print(
-        qa_dict["How do I zoom [PROF]?"].answer(extracted)
-    )
+    print(qa_dict["How do I zoom [PROF]?"].answer(extracted))
