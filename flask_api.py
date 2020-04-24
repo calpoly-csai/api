@@ -3,7 +3,6 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
-import json
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -42,8 +41,9 @@ CONFIG_FILE_PATH = "config.json"
 app = Flask(__name__)
 CORS(app)
 
-# TODO: Initialize this somewhere else.
-nimbus = Nimbus()
+# TODO: Initialize these somewhere else
+db = NimbusMySQLAlchemy()
+nimbus = Nimbus(db)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -131,8 +131,8 @@ def save_a_recording():
 
     return filename
 
-  
-@app.route('/new_data/office_hours', methods=['POST'])
+
+@app.route("/new_data/office_hours", methods=["POST"])
 def save_office_hours():
     """
     Persists list of office hours
@@ -156,7 +156,7 @@ def save_office_hours():
 
     return "SUCCESS"
 
-  
+
 @app.route("/new_data/phrase", methods=["POST"])
 def save_query_phrase():
     validator = PhrasesValidator()
@@ -357,72 +357,76 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
     """
     # Set the entity type as the OfficeHours entity class
     entity_type = db.OfficeHours
-    
+
     # Check if the current entity is already within the database
-    if (db.get_property_from_entity(
-            prop="Name",
-            entity=entity_type,
-            identifier=current_prof["Name"]) != None):
+    if (
+        db.get_property_from_entity(
+            prop="Name", entity=entity_type, identifier=current_prof["Name"]
+        )
+        != None
+    ):
 
         update_office_hours = True
 
-    else:    
+    else:
         update_office_hours = False
 
     # String for adding each day of office hours
     office_hours = ""
 
     # Split name for first and last name
-    split_name = current_prof["Name"].split(',')
+    split_name = current_prof["Name"].split(",")
 
     # Extract each property for the entity
-    last_name = split_name[0].replace('"', '')
-    first_name = split_name[1].replace('"', '')
-    
+    last_name = split_name[0].replace('"', "")
+    first_name = split_name[1].replace('"', "")
+
     # Check that each extracted property is not empty then add it to
     # the office hours string
-    if current_prof["Monday"] != '':
+    if current_prof["Monday"] != "":
 
         # Check that the current property does not contain digits which
         # implies that it is alternative information about availability
-        if (any(char.isdigit() for char in current_prof["Monday"]) == False):
+        if any(char.isdigit() for char in current_prof["Monday"]) == False:
             office_hours = current_prof["Monday"]
 
         # Otherwise it is a time
         else:
-            office_hours += ("Monday " + current_prof["Monday"] + ", ") 
+            office_hours += "Monday " + current_prof["Monday"] + ", "
 
-    if current_prof["Tuesday"] != '':
-        office_hours += ("Tuesday " + current_prof["Tuesday"] + ", ") 
+    if current_prof["Tuesday"] != "":
+        office_hours += "Tuesday " + current_prof["Tuesday"] + ", "
 
-    if current_prof["Wednesday"] != '':
-        office_hours += ("Wednesday " + current_prof["Wednesday"] + ", ") 
+    if current_prof["Wednesday"] != "":
+        office_hours += "Wednesday " + current_prof["Wednesday"] + ", "
 
-    if current_prof["Thursday"] != '':
-        office_hours += ("Thursday " + current_prof["Thursday"] + ", ") 
+    if current_prof["Thursday"] != "":
+        office_hours += "Thursday " + current_prof["Thursday"] + ", "
 
-    if current_prof["Friday"] != '' and current_prof["Friday"] != '\n':
-        office_hours += ("Friday " + current_prof["Friday"] + ", ") 
+    if current_prof["Friday"] != "" and current_prof["Friday"] != "\n":
+        office_hours += "Friday " + current_prof["Friday"] + ", "
 
     # Generate the data structure for the database entry
     sql_data = {
-            "Name"          : last_name + ", " + first_name,
-            "LastName"      : last_name,
-            "FirstName"     : first_name,
-            "Office"        : current_prof["Office"],
-            "Phone"         : current_prof["Phone"],
-            "Email"         : current_prof["Email"],
-            "Monday"        : current_prof["Monday"],
-            "Tuesday"       : current_prof["Tuesday"],
-            "Wednesday"     : current_prof["Wednesday"],
-            "Thursday"      : current_prof["Thursday"],
-            "Friday"        : current_prof["Friday"],
-            "OfficeHours"   : office_hours
-            }
+        "Name": last_name + ", " + first_name,
+        "LastName": last_name,
+        "FirstName": first_name,
+        "Office": current_prof["Office"],
+        "Phone": current_prof["Phone"],
+        "Email": current_prof["Email"],
+        "Monday": current_prof["Monday"],
+        "Tuesday": current_prof["Tuesday"],
+        "Wednesday": current_prof["Wednesday"],
+        "Thursday": current_prof["Thursday"],
+        "Friday": current_prof["Friday"],
+        "OfficeHours": office_hours,
+    }
 
     # Update the entity properties if the entity already exists
-    if (update_office_hours == True):
-        db.update_entity(entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"])
+    if update_office_hours == True:
+        db.update_entity(
+            entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"]
+        )
 
     # Otherwise, add the entity to the database
     else:
@@ -469,7 +473,5 @@ def convert_to_mfcc():
     pass
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0',
-            debug=gunicorn_config.DEBUG_MODE,
-            port=gunicorn_config.PORT) 
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE, port=gunicorn_config.PORT)

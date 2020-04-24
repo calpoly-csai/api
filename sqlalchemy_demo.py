@@ -17,7 +17,7 @@ Base = declarative_base()
 
 
 class Tag(Base):
-    __tablename__ = 'tags'
+    __tablename__ = "tags"
     id = Column(Integer, primary_key=True)
     name = Column(String(255), unique=True, nullable=False)
 
@@ -28,17 +28,23 @@ class Tag(Base):
 # connection
 # https://docs.sqlalchemy.org/en/13/dialects/mysql.html#module-sqlalchemy.dialects.mysql.mysqlconnector
 # engine = create_engine('mysql+mysqlconnector://USERNAME:PASSWORD@HOST_NAME:3306/DATABASE_NAME')  # noqa
-config_file = 'config.json'
+config_file = "config.json"
 with open(config_file) as json_data_file:
     config = json.load(json_data_file)
 
-if config.get('mysql', False):
-    mysql_config = config['mysql']
+if config.get("mysql", False):
+    mysql_config = config["mysql"]
     RDBMS = "mysql"
     PIP_PACKAGE = "mysqlconnector"
     SQLALCHEMY_DATABASE_URI = "{}+{}://{}:{}@{}:{}/{}".format(
-        RDBMS, PIP_PACKAGE, mysql_config['user'], mysql_config['password'],
-        mysql_config['host'], mysql_config['port'], mysql_config['database'])
+        RDBMS,
+        PIP_PACKAGE,
+        mysql_config["user"],
+        mysql_config["password"],
+        mysql_config["host"],
+        mysql_config["port"],
+        mysql_config["database"],
+    )
     engine = create_engine(SQLALCHEMY_DATABASE_URI)
 
     if engine is None:
@@ -56,9 +62,9 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 # insert data
-tag_cool = Tag(name='cool')
-tag_car = Tag(name='car')
-tag_animal = Tag(name='animal')
+tag_cool = Tag(name="cool")
+tag_car = Tag(name="car")
+tag_animal = Tag(name="animal")
 
 print("TAGS!!")
 print(tag_cool)
@@ -72,14 +78,14 @@ pp(session.__dict__)
 session.commit()
 
 # query data
-t1 = session.query(Tag).filter(Tag.name == 'cool').first()
+t1 = session.query(Tag).filter(Tag.name == "cool").first()
 
 print("T1!!")
 print(t1)
 print()
 
 # update entity
-t1.name = 'cool-up'
+t1.name = "cool-up"
 print("T1 again!! notice `cool-up`")
 print(t1)
 print()
@@ -97,7 +103,7 @@ pp(session.__dict__)
 session.commit()
 
 inspector = inspect(engine)
-print('table names', inspector.get_table_names())
+print("table names", inspector.get_table_names())
 
 print("dropping table Tag")
 # https://www.pythonsheets.com/notes/python-sqlalchemy.html#drop-a-table
@@ -105,4 +111,4 @@ print("dropping table Tag")
 print(Tag.__table__.drop(engine))
 print("dropped??")
 
-print('table names', inspector.get_table_names())
+print("table names", inspector.get_table_names())

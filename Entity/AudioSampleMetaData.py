@@ -13,7 +13,7 @@ class NoiseLevel(enum.Enum):
 
 
 class AudioSampleMetaData(Base):
-    __tablename__ = 'AudioSampleMetaData'
+    __tablename__ = "AudioSampleMetaData"
     id = Column(Integer, primary_key=True)
     # SQLAlchemy resolves Boolean to TINYINT within MYSQL
     is_wake_word = Column(Boolean)
@@ -33,7 +33,15 @@ class AudioSampleMetaData(Base):
         string = "<AudioSampleMetaData ( id={}, is_wake_word={}, "
         string += "first_name={}, last_name={}, gender={}, noise_level={}, "
         string += "location={}, tone={}, timestamp={}, username={} )>"
-        return (string.format(self.id, self.is_wake_word, self.first_name,
-                              self.last_name, self.gender, self.noise_level,
-                              self.location, self.tone, self.timestamp,
-                              self.username))
+        return string.format(
+            self.id,
+            self.is_wake_word,
+            self.first_name,
+            self.last_name,
+            self.gender,
+            self.noise_level,
+            self.location,
+            self.tone,
+            self.timestamp,
+            self.username,
+        )

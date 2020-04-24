@@ -1,13 +1,13 @@
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, List, Tuple
 import functools
 import re
 from Entity.Courses import Courses
 from Entity.Locations import Locations
-from Entity.Professors import Professors
+from Entity.Profs import Profs
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections
 from database_wrapper import NimbusMySQLAlchemy
-from pandas import read_csv
+import itertools
 
 Extracted_Vars = Dict[str, Any]
 DB_Data = Dict[str, Any]
@@ -16,16 +16,12 @@ Answer_Formatter = Callable[[Extracted_Vars, DB_Data], str]
 
 
 tag_lookup = {
-    'PROF': Professors,
-    'CLUB': Clubs,
-    'COURSE': Courses,
-    'SECRET_HIDEOUT': Locations,
-    'SECTION': Sections
+    "PROF": Profs,
+    "CLUB": Clubs,
+    "COURSE": Courses,
+    "SECRET_HIDEOUT": Locations,
+    "SECTION": Sections,
 }
-
-# TODO: Initialize this somewhere else. Currently here because of _get_property()
-# Move into the Nimbus class below if possible.
-db = NimbusMySQLAlchemy()
 
 
 class QA:
@@ -33,7 +29,7 @@ class QA:
     A class for wrapping functions used to answer a question.
     """
 
-    def __init__(self, q_format, db_query, format_answer):
+    def __init__(self, q_format, db_query, format_answer, db):
         """
         Args:
             q_format (str): Question format string
@@ -41,23 +37,19 @@ class QA:
             db_query (DB_Query): Function used to get data from database. Takes
                 a dict of extracted variables and returns a dict of variables
                 from the database.
-            format_function (Answer_Formatter): Function used to format answer
+            format_answer (Answer_Formatter): Function used to format answer
                 string. Takes two dicts--one of extracted variables and one of
                 data retrieved from the database--and returns a str.
         """
+        self.db = db
         self.q_format = q_format
         self.db_query = db_query
         self.format_answer = format_answer
 
-    def _get_data_from_db(self, extracted_vars):
-        return self.db_query(extracted_vars)
-
-    def _format_answer(self, extracted_vars, db_data):
-        return self.format_answer(extracted_vars, db_data)
-
     def answer(self, extracted_vars):
-        db_data = self._get_data_from_db(extracted_vars)
-        return self._format_answer(extracted_vars, db_data)
+        db_data = self.db_query(extracted_vars, self.db)
+        answer = self.format_answer(extracted_vars, db_data)
+        return answer
 
     def __repr__(self):
         return self.q_format
@@ -77,140 +69,178 @@ def create_qa_mapping(qa_list):
     return {qa.q_format: qa for qa in qa_list}
 
 
-# def _string_sub(a_format, extracted_vars, db_data):
-#     """
-#     Substitutes values in a string based off the contents of the extracted_vars
-#     and db_data dictionaries. Keys from the dictionaries in the a_format string
-#     will be replaced with their associated value.
-#
-#     Example input/output:
-#         a_format: "{professor1_ex}'s office is {office1_db}."
-#         extracted_vars: {"professor1": "Dr. Khosmood"}
-#         db_data: {"office1": "14-213"}
-#
-#         "Dr. Khosmood's office is 14-213"
-#
-#     Args:
-#         a_format (str): String to be formatted. Variables to be substituted should
-#             be in curly braces and end in "_ex" for keys from extracted_vars and "_db"
-#             for keys from db_data.
-#         extracted_vars (Extracted_Vars)
-#         db_data (Db_Data)
-#
-#     Returns:
-#         A formatted answer string
-#     """
-#     # Adds "_ex" to the end of keys in extracted_vars
-#     extracted_vars = {
-#         k + "_ex": v for k, v in extracted_vars.items()
-#     }
-#     # Adds "_db" to the end of keys in db_data
-#     db_data = {
-#         k + "_db": v for k, v in db_data.items()
-#     }
-#     return a_format.format(**extracted_vars, **db_data)
-#
-#
-# def _single_var_string_sub(a_format, extracted_vars, db_data):
-#     """
-#     Like _string_sub for cases where there's max one item in either dict
-#
-#     Example input/output:
-#         a_format: "{ex}'s office is {db}."
-#         extracted_vars: {"professor1": "Dr. Khosmood"}
-#         db_data: {"office1": "14-213"}
-#
-#         "Dr. Khosmood's office is 14-213"
-#
-#     Args:
-#         a_format (str): String to be formatted. {ex} will be substituted with
-#             the value from extracted_vars and {db} will be substituted with the
-#             value from db_data
-#         extracted_vars (Extracted_Vars)
-#         db_data (Db_Data)
-#
-#     Returns:
-#         A formatted answer string
-#     """
-#     # Gets value from a dictionary with a single item
-#     ex_val = next(iter(extracted_vars.values())) if extracted_vars else ''
-#     db_val = next(iter(db_data.values())) if db_data else ''
-#     return a_format.format(ex=ex_val, db=db_val)
-#
-#
-# def string_sub(a_format):
-#     return functools.partial(_string_sub, a_format)
-#
-#
-# def single_var_string_sub(a_format):
-#     return functools.partial(_single_var_string_sub, a_format)
-
-
 def _string_sub(a_format, extracted_info, db_data):
-    if db_data is None:
+    if None in db_data.values():
         return None
     else:
-        return a_format.format(ex=extracted_info['normalized entity'], db=db_data)
+        return a_format.format(ex=extracted_info["normalized entity"], **db_data)
 
 
 def string_sub(a_format):
     return functools.partial(_string_sub, a_format)
 
 
-def _get_property(prop, extracted_info):
+def _get_property(prop: str, extracted_info: Extracted_Vars, db: NimbusMySQLAlchemy):
     ent_string = extracted_info["normalized entity"]
-    ent = tag_lookup[extracted_info['tag']]
+    ent = tag_lookup[extracted_info["tag"]]
     try:
-        value = db.get_property_from_entity(prop=prop, entity=ent, identifier=ent_string)
+        value = db.get_property_from_entity(
+            prop=prop, entity=ent, identifier=ent_string
+        )
     except IndexError:
-        return None
+        return {f"db_{prop}": None}
     else:
-        return value
+        return {f"db_{prop}": value}
 
 
-def get_property(prop):
+def get_property(prop: str):
     return functools.partial(_get_property, prop)
 
 
-def _yes_no(a_format, pred, extracted_info, db_data):
-    if pred is None:
-        result = 'Yes' if db_data else 'No'
-    elif type(pred) == str:
-        result = 'Yes' if re.search(pred, db_data) else 'No'
+def _generic_answer_formatter(
+    a_format: str, pred: Any, extracted_info: Extracted_Vars, db_data: DB_Data
+):
+
+    if type(pred) == str:
+        t_f = re.search(pred, db_data)
+    elif callable(pred):
+        t_f = pred(db_data)
     else:
-        result = 'Yes' if pred(db_data) else 'No'
-    return a_format.format(y_n=result, yes_no=result, ex=extracted_info['normalized entity'])
+        t_f = bool(db_data)
+
+    y_n = "Yes" if t_f else "No"
+    _not = "" if t_f else "not"
+    not_not = "not" if t_f else ""
+
+    return a_format.format(
+        y_n=y_n,
+        yes_no=y_n,
+        _not=_not,
+        not_not=not_not,
+        t_f=t_f,
+        db=db_data,
+        ex=extracted_info,
+    )
 
 
-def yes_no(a_format, pred=None):
-    return functools.partial(_yes_no, a_format, pred)
+def generic_answer_formatter(a_format: str, pred: Any = None):
+    return functools.partial(_generic_answer_formatter, a_format, pred)
 
 
-def generate_fact_QA(csv):
-    df = read_csv(csv)
-    text_in_brackets = r'\[[^\[\]]*\]'
+def _grammatical_join(substrings: list, last_two_join: str = "and"):
+    if len(substrings) == 0:
+        return ""
+    elif len(substrings) == 1:
+        return substrings[0]
+    elif len(substrings) == 2:
+        return f"{substrings[0]} {last_two_join} {substrings[1]}"
+    else:
+        substrings.append(f"{last_two_join} {substrings.pop()}")
+        return ", ".join(substrings)
+
+
+def format_prof_office_hours(extracted_vars: Extracted_Vars, db_data: DB_Data):
+    prof = extracted_vars["PROF"]["normalized entity"]
+    days = db_data["PROF"]["OfficeHours"]
+    return _format_prof_office_hours(prof, days)
+
+
+def _format_prof_office_hours(prof: str, days: str):
+    hours = lambda x: x[1]
+
+    week = []
+    for token in days.split(", "):
+        try:
+            d, h = token.split(" ", 1)
+        except ValueError:
+            continue
+        week.append((d, h))
+
+    if not week:
+        return f"{prof} currently has no office hours"
+
+    week.sort(key=hours)
+    groups = []
+    keys = []
+    for key, group in itertools.groupby(week, hours):
+        groups.append(list(group))
+        keys.append(key)
+
+    if keys[0] == "on leave":
+        return f"{prof} is currently on leave"
+
+    substrings = []
+    for g in groups:
+        ds = [d for d, _ in g]
+        k = hours(g[0]).replace("-", "to")
+        substrings.append(f"{_grammatical_join(ds)} {k}")
+
+    return f"{prof} has office hours {_grammatical_join(substrings)}"
+
+
+def _chain_db_access(
+    fns: List[DB_Query], extracted_vars: Extracted_Vars, db: NimbusMySQLAlchemy
+) -> DB_Data:
+    """
+    Combines behavior of a list of database access functions
+
+    Args:
+        fns: List of database access functions to run
+        extracted_vars: Dictionary of extracted information to run fns against
+
+    Returns:
+        A dictionary of database data
+    """
+    db_data = dict()
+    for fn in fns:
+        for key, val in fn(extracted_vars, db).items():
+            index = 1
+            while key in db_data:
+                key = f"{key}{index}"
+                index += 1
+            db_data[key] = val
+    return db_data
+
+
+# Actually returns partial[Dict[str, Any]]
+def chain_db_access(fns: List[DB_Query]) -> DB_Query:
+    return functools.partial(_chain_db_access, fns)
+
+
+def generate_qa_pairs(qa_pairs: Tuple[str, str], db: NimbusMySQLAlchemy):
+    text_in_brackets = r"\[[^\[\]]*\]"
     qa_objs = []
-    for i in range(len(df)):
-        q = df['question_format'][i]
-        a = df['answer_format'][i]
+    for pair in qa_pairs:
+        q = pair[0]
+        a = pair[1]
+        db_access_fns = []
+        # Find all bracketed tokens ([PROF], [COURSE..units], etc)
         matches = re.findall(text_in_brackets, a)
-        extracted = None
-        if len(matches) == 1:
-            db_data = matches[0]
-        elif '..' in matches[1]:
-            db_data = matches[1]
-            extracted = matches[0]
+        ents = []
+        for match in matches:
+            # If match is a property
+            if ".." in match:
+                ent, prop = match[1:-1].split("..", 1)
+                db_access_fns.append(get_property(prop))
+                # "db" prefix is used to disambiguate database and entity data
+                # in _string_sub and _generic_answer_formatter. See above.
+                a = a.replace(match, "{db_" + prop + "}")
+            # If match is an entity
+            else:
+                ents.append(match)
+        if len(ents) == 1:
+            a = a.replace(ents[0], "{ex}")
         else:
-            db_data = matches[0]
-            extracted = matches[1]
-        prop = db_data.split('..', 1)[1][0:-1]
-        a = a.replace(db_data, '{db}')
-        if extracted is not None:
-            a = a.replace(extracted, '{ex}')
+            for ent in ents:
+                # "ex" prefix is added for the same reason as above.
+                # Not necessary for current _string_sub function, but useful
+                # for when we extract multiple variables
+                a = a.replace(ent, "{ex_" + ent[1:-1] + "}")
         o = QA(
             q_format=q,
-            db_query=get_property(prop),
-            format_answer=string_sub(a)
+            db_query=chain_db_access(db_access_fns),
+            format_answer=string_sub(a),
+            db=db,
         )
         qa_objs.append(o)
 

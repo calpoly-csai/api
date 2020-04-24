@@ -26,9 +26,10 @@ from Entity.Courses import Courses
 from Entity.Locations import Locations
 from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
 from Entity.QueryFeedback import QueryFeedback
-from Entity.Professors import Professors, ProfessorsProperties
+from Entity.Professors import ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
+from Entity.Profs import Profs
 
 from fuzzywuzzy import fuzz
 
@@ -40,7 +41,7 @@ CYAN_COLOR_CODE = "\033[96m"
 RESET_COLOR_CODE = "\033[00m"
 
 UNION_ENTITIES = Union[
-    AudioSampleMetaData, Calendars, Courses, Professors, QuestionAnswerPair
+    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
@@ -48,7 +49,7 @@ default_tag_column_dict = {
     Calendars: {"date"},
     Courses: {"courseName", "courseNum", "dept"},
     Locations: {"building_number", "name"},
-    Professors: {"firstName", "lastName"},
+    Profs: {"firstName", "lastName"},
     Clubs: {"club_name"},
     Sections: {"section_name"},
 }
@@ -341,7 +342,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.Sections = Sections
         self.Calendars = Calendars
         self.Courses = Courses
-        self.Professors = Professors
+        self.Profs = Profs
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
         self.QuestionAnswerPair = QuestionAnswerPair
@@ -413,7 +414,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.Sections)
         __safe_create(self.Calendars)
         __safe_create(self.Courses)
-        __safe_create(self.Professors)
+        __safe_create(self.Profs)
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
@@ -813,3 +814,14 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "answer_type": answer_string_to_type[feedback["type"]],
             "timestamp": feedback["timestamp"],
         }
+
+    def get_all_answerable_pairs(self):
+        qa_entity = QuestionAnswerPair
+
+        query_session = self.session.query(
+            qa_entity.question_format, qa_entity.answer_format, qa_entity.can_we_answer
+        )
+        result = query_session.all()
+        true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
+
+        return true_result
