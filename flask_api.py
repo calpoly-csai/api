@@ -3,7 +3,6 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
-import json
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -42,8 +41,9 @@ CONFIG_FILE_PATH = "config.json"
 app = Flask(__name__)
 CORS(app)
 
-# TODO: Initialize this somewhere else.
-nimbus = Nimbus()
+# TODO: Initialize these somewhere else
+db = NimbusMySQLAlchemy()
+nimbus = Nimbus(db)
 
 
 @app.route("/", methods=["GET", "POST"])
