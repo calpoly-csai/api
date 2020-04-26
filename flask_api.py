@@ -3,7 +3,6 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
-import json
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -11,6 +10,10 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
 import gunicorn_config
+from Entity.Calendars import Calendars
+from Entity.Clubs import Clubs
+from Entity.Courses import Courses
+from Entity.Locations import Locations
 from database_wrapper import (
     BadDictionaryKeyError,
     BadDictionaryValueError,
@@ -31,6 +34,8 @@ from modules.validators import (
     WakeWordValidatorError,
     PhrasesValidator,
     PhrasesValidatorError,
+    FeedbackValidator,
+    FeedbackValidatorError,
 )
 
 from nimbus import Nimbus
@@ -44,8 +49,9 @@ CONFIG_FILE_PATH = "config.json"
 app = Flask(__name__)
 CORS(app)
 
-# TODO: Initialize this somewhere else.
-nimbus = Nimbus()
+# TODO: Initialize these somewhere else
+db = NimbusMySQLAlchemy()
+nimbus = Nimbus(db)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -134,6 +140,31 @@ def save_a_recording():
     return filename
 
 
+@app.route("/new_data/office_hours", methods=["POST"])
+def save_office_hours():
+    """
+    Persists list of office hours
+    """
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    data = request.get_json()
+    for professor in data:
+        try:
+            process_office_hours(data[professor], db)
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
 @app.route("/new_data/phrase", methods=["POST"])
 def save_query_phrase():
     validator = PhrasesValidator()
@@ -168,16 +199,50 @@ def save_query_phrase():
         return "An error was encountered while saving to database", SERVER_ERROR
 
 
+@app.route("/new_data/feedback", methods=["POST"])
+def save_feedback():
+    validator = FeedbackValidator()
+    data = request.get_json()
+    try:
+        issues = validator.validate(data)
+    except:
+        return (
+            "Please format the query data: {question: String, answer: String, type: String, timestamp: int}",
+            BAD_REQUEST,
+        )
+    if issues:
+        try:
+            data = validator.fix(data, issues)
+        except FeedbackValidatorError as err:
+            print("error:", err)
+            return str(err), BAD_REQUEST
+
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    try:
+        feedback_saved = db.insert_entity(QueryFeedback, data)
+    except (BadDictionaryKeyError, BadDictionaryValueError) as e:
+        return str(e), BAD_REQUEST
+    except NimbusDatabaseError as e:
+        return str(e), SERVER_ERROR
+    except Exception as e:
+        raise e
+
+    if feedback_saved:
+        return "Feedback has been saved", SUCCESS
+    else:
+        return "An error was encountered while saving to database", SERVER_ERROR
+
+
 @app.route("/new_data/courses", methods=["POST"])
 def save_courses():
     """
     Persists list of courses
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for course in data["courses"]:
         try:
-            db.insert_entity(Courses, course)
+            db.update_entity(Courses, course, ['dept', 'courseNum'])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -198,11 +263,11 @@ def save_clubs():
     """
     Persists list of clubs
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for club in data["clubs"]:
         try:
-            db.insert_entity(Clubs, club)
+            db.update_entity(Clubs, club, ['club_name'])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -223,11 +288,11 @@ def save_locations():
     """
     Persists list of locations
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for location in data["locations"]:
         try:
-            db.insert_entity(Locations, location)
+            db.update_entity(Locations, location, ['longitude', 'latitude'])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -248,11 +313,11 @@ def save_calendars():
     """
     Persists list of calendars
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for calendar in data["calendars"]:
         try:
-            db.insert_entity(Calendars, calendar)
+            db.update_entity(Calendars, calendar, ['date', 'raw_events_text'])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -285,6 +350,95 @@ def create_filename(form):
     ]
     values = list(map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return "_".join(values) + ".wav"
+
+
+def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
+    """
+    Takes the path to a CSV, reads the data row-by-row,
+    and stores the data to the database
+
+    Ex: def process_office_hours(
+                        current_prof: dict,
+                        db: NimbusMySQLAlchemy
+                        )
+
+    """
+    # Set the entity type as the OfficeHours entity class
+    entity_type = db.OfficeHours
+
+    # Check if the current entity is already within the database
+    if (
+        db.get_property_from_entity(
+            prop="Name", entity=entity_type, identifier=current_prof["Name"]
+        )
+        != None
+    ):
+
+        update_office_hours = True
+
+    else:
+        update_office_hours = False
+
+    # String for adding each day of office hours
+    office_hours = ""
+
+    # Split name for first and last name
+    split_name = current_prof["Name"].split(",")
+
+    # Extract each property for the entity
+    last_name = split_name[0].replace('"', "")
+    first_name = split_name[1].replace('"', "")
+
+    # Check that each extracted property is not empty then add it to
+    # the office hours string
+    if current_prof["Monday"] != "":
+
+        # Check that the current property does not contain digits which
+        # implies that it is alternative information about availability
+        if any(char.isdigit() for char in current_prof["Monday"]) == False:
+            office_hours = current_prof["Monday"]
+
+        # Otherwise it is a time
+        else:
+            office_hours += "Monday " + current_prof["Monday"] + ", "
+
+    if current_prof["Tuesday"] != "":
+        office_hours += "Tuesday " + current_prof["Tuesday"] + ", "
+
+    if current_prof["Wednesday"] != "":
+        office_hours += "Wednesday " + current_prof["Wednesday"] + ", "
+
+    if current_prof["Thursday"] != "":
+        office_hours += "Thursday " + current_prof["Thursday"] + ", "
+
+    if current_prof["Friday"] != "" and current_prof["Friday"] != "\n":
+        office_hours += "Friday " + current_prof["Friday"] + ", "
+
+    # Generate the data structure for the database entry
+    sql_data = {
+        "Name": last_name + ", " + first_name,
+        "LastName": last_name,
+        "FirstName": first_name,
+        "Office": current_prof["Office"],
+        "Phone": current_prof["Phone"],
+        "Email": current_prof["Email"],
+        "Monday": current_prof["Monday"],
+        "Tuesday": current_prof["Tuesday"],
+        "Wednesday": current_prof["Wednesday"],
+        "Thursday": current_prof["Thursday"],
+        "Friday": current_prof["Friday"],
+        "OfficeHours": office_hours,
+    }
+
+    # Update the entity properties if the entity already exists
+    if update_office_hours == True:
+        db.update_entity(
+            entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"]
+        )
+
+    # Otherwise, add the entity to the database
+    else:
+        db.insert_entity(entity_type=entity_type, data_dict=sql_data)
 
 
 def resample_audio():

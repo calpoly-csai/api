@@ -1,7 +1,7 @@
 # FROM python:3.6-stretch
 # FROM python:3.8-buster  # needs pip install numpy
 # FROM python:3.7-stretch
-FROM ubuntu:latest
+FROM ubuntu:bionic
 RUN apt update
 
 # the chmod will

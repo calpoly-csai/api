@@ -26,8 +26,11 @@ def concat_with_space(lst: List[str]) -> str:
 
 @given(
     lists(
-        text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-             min_size=0)))
+        text(
+            alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", min_size=0
+        )
+    )
+)
 def test_concat_with_space_has_identity_property_when_split_on_space(s):
     p = concat_with_space(s).split(" ")
     p.pop()  # because the last " " leaves an empty in list [... ,'']
