@@ -25,9 +25,11 @@ from Entity.Calendars import Calendars
 from Entity.Courses import Courses
 from Entity.Locations import Locations
 from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
-from Entity.Professors import Professors, ProfessorsProperties
+from Entity.QueryFeedback import QueryFeedback
+from Entity.Professors import ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
+from Entity.Profs import Profs
 
 from fuzzywuzzy import fuzz
 
@@ -39,7 +41,7 @@ CYAN_COLOR_CODE = "\033[96m"
 RESET_COLOR_CODE = "\033[00m"
 
 UNION_ENTITIES = Union[
-    AudioSampleMetaData, Calendars, Courses, Professors, QuestionAnswerPair
+    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
@@ -47,7 +49,7 @@ default_tag_column_dict = {
     Calendars: {"date"},
     Courses: {"courseName", "courseNum", "dept"},
     Locations: {"building_number", "name"},
-    Professors: {"firstName", "lastName"},
+    Profs: {"firstName", "lastName"},
     Clubs: {"club_name"},
     Sections: {"section_name"},
 }
@@ -77,6 +79,23 @@ EXPECTED_KEYS_BY_ENTITY = {
         "advisor",
         "affiliation",
     ],
+    Calendars: [
+        'date',
+        'day',
+        'month',
+        'year',
+        'raw_events_text',
+    ],
+    Courses: [
+            'dept',
+            'courseNum',
+            'courseName',
+            'units',
+            'raw_prerequisites_text',
+            'raw_concurrent_text',
+            'raw_recommended_text',
+            'termsOffered',
+    ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
         "section_name",
@@ -99,6 +118,7 @@ EXPECTED_KEYS_BY_ENTITY = {
         "question_format",
         "answer_format",
     ],
+    QueryFeedback: ["question", "answer", "answer_type", "timestamp",],
 }
 
 
@@ -339,7 +359,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.Sections = Sections
         self.Calendars = Calendars
         self.Courses = Courses
-        self.Professors = Professors
+        self.Profs = Profs
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
         self.QuestionAnswerPair = QuestionAnswerPair
@@ -411,7 +431,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.Sections)
         __safe_create(self.Calendars)
         __safe_create(self.Courses)
-        __safe_create(self.Professors)
+        __safe_create(self.Profs)
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
@@ -555,6 +575,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         format_method_by_entity = {
             AudioSampleMetaData: self.format_audio_sample_meta_data_dict,
             QuestionAnswerPair: self.format_query_phrase_dict,
+            QueryFeedback: self.format_query_feedback_dict,
         }
 
         # Format data (if needed), and validate data
@@ -790,3 +811,46 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
     def __del__(self):
         print("NimbusMySQLAlchemy closed")
+
+    def format_query_feedback_dict(self, feedback: dict) -> dict:
+        """
+            Formats query feedback to be saved to the server.
+            
+            Parameters
+            ----------
+            `feedback : dict` A query feedback:
+            - {question: String, answer: String, type: String, timestamp: Datetime}
+
+            Raises
+            ------
+            BadDictionaryValueError
+
+            Returns
+            -------
+            dict
+                formatted for the server
+            """
+        answer_string_to_type = {
+            "fact": AnswerType.fact,
+            "related": AnswerType.related,
+            "stats": AnswerType.statistics,
+            "other": AnswerType.other,
+        }
+
+        return {
+            "question": feedback["question"],
+            "answer": feedback["answer"],
+            "answer_type": answer_string_to_type[feedback["type"]],
+            "timestamp": feedback["timestamp"],
+        }
+
+    def get_all_answerable_pairs(self):
+        qa_entity = QuestionAnswerPair
+
+        query_session = self.session.query(
+            qa_entity.question_format, qa_entity.answer_format, qa_entity.can_we_answer
+        )
+        result = query_session.all()
+        true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
+
+        return true_result

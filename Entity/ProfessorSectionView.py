@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum
+from sqlalchemy import Column, Integer, String, Enum, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.mysql import SET
 import enum
@@ -14,12 +14,14 @@ class SectionType(enum.Enum):
     lecture = Lec = 4
 
 
-class Sections(Base):
-    __tablename__ = "Sections"
-    id_sections = Column(Integer, primary_key=True)
+class ProfessorSectionView(Base):
+    __tablename__ = "Professor_Teaches_Section"
+    id = Column(Integer, primary_key=True)
+    id_sections = Column(Integer)
+    profAliasId = Column(Integer)
     section_name = Column(String(255))
     instructor = Column(String(255))
-    alias = Column(String(255))
+    profEmailAlias = Column(String(255))
     title = Column(String(255))
     phone = Column(String(255))
     office = Column(String(255))
@@ -29,6 +31,11 @@ class Sections(Base):
     end = Column(String(255))
     location = Column(String(255))
     department = Column(String(255))
+    firstName = Column(String(50))
+    lastName = Column(String(50))
+    phoneNumber = Column(String(20))
+    researchInterests = Column(Text)
+    email = Column(String(255))
 
     def __repr__(self):
         D = self.__dict__

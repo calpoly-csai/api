@@ -2,19 +2,33 @@ import json
 import os
 import pytest
 
-from database_wrapper import (NimbusMySQLAlchemy, BadDictionaryKeyError, BadDictionaryValueError,
-                              NimbusDatabaseError, UnsupportedDatabaseError, BadConfigFileError)
+from database_wrapper import (
+    NimbusMySQLAlchemy,
+    BadDictionaryKeyError,
+    BadDictionaryValueError,
+    NimbusDatabaseError,
+    UnsupportedDatabaseError,
+    BadConfigFileError,
+)
 from mock import patch, Mock
 from .MockEntity import MockEntity
 
 
-ENTITY_TYPES = ["AudioSampleMetaData", "Calendars", "Courses", "Locations",
-                "QuestionAnswerPair", "Professors", "Clubs", "Sections"]
+ENTITY_TYPES = [
+    "AudioSampleMetaData",
+    "Calendars",
+    "Courses",
+    "Locations",
+    "QuestionAnswerPair",
+    "Professors",
+    "Clubs",
+    "Sections",
+]
 
 MOCK_ENTITY_DATA_DICT = {
     "value_one": "test1",
     "value_two": "test2",
-    "value_three": "test3"
+    "value_three": "test3",
 }
 
 TEST_AUDIO_SAMPLE_META_DATA_DATA_DICT = {
@@ -27,7 +41,7 @@ TEST_AUDIO_SAMPLE_META_DATA_DATA_DICT = {
     "tone": "serious-but-not-really",
     "timestamp": 1577077883,
     "username": "guest",
-    "filename": "ww_q_serious-fake_m_doe_jj_1577077883_guest.wav"
+    "filename": "ww_q_serious-fake_m_doe_jj_1577077883_guest.wav",
 }
 
 TEST_CONFIG_FILENAME = "testConfig.json"
@@ -37,7 +51,7 @@ TEST_CONFIG_DICT = {
         "port": "testPort",
         "user": "testUser",
         "password": "testPassword",
-        "database": "testDatabase"
+        "database": "testDatabase",
     },
 }
 
@@ -50,7 +64,7 @@ SQLALCHEMY_DATABASE_URI = "{}+{}://{}:{}@{}:{}/{}".format(
     TEST_CONFIG_DICT["mysql"]["password"],
     TEST_CONFIG_DICT["mysql"]["host"],
     TEST_CONFIG_DICT["mysql"]["port"],
-    TEST_CONFIG_DICT["mysql"]["database"]
+    TEST_CONFIG_DICT["mysql"]["database"],
 )
 
 
@@ -123,7 +137,11 @@ def test_create_all_tables_already_exists(mock_create_engine):
         assert not getattr(test_db, entity_type).__table__.create.called
 
 
-@patch.object(NimbusMySQLAlchemy, "validate_and_format_entity_data", return_value=MOCK_ENTITY_DATA_DICT)
+@patch.object(
+    NimbusMySQLAlchemy,
+    "validate_and_format_entity_data",
+    return_value=MOCK_ENTITY_DATA_DICT,
+)
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 def test_insert_entity(mock_create_engine, mock_validate):
     # Setup mocks and test_db instance
@@ -141,7 +159,11 @@ def test_insert_entity(mock_create_engine, mock_validate):
         assert getattr(entity, field) is MOCK_ENTITY_DATA_DICT[field]
 
 
-@patch.object(NimbusMySQLAlchemy, "validate_and_format_entity_data", return_value=MOCK_ENTITY_DATA_DICT)
+@patch.object(
+    NimbusMySQLAlchemy,
+    "validate_and_format_entity_data",
+    return_value=MOCK_ENTITY_DATA_DICT,
+)
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 def test_update_entity_no_match(mock_create_engine, mock_validate):
     # Setup mocks and test_db instance
@@ -166,7 +188,11 @@ def test_update_entity_no_match(mock_create_engine, mock_validate):
         assert getattr(entity, field) is MOCK_ENTITY_DATA_DICT[field]
 
 
-@patch.object(NimbusMySQLAlchemy, "validate_and_format_entity_data", return_value=MOCK_ENTITY_DATA_DICT)
+@patch.object(
+    NimbusMySQLAlchemy,
+    "validate_and_format_entity_data",
+    return_value=MOCK_ENTITY_DATA_DICT,
+)
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 def test_update_entity_match(mock_create_engine, mock_validate):
     # Setup mocks and test_db instance
@@ -210,7 +236,9 @@ def test_invalid_entity_type(mock_create_engine):
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 def test_format_audio_sample_meta_data_dict(mock_create_engine):
     test_db = NimbusMySQLAlchemy()
-    test_db.format_audio_sample_meta_data_dict(dict(TEST_AUDIO_SAMPLE_META_DATA_DATA_DICT))
+    test_db.format_audio_sample_meta_data_dict(
+        dict(TEST_AUDIO_SAMPLE_META_DATA_DATA_DICT)
+    )
 
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")

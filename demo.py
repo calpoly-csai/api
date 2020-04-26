@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from database_wrapper import NimbusMySQL
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     db = NimbusMySQL(config_file="config.json")
 
     ents = db.get_entities()
