@@ -15,6 +15,7 @@ class QueryFeedback(Base):
     answer = Column(Text)
     answer_type = Column(Enum(AnswerType))
     timestamp = Column(DateTime)
+    is_view = False
 
     def __repr__(self):
         """

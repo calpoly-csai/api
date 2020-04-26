@@ -35,6 +35,7 @@ class ProfessorSectionView(Base):
     phoneNumber = Column(String(20))
     researchInterests = Column(Text)
     email = Column(String(255))
+    is_view = True
 
     def __repr__(self):
         D = self.__dict__

@@ -29,6 +29,7 @@ class Sections(Base):
     end = Column(String(255))
     location = Column(String(255))
     department = Column(String(255))
+    is_view = False
 
     def __repr__(self):
         D = self.__dict__

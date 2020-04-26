@@ -18,6 +18,7 @@ class Profs(Base):
     Office = Column(Text)
     department = Column(String(255))
     title = Column(String(255))
+    is_view = True
 
     def __repr__(self):
         D = self.__dict__
