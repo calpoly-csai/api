@@ -10,7 +10,7 @@ from typing import Tuple
 
 
 class QuestionClassifier:
-    def __init__(self, file_path="question_set_clean.csv"):
+    def __init__(self):
         self.classifier = None
 
         # Disable named entity recognition for speed
@@ -26,7 +26,8 @@ class QuestionClassifier:
         Train KNN classification model with overall feature set.
         """
         questions = [q[0] for q in question_pairs]
-        question_features = [self.get_question_features(self.nlp(q)) for q in questions]
+        question_features = [self.get_question_features(
+            self.nlp(q)) for q in questions]
         for feature in question_features:
             for key in feature:
                 self.overall_features[key] = 0
@@ -49,9 +50,9 @@ class QuestionClassifier:
 
         return new_classifier
 
-    def train_model(self):
-        self.classifier = self.build_question_classifier()
-        self.save_model(self.classifier, "nlp-model")
+    def train_model(self, question_pairs: Tuple[str, str]):
+        self.classifier = self.build_question_classifier(question_pairs)
+        save_model(self.classifier, "nlp-model")
 
     def load_latest_classifier(self):
         self.classifier = load_latest_model()
@@ -118,7 +119,8 @@ class QuestionClassifier:
         # Flatten array into a vector
         test_vector = test_array.reshape(1, -1)
 
-        min_dist = np.min(self.classifier.kneighbors(test_vector, n_neighbors=1))
+        min_dist = np.min(self.classifier.kneighbors(
+            test_vector, n_neighbors=1))
 
         if min_dist > 150:
             return "I don't think that's a Statistics related question! Try asking something about the STAT curriculum."
