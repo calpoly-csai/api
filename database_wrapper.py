@@ -451,6 +451,18 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         return result
 
+    def get_all_answerable_pairs(self):
+        qa_entity = QuestionAnswerPair
+
+        query_session = self.session.query(
+            qa_entity.question_format, qa_entity.answer_format, qa_entity.can_we_answer
+        )
+        result = query_session.all()
+        true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
+
+        return true_result
+
+
     def return_qa_pair_csv(self):
         data = self.get_all_qa_pairs()
 
