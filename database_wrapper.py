@@ -79,6 +79,23 @@ EXPECTED_KEYS_BY_ENTITY = {
         "advisor",
         "affiliation",
     ],
+    Calendars: [
+        'date',
+        'day',
+        'month',
+        'year',
+        'raw_events_text',
+    ],
+    Courses: [
+            'dept',
+            'courseNum',
+            'courseName',
+            'units',
+            'raw_prerequisites_text',
+            'raw_concurrent_text',
+            'raw_recommended_text',
+            'termsOffered',
+    ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
         "section_name",
