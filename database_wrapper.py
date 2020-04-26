@@ -91,14 +91,14 @@ EXPECTED_KEYS_BY_ENTITY = {
         'raw_events_text',
     ],
     Courses: [
-            'dept',
-            'courseNum',
-            'courseName',
-            'units',
-            'raw_prerequisites_text',
-            'raw_concurrent_text',
-            'raw_recommended_text',
-            'termsOffered',
+        'dept',
+        'courseNum',
+        'courseName',
+        'units',
+        'raw_prerequisites_text',
+        'raw_concurrent_text',
+        'raw_recommended_text',
+        'termsOffered',
     ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
@@ -647,9 +647,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )[1:-1]
 
         # Ignore the first field, since it's assumed to be a primary key
+        # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
@@ -738,9 +739,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )[1:-1]
 
         # Ignore the first field, since it's assumed to be a primary key
+        # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
