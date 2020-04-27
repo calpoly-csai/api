@@ -56,7 +56,6 @@ CORS(app)
 # Due to these points, the very un-Pythonic solution chosen is to initialize these objects as
 # None at the top level, associate them with actual objects in the `initialize*()` functions,
 # and do None checks in the functions below.
-
 db = None
 nimbus = None
 
@@ -97,6 +96,8 @@ def handle_question():
     server are:
         * storage of the logs of this question-answer-session.
     """
+    initializeNimbus()
+
     initializeNimbus()
 
     if request.is_json is False:
@@ -263,9 +264,9 @@ def save_courses():
     """
     Persists list of courses
     """
+
     data = request.get_json()
     initializeDB()
-
     for course in data["courses"]:
         try:
             db.update_entity(Courses, course, ['dept', 'courseNum'])
@@ -289,9 +290,9 @@ def save_clubs():
     """
     Persists list of clubs
     """
+
     data = request.get_json()
     initializeDB()
-
     for club in data["clubs"]:
         try:
             db.update_entity(Clubs, club, ['club_name'])
@@ -315,9 +316,9 @@ def save_locations():
     """
     Persists list of locations
     """
+
     data = request.get_json()
     initializeDB()
-
     for location in data["locations"]:
         try:
             db.update_entity(Locations, location, ['longitude', 'latitude'])
@@ -341,9 +342,9 @@ def save_calendars():
     """
     Persists list of calendars
     """
+
     data = request.get_json()
     initializeDB()
-
     for calendar in data["calendars"]:
         try:
             db.update_entity(Calendars, calendar, ['date', 'raw_events_text'])
