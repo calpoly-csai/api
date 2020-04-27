@@ -3,7 +3,7 @@ import numpy as np
 import sklearn.neighbors
 from nimbus_nlp.save_and_load_model import save_model, load_latest_model, PROJECT_DIR
 import json
-from typing import Tuple
+from QA import db
 
 
 # TODO: move the functionality in this module into class(es), so that it can be more easily used as a dependency
@@ -12,6 +12,97 @@ from typing import Tuple
 class QuestionClassifier:
     def __init__(self):
         self.classifier = None
+        self.nlp = spacy.load('en_core_web_sm')
+        self.WH_WORDS = {'WDT', 'WP', 'WP$', 'WRB'}
+        self.overall_features = {}
+
+    def train_model(self):
+        self.save_model = save_model
+
+        # The possible WH word tags returned through NLTK part of speech tagging
+
+
+        self.classifier = self.build_question_classifier()
+        save_model(self.classifier, "nlp-model")
+
+
+    def load_latest_classifier(self):
+        self.classifier = load_latest_model()
+        with open(PROJECT_DIR+ '/models/features/overall_features.json', 'r') as fp:
+            self.overall_features = json.load(fp)
+
+    def get_question_features(self, question):
+        # print("using new algorithm")
+        """
+        Method to extract features from each individual question.
+        """
+        features = {}
+
+        # Extract the main verb from the question before additional processing
+        main_verb = str(self.extract_main_verb(question))
+
+        # ADD ALL VARIABLES TO THE FEATURE DICT WITH A WEIGHT OF 90
+        matches = re.findall(r'(\[(.*?)\])', question)
+        for match in matches:
+            question = question.replace(match[0], '')
+            features[match[0]] = 90
+
+        question = re.sub('[^a-zA-Z0-9]', ' ', question)
+
+        # PRE-PROCESSING: TOKENIZE SENTENCE, AND LOWER AND STEM EACH WORD
+        words = nltk.word_tokenize(question)
+        words = [word.lower() for word in words if '[' and ']' not in word]
+
+        filtered_words = self.get_lemmas(words)
+
+        # ADD THE LEMMATIZED MAIN VERB TO THE FEATURE SET WITH A WEIGHT OF 60
+        stemmed_main_verb = self.nlp(main_verb)[0]
+        features[stemmed_main_verb.text] = 60
+
+        # TAG WORDS' PART OF SPEECH, AND ADD ALL WH WORDS TO FEATURE DICT
+        # WITH WEIGHT 60
+        words_pos = nltk.pos_tag(filtered_words)
+        for word_pos in words_pos:
+            if self.is_wh_word(word_pos[1]):
+                features[word_pos[0]] = 60
+
+        # ADD FIRST WORD AND NON-STOP WORDS TO FEATURE DICT
+        filtered_words = [
+            word for word in filtered_words if word not in nltk.corpus.stopwords.words('english')]
+        for word in filtered_words:
+            # ADD EACH WORD NOT ALREADY PRESENT IN FEATURE SET WITH WEIGHT OF 30
+            if word not in features:
+                features[word] = 30
+
+        return features
+
+    def get_question_features_old_algorithm(self, question):
+        print("using old algorithm....")
+        """
+            Method to extract features from each individual question.
+            """
+        features = {}
+
+        # ADD ALL VARIABLES TO THE FEATURE DICT WITH A WEIGHT OF 90
+        matches = re.findall(r'(\[(.*?)\])', question)
+        for match in matches:
+            question = question.replace(match[0], '')
+            features[match[0]] = 90
+        question = re.sub('[^a-zA-Z0-9]', ' ', question)
+
+        # PRE-PROCESSING: TOKENIZE SENTENCE, AND LOWER AND STEM EACH WORD
+        words = nltk.word_tokenize(question)
+        words = [word.lower() for word in words if '[' and ']' not in word]
+        filtered_words = self.get_lemmas(words)
+
+        # ADD FIRST WORD AND NON-STOP WORDS TO FEATURE DICT
+        features[filtered_words[0]] = 60
+        filtered_words = [
+            word for word in filtered_words if word not in nltk.corpus.stopwords.words('english')]
+        for word in filtered_words:
+            features[word] = 30
+
+        return features
 
         # Disable named entity recognition for speed
         self.nlp = spacy.load("en_core_web_sm", disable=["ner"])
@@ -25,9 +116,11 @@ class QuestionClassifier:
         Build overall feature set for each question based on feature vectors of individual questions.
         Train KNN classification model with overall feature set.
         """
+
         questions = [q[0] for q in question_pairs]
         question_features = [self.get_question_features(
             self.nlp(q)) for q in questions]
+
         for feature in question_features:
             for key in feature:
                 self.overall_features[key] = 0
@@ -134,3 +227,7 @@ class QuestionClassifier:
             return "WH Words Don't Match"
 
         return predicted_question
+
+
+
+
