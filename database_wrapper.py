@@ -33,6 +33,7 @@ from Entity.Sections import Sections, SectionType
 from Entity.Profs import Profs
 from Entity.QuestionLog import QuestionLog
 from Entity.ProfessorSectionView import ProfessorSectionView
+from Entity.QuestionLog import QuestionLog
 
 from fuzzywuzzy import fuzz
 
@@ -83,13 +84,7 @@ EXPECTED_KEYS_BY_ENTITY = {
         "advisor",
         "affiliation",
     ],
-    Calendars: [
-        'date',
-        'day',
-        'month',
-        'year',
-        'raw_events_text',
-    ],
+    Calendars: ["date", "day", "month", "year", "raw_events_text",],
     Courses: [
         'dept',
         'courseNum',
@@ -836,6 +831,16 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "answer_type": AnswerType.other,  # Will change after verified
             "question_format": phrases["question"]["format"],
             "answer_format": phrases["answer"]["format"],
+        }
+
+    def format_question_log(self, question_info: dict) -> dict:
+        """
+        Extracts question data from the provided dictionary to upload data to the server.
+        """
+
+        return {
+            "question": question_info["question"],
+            "timestamp": datetime.datetime.now(),
         }
 
     def __del__(self):
