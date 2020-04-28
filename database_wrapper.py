@@ -11,6 +11,7 @@ different databases and storage locations.
 """
 import json
 import csv
+import datetime
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
 
@@ -30,6 +31,7 @@ from Entity.Professors import ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
 from Entity.Profs import Profs
+from Entity.QuestionLog import QuestionLog
 
 from fuzzywuzzy import fuzz
 
@@ -79,22 +81,16 @@ EXPECTED_KEYS_BY_ENTITY = {
         "advisor",
         "affiliation",
     ],
-    Calendars: [
-        'date',
-        'day',
-        'month',
-        'year',
-        'raw_events_text',
-    ],
+    Calendars: ["date", "day", "month", "year", "raw_events_text",],
     Courses: [
-            'dept',
-            'courseNum',
-            'courseName',
-            'units',
-            'raw_prerequisites_text',
-            'raw_concurrent_text',
-            'raw_recommended_text',
-            'termsOffered',
+        "dept",
+        "courseNum",
+        "courseName",
+        "units",
+        "raw_prerequisites_text",
+        "raw_concurrent_text",
+        "raw_recommended_text",
+        "termsOffered",
     ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
@@ -119,6 +115,7 @@ EXPECTED_KEYS_BY_ENTITY = {
         "answer_format",
     ],
     QueryFeedback: ["question", "answer", "answer_type", "timestamp",],
+    QuestionLog: ["question", "timestamp"],
 }
 
 
@@ -462,7 +459,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         return true_result
 
-
     def return_qa_pair_csv(self):
         data = self.get_all_qa_pairs()
 
@@ -576,6 +572,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             AudioSampleMetaData: self.format_audio_sample_meta_data_dict,
             QuestionAnswerPair: self.format_query_phrase_dict,
             QueryFeedback: self.format_query_feedback_dict,
+            QuestionLog: self.format_question_log,
         }
 
         # Format data (if needed), and validate data
@@ -807,6 +804,16 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "answer_type": AnswerType.other,  # Will change after verified
             "question_format": phrases["question"]["format"],
             "answer_format": phrases["answer"]["format"],
+        }
+
+    def format_question_log(self, question_info: dict) -> dict:
+        """
+        Extracts question data from the provided dictionary to upload data to the server.
+        """
+
+        return {
+            "question": question_info["question"],
+            "timestamp": datetime.datetime.now(),
         }
 
     def __del__(self):

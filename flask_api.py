@@ -14,6 +14,7 @@ from Entity.Calendars import Calendars
 from Entity.Clubs import Clubs
 from Entity.Courses import Courses
 from Entity.Locations import Locations
+from Entity.QuestionLog import QuestionLog
 from database_wrapper import (
     BadDictionaryKeyError,
     BadDictionaryValueError,
@@ -84,8 +85,14 @@ def handle_question():
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
 
-    response = {"answer": nimbus.answer_question(question)}
+    # Store
+    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    try:
+        feedback_saved = db.insert_entity(QuestionLog, {"question": question})
+    except (Exception) as e:
+        print("Could not store question upon user ask: ", str(e))
 
+    response = {"answer": nimbus.answer_question(question)}
     if "session" in request_body:
         response["session"] = request_body["session"]
     else:
@@ -238,7 +245,7 @@ def save_courses():
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for course in data["courses"]:
         try:
-            db.update_entity(Courses, course, ['dept', 'courseNum'])
+            db.update_entity(Courses, course, ["dept", "courseNum"])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -263,7 +270,7 @@ def save_clubs():
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for club in data["clubs"]:
         try:
-            db.update_entity(Clubs, club, ['club_name'])
+            db.update_entity(Clubs, club, ["club_name"])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -288,7 +295,7 @@ def save_locations():
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for location in data["locations"]:
         try:
-            db.update_entity(Locations, location, ['longitude', 'latitude'])
+            db.update_entity(Locations, location, ["longitude", "latitude"])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -313,7 +320,7 @@ def save_calendars():
     db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     for calendar in data["calendars"]:
         try:
-            db.update_entity(Calendars, calendar, ['date', 'raw_events_text'])
+            db.update_entity(Calendars, calendar, ["date", "raw_events_text"])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
