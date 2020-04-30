@@ -85,8 +85,6 @@ def handle_question():
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
 
-    # Store
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     try:
         feedback_saved = db.insert_entity(QuestionLog, {"question": question})
     except (Exception) as e:
