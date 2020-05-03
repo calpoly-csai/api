@@ -640,9 +640,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )
 
-        # Ignore the first field, since it's assumed to be a primary key
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
@@ -728,9 +727,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )
 
-        # Ignore the first field, since it's assumed to be a primary key
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
