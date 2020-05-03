@@ -3,8 +3,7 @@ import numpy as np
 import sklearn.neighbors
 from nimbus_nlp.save_and_load_model import save_model, load_latest_model, PROJECT_DIR
 import json
-from QA import db
-
+from typing import Tuple
 
 # TODO: move the functionality in this module into class(es), so that it can be more easily used as a dependency
 
@@ -17,11 +16,6 @@ class QuestionClassifier:
         self.overall_features = {}
 
     def train_model(self):
-        self.save_model = save_model
-
-        # The possible WH word tags returned through NLTK part of speech tagging
-
-
         self.classifier = self.build_question_classifier()
         save_model(self.classifier, "nlp-model")
 

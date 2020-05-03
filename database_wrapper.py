@@ -30,6 +30,7 @@ from Entity.Professors import ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
 from Entity.Profs import Profs
+from Entity.ProfessorSectionView import ProfessorSectionView
 
 from fuzzywuzzy import fuzz
 
@@ -41,7 +42,7 @@ CYAN_COLOR_CODE = "\033[96m"
 RESET_COLOR_CODE = "\033[00m"
 
 UNION_ENTITIES = Union[
-    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair
+    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair, ProfessorSectionView
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
@@ -52,6 +53,7 @@ default_tag_column_dict = {
     Profs: {"firstName", "lastName"},
     Clubs: {"club_name"},
     Sections: {"section_name"},
+    ProfessorSectionView: {"firstName", "lastName"},
 }
 
 EXPECTED_KEYS_BY_ENTITY = {
@@ -362,6 +364,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.Profs = Profs
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
+        self.ProfessorSectonView = ProfessorSectionView
         self.QuestionAnswerPair = QuestionAnswerPair
         self.inspector = inspect(self.engine)
         self._create_database_session()
@@ -435,6 +438,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
+        __safe_create(self.ProfessorSectonView)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -854,3 +858,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
 
         return true_result
+
+if __name__=="__main__":
+    db = NimbusMySQLAlchemy()
+    print(
+        db._get_property_from_entity("section_name",
+                                     ProfessorSectionView,
+                                     "Braun")
+    )
