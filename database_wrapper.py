@@ -44,7 +44,7 @@ CYAN_COLOR_CODE = "\033[96m"
 RESET_COLOR_CODE = "\033[00m"
 
 UNION_ENTITIES = Union[
-    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair, ProfessorSectionView
+    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
@@ -55,7 +55,6 @@ default_tag_column_dict = {
     Profs: {"firstName", "lastName"},
     Clubs: {"club_name"},
     Sections: {"section_name"},
-    ProfessorSectionView: {"firstName", "lastName"},
 }
 
 EXPECTED_KEYS_BY_ENTITY = {
@@ -91,14 +90,14 @@ EXPECTED_KEYS_BY_ENTITY = {
         'raw_events_text',
     ],
     Courses: [
-        'dept',
-        'courseNum',
-        'courseName',
-        'units',
-        'raw_prerequisites_text',
-        'raw_concurrent_text',
-        'raw_recommended_text',
-        'termsOffered',
+            'dept',
+            'courseNum',
+            'courseName',
+            'units',
+            'raw_prerequisites_text',
+            'raw_concurrent_text',
+            'raw_recommended_text',
+            'termsOffered',
     ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
@@ -221,11 +220,11 @@ class NimbusDatabase(ABC):
 
     @abstractmethod
     def get_property_from_entity(
-            self,
-            prop: List[str],
-            entity: str,
-            condition_field: Optional[str] = None,
-            condition_value: Optional[str] = None,
+        self,
+        prop: List[str],
+        entity: str,
+        condition_field: Optional[str] = None,
+        condition_value: Optional[str] = None,
     ) -> List[str]:
         """A high-order function to get properties from objects in the database.
 
@@ -252,14 +251,14 @@ class NimbusDatabase(ABC):
 
     @abstractmethod
     def get_property_from_related_entities(
-            self,
-            prop: List[str],
-            entity1: str,
-            entity2: str,
-            key1: str,
-            key2: Optional[str] = None,
-            condition_field: Optional[str] = None,
-            condition_value: Optional[str] = None,
+        self,
+        prop: List[str],
+        entity1: str,
+        entity2: str,
+        key1: str,
+        key2: Optional[str] = None,
+        condition_field: Optional[str] = None,
+        condition_value: Optional[str] = None,
     ) -> List[str]:
         """A higher-order function to ????
 
@@ -378,7 +377,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.Profs = Profs
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
-        self.ProfessorSectonView = ProfessorSectionView
         self.QuestionAnswerPair = QuestionAnswerPair
         self.inspector = inspect(self.engine)
         self._create_database_session()
@@ -452,7 +450,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
-        __safe_create(self.ProfessorSectonView)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -495,12 +492,12 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def full_fuzzy_match(self, tag_value, identifier):
         return fuzz.ratio(tag_value, identifier)
 
-    def _get_property_from_entity(
-            self,
-            prop: str,
-            entity: UNION_ENTITIES,
-            identifier: str,
-            tag_column_map: dict = default_tag_column_dict,
+    def get_property_from_entity(
+        self,
+        prop: str,
+        entity: UNION_ENTITIES,
+        identifier: str,
+        tag_column_map: dict = default_tag_column_dict,
     ):
         """
         This function implements the abstractmethod to get a column of values
@@ -549,25 +546,16 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 tags.append(str(row.__dict__[tag_prop]))
 
             if total_similarity > MATCH_THRESHOLD:
-                results.append(
-                    (total_similarity, tags, str(row.__dict__[prop])))
+                results.append((total_similarity, tags, str(row.__dict__[prop])))
 
         if len(results) < 1:
             return None
 
         sorted_results = sorted(results, key=lambda pair: pair[0])
-        return sorted_results
-
-    def get_property_from_entity(self,
-                                 prop: str,
-                                 entity: UNION_ENTITIES,
-                                 identifier: str,
-                                 tag_column_map: dict = default_tag_column_dict,
-                                 ):
-        return self._get_property_from_entity(prop, entity, identifier, tag_column_map)[-1][2]
+        return sorted_results[-1][2]
 
     def get_course_properties(
-            self, department: str, course_num: Union[str, int]
+        self, department: str, course_num: Union[str, int]
     ) -> List[Courses]:
         return (
             # sqlalchemy doesn't use type annotations
@@ -575,8 +563,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             # even so we can expect .all() to return a list
             # so long as there is no error in the MySQL syntax
             self.session.query(Courses)
-                .filter(Courses.dept == department, Courses.courseNum == course_num)
-                .all()
+            .filter(Courses.dept == department, Courses.courseNum == course_num)
+            .all()
         )
 
     def validate_and_format_entity_data(self, entity_type, data_dict: dict):
@@ -609,8 +597,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         if entity_type in format_method_by_entity:
             data_dict = format_method_by_entity[entity_type](data_dict)
 
-        self.validate_input_keys(
-            data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
+        self.validate_input_keys(data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
         return data_dict
 
     def insert_entity(self, entity_type, data_dict: dict) -> bool:
@@ -638,8 +625,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             raise InvalidOperationOnView(msg.format(entity_type))
 
         # Get formatted data, entity attributes, and entity object
-        formatted_data = self.validate_and_format_entity_data(
-            entity_type, data_dict)
+        formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
         entity_attributes = entity_type.__dict__
 
         # Logging...
@@ -658,8 +644,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )
+        )[1:]
 
+        # Ignore the first field, since it's assumed to be a primary key
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
@@ -709,15 +696,13 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             raise RuntimeError(msg.format(entity_type))
 
         # Get formatted data and entity attributes
-        formatted_data = self.validate_and_format_entity_data(
-            entity_type, data_dict)
+        formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
         entity_attributes = entity_type.__dict__
 
         # Run a SELECT query to see if an entity that matches the values under the fields in the filter_fields list exists
         query = self.session.query(entity_type)
         for field in filter_fields:
-            query = query.filter(getattr(entity_type, field)
-                                 == formatted_data[field])
+            query = query.filter(getattr(entity_type, field) == formatted_data[field])
         entity = query.first()
 
         # Logging...
@@ -750,8 +735,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )
+        )[1:]
 
+        # Ignore the first field, since it's assumed to be a primary key
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
@@ -787,8 +773,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             A new, formatted data dictionary
         """
 
-        is_wake_word_by_label = {"ww": True,
-                                 "nww": False, True: True, False: False}
+        is_wake_word_by_label = {"ww": True, "nww": False, True: True, False: False}
 
         noise_level_by_label = {
             "q": NoiseLevel.quiet,
@@ -813,8 +798,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             raise BadDictionaryValueError(msg)
 
         if data_dict["noiseLevel"] in noise_level_by_label:
-            data_dict["noise_level"] = noise_level_by_label[data_dict.pop(
-                "noiseLevel")]
+            data_dict["noise_level"] = noise_level_by_label[data_dict.pop("noiseLevel")]
         else:
             msg = "unexpected values for noiseLevel\n"
             msg += "expected 'q' or 'm' or 'l' but got '{}'"
@@ -826,7 +810,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def format_query_phrase_dict(self, phrases: dict) -> dict:
         """
         Formats query phrase to be saved to the server.
-
+        
         Parameters
         ----------
         `phrases : dict` A question answer pair:
@@ -855,7 +839,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def format_query_feedback_dict(self, feedback: dict) -> dict:
         """
             Formats query feedback to be saved to the server.
-
+            
             Parameters
             ----------
             `feedback : dict` A query feedback:
@@ -891,15 +875,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             qa_entity.question_format, qa_entity.answer_format, qa_entity.can_we_answer
         )
         result = query_session.all()
-        true_result = [(pair[0], pair[1])
-                       for pair in result if pair[2] == True]
+        true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
 
         return true_result
-
-if __name__=="__main__":
-    db = NimbusMySQLAlchemy()
-    print(
-        db._get_property_from_entity("section_name",
-                                     ProfessorSectionView,
-                                     "Braun")
-    )
