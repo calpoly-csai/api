@@ -46,9 +46,31 @@ CONFIG_FILE_PATH = "config.json"
 app = Flask(__name__)
 CORS(app)
 
-# TODO: Initialize these somewhere else
-db = NimbusMySQLAlchemy()
-nimbus = Nimbus(db)
+# NOTE:
+#   1. Flask "@app.route" decorated functions below commonly use a db or nimbus object
+#   2. Because the decorated functions can't take parameters (because they're called by
+#      the flask web server) the database and nimbus objects must be global
+#   3. Instantiating objects at the global level (especially ones that are resource-intensive
+#      to create like db and nimbus objects) is obviously bad practice
+#
+# Due to these points, the very un-Pythonic solution chosen is to initialize these objects as
+# None at the top level, associate them with actual objects in the `initialize*()` functions,
+# and do None checks in the functions below.
+db = None
+nimbus = None
+
+
+def initializeDB():
+    global db
+    if db is None:
+        db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+
+
+def initializeNimbus():
+    global nimbus
+    if nimbus is None:
+        initializeDB()
+        nimbus = Nimbus(db)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -85,7 +107,8 @@ def handle_question():
 
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
-
+    
+    nimbus = initializeNimbus()
     response = {"answer": nimbus.answer_question(question)}
 
     if "session" in request_body:
@@ -120,7 +143,7 @@ def save_a_recording():
     # Let's also save the filename to the database for quick reference
     formatted_data["filename"] = filename
 
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
     try:
         db.save_audio_sample_meta_data(formatted_data)
     except BadDictionaryKeyError as e:
@@ -143,7 +166,7 @@ def save_office_hours():
     """
     Persists list of office hours
     """
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
     data = request.get_json()
     for professor in data:
         try:
@@ -181,7 +204,7 @@ def save_query_phrase():
             print("error", err)
             return str(err), BAD_REQUEST
 
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
     try:
         phrase_saved = db.insert_entity(QuestionAnswerPair, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
@@ -215,7 +238,7 @@ def save_feedback():
             print("error:", err)
             return str(err), BAD_REQUEST
 
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
     try:
         feedback_saved = db.insert_entity(QueryFeedback, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
@@ -237,7 +260,7 @@ def save_courses():
     Persists list of courses
     """
     data = json.loads(request.get_json())
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
     for course in data["courses"]:
         try:
             db.update_entity(Courses, course, ['dept', 'courseNum'])
@@ -262,7 +285,7 @@ def save_clubs():
     Persists list of clubs
     """
     data = json.loads(request.get_json())
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
     for club in data["clubs"]:
         try:
             db.update_entity(Clubs, club, ['club_name'])
@@ -287,7 +310,7 @@ def save_locations():
     Persists list of locations
     """
     data = json.loads(request.get_json())
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
     for location in data["locations"]:
         try:
             db.update_entity(Locations, location, ['longitude', 'latitude'])
@@ -312,7 +335,7 @@ def save_calendars():
     Persists list of calendars
     """
     data = json.loads(request.get_json())
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
     for calendar in data["calendars"]:
         try:
             db.update_entity(Calendars, calendar, ['date', 'raw_events_text'])
