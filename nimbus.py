@@ -19,7 +19,7 @@ class Nimbus:
         self.qa_dict = create_qa_mapping(generate_qa_pairs(qa_pairs, db))
         # Instantiate variable extractor and question classifier
         self.variable_extractor = VariableExtractor()
-        self.classifier = QuestionClassifier()
+        self.classifier = QuestionClassifier(db)
         # Load classifier model
         self.classifier.load_latest_classifier()
 

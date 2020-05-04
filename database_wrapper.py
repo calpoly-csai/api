@@ -89,14 +89,14 @@ EXPECTED_KEYS_BY_ENTITY = {
         'raw_events_text',
     ],
     Courses: [
-            'dept',
-            'courseNum',
-            'courseName',
-            'units',
-            'raw_prerequisites_text',
-            'raw_concurrent_text',
-            'raw_recommended_text',
-            'termsOffered',
+        'dept',
+        'courseNum',
+        'courseName',
+        'units',
+        'raw_prerequisites_text',
+        'raw_concurrent_text',
+        'raw_recommended_text',
+        'termsOffered',
     ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
@@ -136,7 +136,18 @@ class BadDictionaryKeyError(Exception):
 
 
 class BadDictionaryValueError(Exception):
-    """Raised when the given JSON/dict has unexpected wake
+    """Raised when the given JSON/dict has unexpected data
+
+    Attributes:
+        message: an explanation.
+    """
+
+    def __init__(self, message: str):
+        self.message = message
+
+
+class InvalidOperationOnView(Exception):
+    """Raised when trying to perform insert/update operations on a View.
 
     Attributes:
         message: an explanation.
@@ -607,11 +618,15 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         Returns:
             True if all is good, else False
         """
+        # Initialize the entity and check if it's a View
+        entity = entity_type()
+        if entity.is_view:
+            msg = "insert_entity for View: {} is not supported"
+            raise InvalidOperationOnView(msg.format(entity_type))
 
         # Get formatted data, entity attributes, and entity object
         formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
         entity_attributes = entity_type.__dict__
-        entity = entity_type()
 
         # Logging...
         print(
@@ -629,9 +644,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )[1:-1]
 
         # Ignore the first field, since it's assumed to be a primary key
+        # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
@@ -669,6 +685,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         Returns:
             True if all is good, else False
         """
+        # Initialize dummy entity to check if it's a View
+        dummy_entity = entity_type()
+        if dummy_entity.is_view:
+            msg = "update_entity for View: {} is not supported"
+            raise InvalidOperationOnView(msg.format(entity_type))
 
         # If we're not filtering for anything, we shouldn't be calling update_entity
         if len(filter_fields) == 0:
@@ -715,9 +736,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )[1:-1]
 
         # Ignore the first field, since it's assumed to be a primary key
+        # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])

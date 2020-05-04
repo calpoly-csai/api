@@ -32,6 +32,7 @@ class Courses(Base):
     raw_concurrent_text = Column(Text)
     raw_recommended_text = Column(Text)
     raw_prerequisites_text = Column(Text)
+    is_view = False
 
     def __repr__(self):
         return "<Courses (dept={}, course_num={})>".format(self.dept, self.courseNum)

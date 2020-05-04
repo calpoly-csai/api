@@ -21,6 +21,7 @@ class OfficeHours(Base):
     Phone = Column(Text)
     Platform = Column(Text)
     LatestQuarter = Column(Text)
+    is_view = False
 
     def __repr__(self):
         return "<Office Hours (Name={}, Office={}, Email={}, Monday={}, Tuesday={}, Wednesday={}, Thursday={}, Friday={})>".format(

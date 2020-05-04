@@ -14,6 +14,7 @@ class Professors(Base):
     phoneNumber = Column(String(20))
     researchInterests = Column(Text)
     email = Column(String(255))
+    is_view = False
 
 
 class ProfessorsProperties(enum.Enum):
