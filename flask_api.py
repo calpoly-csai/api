@@ -106,7 +106,7 @@ def handle_question():
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
     
-    nimbus = initializeNimbus()
+    initializeNimbus()
     response = {"answer": nimbus.answer_question(question)}
 
     if "session" in request_body:
