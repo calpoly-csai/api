@@ -25,7 +25,6 @@ ADD requirements.txt /nimbus/requirements.txt
 
 # install the requirements in the container
 RUN pip3 install -r /nimbus/requirements.txt \
-
   && chmod 777 /usr/lib/python3/dist-packages/*
 
 # verify permissions set
