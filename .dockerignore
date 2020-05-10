@@ -1,3 +1,9 @@
+Dockerfile
+README.md
+*.pyc
+*.pyo
+*.pyd
+__pycache__
 nvenv/*
 
 
@@ -121,4 +127,3 @@ settings.yaml
 .export_env_vars
 auth.json
 settings.yml
-nimbus_api.iml
