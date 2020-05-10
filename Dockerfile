@@ -3,6 +3,7 @@
 # FROM python:3.7-stretch
 FROM ubuntu:latest
 
+
 # the chmod will
 # resolve PermissionError on heroku
 # more context in issue #100
@@ -15,6 +16,7 @@ RUN apt-get update \
   && pip3 install --upgrade pip \
   && chmod 777 /usr/lib/python3/dist-packages/* 
 
+
 # verify permissions set
 RUN ls -lah /usr/lib/python3/dist-packages/
 
@@ -23,6 +25,7 @@ ADD requirements.txt /nimbus/requirements.txt
 
 # install the requirements in the container
 RUN pip3 install -r /nimbus/requirements.txt \
+
   && chmod 777 /usr/lib/python3/dist-packages/*
 
 # verify permissions set
@@ -36,7 +39,9 @@ ADD . /nimbus
 
 # # https://devcenter.heroku.com/articles/container-registry-and-runtime#unsupported-dockerfile-commands
 # # Expose is NOT supported by Heroku
+
 EXPOSE 443:443
+
 
 # need to declare the --build-arg that gets passed in
 # for ENV to work properly
@@ -52,6 +57,7 @@ ARG GOOGLE_CLOUD_NLP_CREDENTIALS
 ARG GOOGLE_CLOUD_NLP_MODEL_NAME
 ARG GIT_SSH_CERT
 ARG PORT
+
 
 # env variables needed for the setup...py
 ENV DATABASE_HOSTNAME ${DATABASE_HOSTNAME}
@@ -83,6 +89,7 @@ RUN ./setup_special_files_from_env.py
 # the above "download..." scripts were inconsistent on herkou
 # so lets download the required stuff directly
 RUN python -m pip install --upgrade urllib3 && python3 -m spacy download en_core_web_sm
+
 # TODO: consider en_core_web_lg or en_core_web_md because server can handle it
 # RUN python3 -m spacy download en_core_web_lg
 RUN python3 -m nltk.downloader punkt

@@ -260,6 +260,7 @@ class NimbusDatabase(ABC):
     ) -> List[str]:
         """A higher-order function to ????
 
+
         Example:
         >>> db = NimbusDatabase("config.json")
         >>> db.get_property_from_related_entities(
@@ -358,6 +359,7 @@ def raises_database_error(func):
             #       versus development time (being able to see errors quickly)
             # HINT: security always wins, so try to catch the EXACT exception
             raise e
+
 
     return wrapper
 
@@ -635,6 +637,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             )
         )
 
+
         # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
         entity_fields = list(
@@ -869,6 +872,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "answer_type": answer_string_to_type[feedback["type"]],
             "timestamp": feedback["timestamp"],
         }
+
 
 
 if __name__=="__main__":

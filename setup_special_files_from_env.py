@@ -49,6 +49,7 @@ assert environ.get("GOOGLE_DRIVE_FOLDER_ID", None) != "", BAD_CONFIG_MSG_2
 assert environ.get("GOOGLE_CLOUD_NLP_CREDENTIALS", None) != "", BAD_CONFIG_MSG_2  # noqa
 assert environ.get("GOOGLE_CLOUD_NLP_MODEL_NAME", None) != "", BAD_CONFIG_MSG_2
 
+
 # This dictionary should look exactly like the `SAMPLE_CONFIG_FILE`
 # it contains everything we could possibly neeed
 config = {
@@ -110,6 +111,7 @@ if environ.get("GIT_SSH_CERT") is not None:
     with open(SSH_CERT_FILE, "w") as f:
         f.write(environ["GIT_SSH_CERT"])
         chmod(SSH_CERT_FILE, 0o0600)
+
 
 # save the GOOGLE_DRIVE_CREDENTIALS_FILE
 with open(GOOGLE_DRIVE_CREDENTIALS_FILE, "w") as credentials_json_file:

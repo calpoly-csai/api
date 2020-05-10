@@ -20,12 +20,14 @@ class QuestionClassifier:
 
     def train_model(self):
         self.classifier = self.build_question_classifier(question_pairs=self.db.get_all_answerable_pairs())
+
         save_model(self.classifier, "nlp-model")
 
 
     def load_latest_classifier(self):
         self.classifier = load_latest_model()
         with open(PROJECT_DIR + '/models/features/overall_features.json', 'r') as fp:
+
             self.overall_features = json.load(fp)
 
     def get_question_features(self, question):
