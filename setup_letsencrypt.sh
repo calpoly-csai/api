@@ -7,6 +7,8 @@ mkdir ~/.ssh
 ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 ssh-add /nimbus/id_rsa
 git clone git@github.com:CalPolyCSAI/api-certificates.git
+git config --global user.email "cpcsai.nimbus@gmail.com"
+git config --global user.name "GCE_GIT_BOT"
 cd /api-certificates
 tar xvf letsencrypt_backup.tar -C /
 crontab /nimbus/letsencrypt-backup-tar.cron
