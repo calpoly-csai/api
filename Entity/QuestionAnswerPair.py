@@ -27,6 +27,7 @@ class QuestionAnswerPair(Base):
     answer_type = Column(Enum(AnswerType))
     question_format = Column(Text)
     answer_format = Column(Text)
+    is_view = False
 
     def __repr__(self):
         """

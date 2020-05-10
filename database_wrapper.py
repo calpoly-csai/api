@@ -32,6 +32,7 @@ from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
 from Entity.Profs import Profs
 from Entity.QuestionLog import QuestionLog
+from Entity.ProfessorSectionView import ProfessorSectionView
 
 from fuzzywuzzy import fuzz
 
@@ -43,7 +44,7 @@ CYAN_COLOR_CODE = "\033[96m"
 RESET_COLOR_CODE = "\033[00m"
 
 UNION_ENTITIES = Union[
-    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair
+    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair, ProfessorSectionView
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
@@ -54,6 +55,7 @@ default_tag_column_dict = {
     Profs: {"firstName", "lastName"},
     Clubs: {"club_name"},
     Sections: {"section_name"},
+    ProfessorSectionView: {"firstName", "lastName"},
 }
 
 EXPECTED_KEYS_BY_ENTITY = {
@@ -81,16 +83,22 @@ EXPECTED_KEYS_BY_ENTITY = {
         "advisor",
         "affiliation",
     ],
-    Calendars: ["date", "day", "month", "year", "raw_events_text",],
+    Calendars: [
+        'date',
+        'day',
+        'month',
+        'year',
+        'raw_events_text',
+    ],
     Courses: [
-        "dept",
-        "courseNum",
-        "courseName",
-        "units",
-        "raw_prerequisites_text",
-        "raw_concurrent_text",
-        "raw_recommended_text",
-        "termsOffered",
+        'dept',
+        'courseNum',
+        'courseName',
+        'units',
+        'raw_prerequisites_text',
+        'raw_concurrent_text',
+        'raw_recommended_text',
+        'termsOffered',
     ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
@@ -131,7 +139,18 @@ class BadDictionaryKeyError(Exception):
 
 
 class BadDictionaryValueError(Exception):
-    """Raised when the given JSON/dict has unexpected wake
+    """Raised when the given JSON/dict has unexpected data
+
+    Attributes:
+        message: an explanation.
+    """
+
+    def __init__(self, message: str):
+        self.message = message
+
+
+class InvalidOperationOnView(Exception):
+    """Raised when trying to perform insert/update operations on a View.
 
     Attributes:
         message: an explanation.
@@ -359,6 +378,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.Profs = Profs
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
+        self.ProfessorSectonView = ProfessorSectionView
         self.QuestionAnswerPair = QuestionAnswerPair
         self.inspector = inspect(self.engine)
         self._create_database_session()
@@ -432,6 +452,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
+        __safe_create(self.ProfessorSectonView)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -600,11 +621,15 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         Returns:
             True if all is good, else False
         """
+        # Initialize the entity and check if it's a View
+        entity = entity_type()
+        if entity.is_view:
+            msg = "insert_entity for View: {} is not supported"
+            raise InvalidOperationOnView(msg.format(entity_type))
 
         # Get formatted data, entity attributes, and entity object
         formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
         entity_attributes = entity_type.__dict__
-        entity = entity_type()
 
         # Logging...
         print(
@@ -622,9 +647,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )[1:-1]
 
         # Ignore the first field, since it's assumed to be a primary key
+        # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
@@ -662,6 +688,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         Returns:
             True if all is good, else False
         """
+        # Initialize dummy entity to check if it's a View
+        dummy_entity = entity_type()
+        if dummy_entity.is_view:
+            msg = "update_entity for View: {} is not supported"
+            raise InvalidOperationOnView(msg.format(entity_type))
 
         # If we're not filtering for anything, we shouldn't be calling update_entity
         if len(filter_fields) == 0:
@@ -708,9 +739,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )[1:-1]
 
         # Ignore the first field, since it's assumed to be a primary key
+        # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
@@ -806,16 +838,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "answer_format": phrases["answer"]["format"],
         }
 
-    def format_question_log(self, question_info: dict) -> dict:
-        """
-        Extracts question data from the provided dictionary to upload data to the server.
-        """
-
-        return {
-            "question": question_info["question"],
-            "timestamp": datetime.datetime.now(),
-        }
-
     def __del__(self):
         print("NimbusMySQLAlchemy closed")
 
@@ -851,13 +873,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "timestamp": feedback["timestamp"],
         }
 
-    def get_all_answerable_pairs(self):
-        qa_entity = QuestionAnswerPair
 
-        query_session = self.session.query(
-            qa_entity.question_format, qa_entity.answer_format, qa_entity.can_we_answer
-        )
-        result = query_session.all()
-        true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
-
-        return true_result
+if __name__=="__main__":
+    db = NimbusMySQLAlchemy()
+    print(
+        db._get_property_from_entity("section_name",
+                                     ProfessorSectionView,
+                                     "Braun")
+    )

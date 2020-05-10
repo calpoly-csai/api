@@ -12,3 +12,4 @@ class Corrections:
         self.correctionText = correctionText
         self.tableNameToCorrect = tableNameToCorrect
         self.columnNameToCorrect = columnNameToCorrect
+        self.is_view = False

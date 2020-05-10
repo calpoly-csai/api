@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction import DictVectorizer
 from sklearn import svm
-from sklearn.externals import joblib
+import joblib
 import pickle
 from datetime import datetime
 from os import listdir

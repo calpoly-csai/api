@@ -1,34 +1,31 @@
-import spacy
-import numpy as np
-import sklearn.neighbors
-from nimbus_nlp.save_and_load_model import save_model, load_latest_model, PROJECT_DIR
+import collections
 import json
-from QA import db
+import numpy as np
+import spacy
+import sklearn.neighbors
 
+from nimbus_nlp.save_and_load_model import save_model, load_latest_model, PROJECT_DIR
+from typing import Tuple
 
 # TODO: move the functionality in this module into class(es), so that it can be more easily used as a dependency
 
 
 class QuestionClassifier:
-    def __init__(self, file_path="question_set_clean.csv"):
+    def __init__(self, db, file_path="question_set_clean.csv"):
+        self.db = db
         self.classifier = None
         self.nlp = spacy.load('en_core_web_sm')
         self.WH_WORDS = {'WDT', 'WP', 'WP$', 'WRB'}
         self.overall_features = {}
 
     def train_model(self):
-        self.save_model = save_model
-
-        # The possible WH word tags returned through NLTK part of speech tagging
-
-
-        self.classifier = self.build_question_classifier()
+        self.classifier = self.build_question_classifier(question_pairs=self.db.get_all_answerable_pairs())
         save_model(self.classifier, "nlp-model")
 
 
     def load_latest_classifier(self):
         self.classifier = load_latest_model()
-        with open(PROJECT_DIR+ '/models/features/overall_features.json', 'r') as fp:
+        with open(PROJECT_DIR + '/models/features/overall_features.json', 'r') as fp:
             self.overall_features = json.load(fp)
 
     def get_question_features(self, question):
@@ -116,19 +113,8 @@ class QuestionClassifier:
         Build overall feature set for each question based on feature vectors of individual questions.
         Train KNN classification model with overall feature set.
         """
-
-
-        # READ QUESTIONS
-        question_list = db.get_all_answerable_pairs()
-        #print(question_list)
-        question_list = [q[0] for q in question_list]
-        questions = pd.DataFrame(question_list, columns = ['questionFormat'])
-        questions['features'] = questions['questionFormat'].apply(self.get_question_features)
-        # old alg: questions['features'] = questions['questionFormat'].apply(self.get_question_features_old_algorithm)
-
-        question_features = questions['features'].values.tolist()
-
-        # BUILD OVERALL FEATURE SET FROM INDIVIDUAL QUESTION FEATURE VECTORS
+        questions = [q[0] for q in question_pairs]
+        question_features = [self.get_question_features(self.nlp(q)) for q in questions]
 
         for feature in question_features:
             for key in feature:
@@ -151,15 +137,6 @@ class QuestionClassifier:
             json.dump(self.overall_features, fp)
 
         return new_classifier
-
-    def train_model(self):
-        self.classifier = self.build_question_classifier()
-        self.save_model(self.classifier, "nlp-model")
-
-    def load_latest_classifier(self):
-        self.classifier = load_latest_model()
-        with open(PROJECT_DIR + "/models/features/overall_features.json", "r") as fp:
-            self.overall_features = json.load(fp)
 
     def is_wh_word(self, token):
         return token.tag_ in self.WH_WORDS

@@ -11,6 +11,7 @@ class Locations(Base):
     name = Column(String(100))
     longitude = Column(String(255))
     latitude = Column(String(255))
+    is_view = False
 
     def __repr__(self):
         return "<Locations (building_number = {}, name = {}, longitude = {}, latitude = {})>".format(

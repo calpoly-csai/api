@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from os import environ
+from os import environ, chmod
 import json
 from utilities import yaml_utils  # noqa
 
@@ -17,6 +17,7 @@ PYDRIVE_CLIENT_ID_KEY = "PYDRIVE_CLIENT_ID"
 PYDRIVE_CLIENT_SECRET_KEY = "PYDRIVE_CLIENT_SECRET"
 GOOGLE_DRIVE_CREDENTIALS_FILE = "credentials.json"
 GOOGLE_DRIVE_CREDENTIALS_KEY = "GOOGLE_DRIVE_CREDENTIALS"
+SSH_CERT_FILE = "id_rsa"
 
 # GOOGLE CLOUD stuff
 GOOGLE_CLOUD_NLP_CREDENTIALS_FILE = "auth.json"
@@ -47,7 +48,6 @@ assert environ.get("GOOGLE_DRIVE_CREDENTIALS", None) != "", BAD_CONFIG_MSG_2
 assert environ.get("GOOGLE_DRIVE_FOLDER_ID", None) != "", BAD_CONFIG_MSG_2
 assert environ.get("GOOGLE_CLOUD_NLP_CREDENTIALS", None) != "", BAD_CONFIG_MSG_2  # noqa
 assert environ.get("GOOGLE_CLOUD_NLP_MODEL_NAME", None) != "", BAD_CONFIG_MSG_2
-
 
 # This dictionary should look exactly like the `SAMPLE_CONFIG_FILE`
 # it contains everything we could possibly neeed
@@ -105,6 +105,11 @@ yaml_utils.dump_yaml(pydrive_yaml, PYDRIVE_FILE)
 with open(GOOGLE_DRIVE_FOLDER_ID_FILE, "w") as f:
     f.write(config[GOOGLE_DRIVE_FOLDER_ID_KEY])
 
+# save the ssh certificates to the correct directory
+if environ.get("GIT_SSH_CERT") is not None:
+    with open(SSH_CERT_FILE, "w") as f:
+        f.write(environ["GIT_SSH_CERT"])
+        chmod(SSH_CERT_FILE, 0o0600)
 
 # save the GOOGLE_DRIVE_CREDENTIALS_FILE
 with open(GOOGLE_DRIVE_CREDENTIALS_FILE, "w") as credentials_json_file:

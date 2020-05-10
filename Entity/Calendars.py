@@ -14,6 +14,7 @@ class Calendars(Base):
     month = Column(String(10))
     year = Column(Integer)
     raw_events_text = Column(Text)
+    is_view = False
 
     def __repr__(self):
         return "<Calendars (date={}, events={})>".format(
