@@ -21,7 +21,13 @@ class Nimbus:
         self.variable_extractor = VariableExtractor()
         self.classifier = QuestionClassifier(db)
         # Load classifier model
-        self.classifier.load_latest_classifier()
+        try:
+            self.classifier.load_latest_classifier()
+        except ValueError as e:
+            # happens when the model doesn't exist; train a new model.
+            self.classifier.train_model()
+            self.classifier.load_latest_classifier()
+
 
     def answer_question(self, question):
         ans_dict = self.predict_question(question)
