@@ -129,7 +129,7 @@ def save_a_recording():
     if issues:
         try:
             data = validator.fix(data, issues)
-        except FormatterValidatorError as err:
+        except WakeWordValidatorError as err:
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
