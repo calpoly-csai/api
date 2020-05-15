@@ -9,6 +9,7 @@ class QuestionLog(Base):
     id = Column(Integer, primary_key=True)
     question = Column(Text)
     timestamp = Column(TIMESTAMP)
+    is_view = False
 
     def __repr__(self):
         """
