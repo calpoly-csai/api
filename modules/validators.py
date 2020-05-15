@@ -84,6 +84,8 @@ class WakeWordValidator(Validator):
             "firstName": lambda firstName: type(firstName) == str,
             "timestamp": lambda timestamp: str.isdigit(timestamp),
             "username": lambda username: type(username) == str,
+            "emphasis": lambda emphasis: type(emphasis) == str,
+            "script": lambda script: type(script) == str,
         }
 
     def validate(self, data):
@@ -118,6 +120,9 @@ class WakeWordValidator(Validator):
                 elif key == "timestamp":
                     form[key] = int(time.time())
                     print("fixed timestamp", form[key])
+                elif key == "script" and form["isWakeWord"] == "ww":
+                     form[key] = "nimbus"
+                     print("Added 'script' value of 'nimbus'")
                 else:
                     raise WakeWordValidatorError(
                         f"Required audio metadata '{key}' was not provided"
