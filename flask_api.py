@@ -158,7 +158,7 @@ def save_a_recording():
         # HINT: security always wins
         raise e
 
-    return f"Successfully stored audiofile as '{filename}''", SUCCESS
+    return f"Successfully stored audiofile as '{filename}'", SUCCESS
 
 
 @app.route("/new_data/office_hours", methods=["POST"])
