@@ -5,6 +5,11 @@
 ![GitHub closed issues](https://img.shields.io/github/issues-closed/calpoly-csai/api)
 ![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed/calpoly-csai/api)
 
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=calpoly-csai_api&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=calpoly-csai_api)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=calpoly-csai_api&metric=bugs)](https://sonarcloud.io/dashboard?id=calpoly-csai_api)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=calpoly-csai_api&metric=code_smells)](https://sonarcloud.io/dashboard?id=calpoly-csai_api)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=calpoly-csai_api&metric=sqale_index)](https://sonarcloud.io/dashboard?id=calpoly-csai_api)
+
 Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CSAI_Voice_Assistant) accessible via HTTP REST protocol.
 
 ## 🚧 This API is still in-development, so expect the endpoints to be constantly changing until finalized.
