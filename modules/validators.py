@@ -100,8 +100,8 @@ class WakeWordValidator(Validator):
                 value = data[key]
                 if not validator(value):
                     issues[key] = WakeWordValidatorIssue.INVALID
-            except BadRequestKeyError as e:
-                print("caught BadRequestKeyError: ", e.args)
+            except (KeyError, BadRequestKeyError) as e:
+                print("Couldn't find", e.args, "when validating data")
                 issues[key] = WakeWordValidatorIssue.DOES_NOT_EXIST
         return issues
 

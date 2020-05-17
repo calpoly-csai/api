@@ -99,37 +99,3 @@ def test_new_data_wakeword_validator_issues(mock_validator, client):
     resp = client.post('/new_data/wakeword', data={"dummy1": "dummy2", 'wav_file': (BytesIO(b'dummyText'), 'dummyfile.txt')})
     assert resp.status_code == BAD_REQUEST
     assert resp.data == TEST_ERROR.encode()
-
-
-@patch("flask_api.save_audiofile")
-@patch("flask_api.create_filename", return_value="test_filename")
-@patch("flask_api.WakeWordValidator")
-@patch("flask_api.WakeWordFormatter")
-@patch("flask_api.db")
-def test_new_data_wakeword_db_error(mock_db, mock_formatter, mock_validator, mock_create_filename,
-                                    mock_save_audiofile, client):
-    mock_formatter_instance = Mock()
-    mock_formatter_instance.format.return_value = {"filename": "dummy"}
-    mock_formatter.return_value = mock_formatter_instance
-
-    # Verify that the client will catch and throw an error for specific exceptions
-    mock_db.save_audio_sample_meta_data.side_effect = BadDictionaryKeyError(TEST_ERROR)
-    resp = client.post(
-        '/new_data/wakeword',
-        data={"test": "foo", 'wav_file': (BytesIO(b'dummyText'), 'dummyfile.txt')})
-    assert resp.status_code == BAD_REQUEST
-    assert resp.data == TEST_ERROR.encode()
-
-    mock_db.save_audio_sample_meta_data.side_effect = BadDictionaryValueError(TEST_ERROR)
-    resp = client.post(
-        '/new_data/wakeword',
-        data={"test": "foo", 'wav_file': (BytesIO(b'dummyText'), 'dummyfile.txt')})
-    assert resp.status_code == BAD_REQUEST
-    assert resp.data == TEST_ERROR.encode()
-
-    mock_db.save_audio_sample_meta_data.side_effect = NimbusDatabaseError(TEST_ERROR)
-    resp = client.post(
-        '/new_data/wakeword',
-        data={"test": "foo", 'wav_file': (BytesIO(b'dummyText'), 'dummyfile.txt')})
-    assert resp.status_code == BAD_REQUEST
-    assert resp.data == TEST_ERROR.encode()
