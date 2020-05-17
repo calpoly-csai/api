@@ -495,7 +495,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def full_fuzzy_match(self, tag_value, identifier):
         return fuzz.ratio(tag_value, identifier)
 
-    def get_property_from_entity(
+    def _get_property_from_entity(
         self,
         prop: str,
         entity: UNION_ENTITIES,
@@ -555,7 +555,16 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             return None
 
         sorted_results = sorted(results, key=lambda pair: pair[0])
-        return sorted_results[-1][2]
+        return sorted_results
+
+    def get_property_from_entity(self,
+        prop: str,
+        entity: UNION_ENTITIES,
+        identifier: str,
+        tag_column_map: dict = default_tag_column_dict):
+
+        props = self._get_property_from_entity(prop, entity, identifier, tag_column_map)
+        return props[-1][2]
 
     def get_course_properties(
         self, department: str, course_num: Union[str, int]
