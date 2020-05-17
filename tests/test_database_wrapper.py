@@ -6,12 +6,14 @@ from database_wrapper import (
     NimbusMySQLAlchemy,
     BadDictionaryKeyError,
     BadDictionaryValueError,
+    InvalidOperationOnView,
     NimbusDatabaseError,
     UnsupportedDatabaseError,
     BadConfigFileError,
 )
 from mock import patch, Mock
 from .MockEntity import MockEntity
+from .MockViewEntity import MockViewEntity
 
 
 ENTITY_TYPES = [
@@ -20,7 +22,7 @@ ENTITY_TYPES = [
     "Courses",
     "Locations",
     "QuestionAnswerPair",
-    "Professors",
+    "Profs",
     "Clubs",
     "Sections",
 ]
@@ -289,3 +291,19 @@ def test_create_engine_missing_field():
         test_db = NimbusMySQLAlchemy(TEST_CONFIG_FILENAME)
 
     os.remove(TEST_CONFIG_FILENAME)
+
+
+@patch.object(NimbusMySQLAlchemy, "_create_engine")
+def test_insert_entity_view_error(mock_create_engine):
+    test_db = NimbusMySQLAlchemy()
+
+    with pytest.raises(InvalidOperationOnView):
+        test_db.insert_entity(MockViewEntity, {});
+
+
+@patch.object(NimbusMySQLAlchemy, "_create_engine")
+def test_update_entity_view_error(mock_create_engine):
+    test_db = NimbusMySQLAlchemy()
+
+    with pytest.raises(InvalidOperationOnView):
+        test_db.update_entity(MockViewEntity, {}, []);

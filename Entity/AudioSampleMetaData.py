@@ -28,6 +28,7 @@ class AudioSampleMetaData(Base):
     username = Column(String(255))
     # Text chosen because filename is standarized concatenation of above fields
     filename = Column(Text)
+    is_view = False
 
     def __repr__(self):
         string = "<AudioSampleMetaData ( id={}, is_wake_word={}, "

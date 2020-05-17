@@ -55,6 +55,7 @@ CORS(app)
 # Due to these points, the very un-Pythonic solution chosen is to initialize these objects as
 # None at the top level, associate them with actual objects in the `initialize*()` functions,
 # and do None checks in the functions below.
+
 db = None
 nimbus = None
 
@@ -95,6 +96,7 @@ def handle_question():
     server are:
         * storage of the logs of this question-answer-session.
     """
+    initializeNimbus()
 
     if request.is_json is False:
         return "request must be JSON", BAD_REQUEST
@@ -105,8 +107,7 @@ def handle_question():
 
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
-    
-    initializeNimbus()
+
     response = {"answer": nimbus.answer_question(question)}
 
     if "session" in request_body:
@@ -128,7 +129,7 @@ def save_a_recording():
     if issues:
         try:
             data = validator.fix(data, issues)
-        except FormatterValidatorError as err:
+        except WakeWordValidatorError as err:
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
@@ -142,6 +143,7 @@ def save_a_recording():
     formatted_data["filename"] = filename
 
     initializeDB()
+
     try:
         db.save_audio_sample_meta_data(formatted_data)
     except BadDictionaryKeyError as e:
@@ -165,6 +167,7 @@ def save_office_hours():
     Persists list of office hours
     """
     initializeDB()
+
     data = request.get_json()
     for professor in data:
         try:
@@ -203,6 +206,7 @@ def save_query_phrase():
             return str(err), BAD_REQUEST
 
     initializeDB()
+
     try:
         phrase_saved = db.insert_entity(QuestionAnswerPair, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
@@ -237,6 +241,7 @@ def save_feedback():
             return str(err), BAD_REQUEST
 
     initializeDB()
+
     try:
         feedback_saved = db.insert_entity(QueryFeedback, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
@@ -257,8 +262,9 @@ def save_courses():
     """
     Persists list of courses
     """
-    data = json.loads(request.get_json())
+    data = request.get_json()
     initializeDB()
+
     for course in data["courses"]:
         try:
             db.update_entity(Courses, course, ['dept', 'courseNum'])
@@ -282,8 +288,9 @@ def save_clubs():
     """
     Persists list of clubs
     """
-    data = json.loads(request.get_json())
+    data = request.get_json()
     initializeDB()
+
     for club in data["clubs"]:
         try:
             db.update_entity(Clubs, club, ['club_name'])
@@ -307,8 +314,9 @@ def save_locations():
     """
     Persists list of locations
     """
-    data = json.loads(request.get_json())
+    data = request.get_json()
     initializeDB()
+
     for location in data["locations"]:
         try:
             db.update_entity(Locations, location, ['longitude', 'latitude'])
@@ -332,8 +340,9 @@ def save_calendars():
     """
     Persists list of calendars
     """
-    data = json.loads(request.get_json())
+    data = request.get_json()
     initializeDB()
+
     for calendar in data["calendars"]:
         try:
             db.update_entity(Calendars, calendar, ['date', 'raw_events_text'])
@@ -367,7 +376,8 @@ def create_filename(form):
         "timestamp",
         "username",
     ]
-    values = list(map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
+    values = list(
+        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return "_".join(values) + ".wav"
 
 
@@ -387,10 +397,10 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
 
     # Check if the current entity is already within the database
     if (
-        db.get_property_from_entity(
-            prop="Name", entity=entity_type, identifier=current_prof["Name"]
-        )
-        != None
+            db.get_property_from_entity(
+                prop="Name", entity=entity_type, identifier=current_prof["Name"]
+            )
+            != None
     ):
 
         update_office_hours = True
@@ -452,7 +462,8 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
     # Update the entity properties if the entity already exists
     if update_office_hours == True:
         db.update_entity(
-            entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"]
+            entity_type=entity_type, data_dict=sql_data, filter_fields=[
+                "Email"]
         )
 
     # Otherwise, add the entity to the database
@@ -501,4 +512,5 @@ def convert_to_mfcc():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE, port=gunicorn_config.PORT)
+    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE,
+            port=gunicorn_config.PORT)
