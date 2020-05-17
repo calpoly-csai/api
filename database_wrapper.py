@@ -67,7 +67,9 @@ EXPECTED_KEYS_BY_ENTITY = {
         "tone",
         "timestamp",
         "username",
-        "filename",
+        "audio_file_id",
+        "script",
+        "emphasis"
     ],
     Clubs: [
         "club_name",
@@ -777,7 +779,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "tone": "serious-but-not-really",
             "timestamp": 1577077883,
             "username": "guest",
-            "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
+            "emphasis": "us",
+            "script": "Nimbus"
+            "audio_file_id": Id from Google Drive  # noqa because too hard.
         }
 
         Raises:

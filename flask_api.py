@@ -122,6 +122,8 @@ def handle_question():
 def save_a_recording():
     """Given the audio metadata & audio file, resamples it, saves to storage.
     """
+    if("wav_file" not in request.files):
+         return "Please provide an audio file under the key 'wav_file' in your FormData", BAD_REQUEST
     validator = WakeWordValidator()
     formatter = WakeWordFormatter()
     data = request.form
@@ -133,19 +135,17 @@ def save_a_recording():
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
+    try:
+         file_id = save_audiofile(filename, request.files["wav_file"])
+    except Exception as err:
+         return f"Failed to save audio file because... {err}", BAD_REQUEST
 
-    # Save the audiofile first because if error then we stop here
-    # We do not want to save any metadata to the NimbusDatabase
-    #   if the audio fails to save.
-    save_audiofile(filename, request.files["wav_file"])
-
-    # Let's also save the filename to the database for quick reference
-    formatted_data["filename"] = filename
+    formatted_data["audio_file_id"] = file_id
 
     initializeDB()
 
     try:
-        db.save_audio_sample_meta_data(formatted_data)
+        db.insert_entity(AudioSampleMetaData, formatted_data)
     except BadDictionaryKeyError as e:
         return str(e), BAD_REQUEST
     except BadDictionaryValueError as e:
@@ -158,7 +158,7 @@ def save_a_recording():
         # HINT: security always wins
         raise e
 
-    return filename
+    return f"Successfully stored audiofile as '{filename}'", SUCCESS
 
 
 @app.route("/new_data/office_hours", methods=["POST"])
@@ -479,7 +479,18 @@ def resample_audio():
 
 
 def save_audiofile(filename, content):
-    """Actually save the file into Google Drive."""
+    """
+     Saves audio to the club Google Drive folder.
+
+     Parameters
+     ----------
+     - `filename:str` the name of the file, formatted by `create_filename()`
+     - `content: file` audio file to store
+
+     Returns
+     -------
+     The Google Drive file id that can be used to retrieve the file
+     """
     # Initialize our google drive authentication object using saved credentials,
     # or through the command line
     gauth = GoogleAuth()
@@ -499,6 +510,7 @@ def save_audiofile(filename, content):
     # Set the content of the file to the POST request's wav_file parameter.
     file.content = content
     file.Upload()  # Upload file.
+    return file["id"]
 
 
 def get_folder_id():
