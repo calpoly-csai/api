@@ -31,7 +31,7 @@ Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CS
 
 ## Dev Environment Setup
 ### Prerequisites
-1. Python 3.6.9 (we're running 3.8 on staging)
+1. Python 3.6.9 (we're running 3.8 on gce)
 
 2. pip 9.0.1
 
