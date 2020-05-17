@@ -110,12 +110,12 @@ def handle_question():
         return "request body should include the question", BAD_REQUEST
 
     # Store
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
     try:
         feedback_saved = db.insert_entity(QuestionLog, {"question": question})
     except (Exception) as e:
         print("Could not store question upon user ask: ", str(e))
-
+    
     response = {"answer": nimbus.answer_question(question)}
     if "session" in request_body:
         response["session"] = request_body["session"]
