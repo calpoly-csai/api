@@ -30,6 +30,7 @@ from Entity.Professors import ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
 from Entity.Profs import Profs
+from Entity.ProfessorSectionView import ProfessorSectionView
 
 from fuzzywuzzy import fuzz
 
@@ -41,7 +42,7 @@ CYAN_COLOR_CODE = "\033[96m"
 RESET_COLOR_CODE = "\033[00m"
 
 UNION_ENTITIES = Union[
-    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair
+    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair, ProfessorSectionView
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
@@ -52,6 +53,7 @@ default_tag_column_dict = {
     Profs: {"firstName", "lastName"},
     Clubs: {"club_name"},
     Sections: {"section_name"},
+    ProfessorSectionView: {"firstName", "lastName"},
 }
 
 EXPECTED_KEYS_BY_ENTITY = {
@@ -65,7 +67,9 @@ EXPECTED_KEYS_BY_ENTITY = {
         "tone",
         "timestamp",
         "username",
-        "filename",
+        "audio_file_id",
+        "script",
+        "emphasis"
     ],
     Clubs: [
         "club_name",
@@ -87,14 +91,14 @@ EXPECTED_KEYS_BY_ENTITY = {
         'raw_events_text',
     ],
     Courses: [
-            'dept',
-            'courseNum',
-            'courseName',
-            'units',
-            'raw_prerequisites_text',
-            'raw_concurrent_text',
-            'raw_recommended_text',
-            'termsOffered',
+        'dept',
+        'courseNum',
+        'courseName',
+        'units',
+        'raw_prerequisites_text',
+        'raw_concurrent_text',
+        'raw_recommended_text',
+        'termsOffered',
     ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
@@ -134,7 +138,18 @@ class BadDictionaryKeyError(Exception):
 
 
 class BadDictionaryValueError(Exception):
-    """Raised when the given JSON/dict has unexpected wake
+    """Raised when the given JSON/dict has unexpected data
+
+    Attributes:
+        message: an explanation.
+    """
+
+    def __init__(self, message: str):
+        self.message = message
+
+
+class InvalidOperationOnView(Exception):
+    """Raised when trying to perform insert/update operations on a View.
 
     Attributes:
         message: an explanation.
@@ -247,6 +262,7 @@ class NimbusDatabase(ABC):
     ) -> List[str]:
         """A higher-order function to ????
 
+
         Example:
         >>> db = NimbusDatabase("config.json")
         >>> db.get_property_from_related_entities(
@@ -346,6 +362,7 @@ def raises_database_error(func):
             # HINT: security always wins, so try to catch the EXACT exception
             raise e
 
+
     return wrapper
 
 
@@ -362,6 +379,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.Profs = Profs
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
+        self.ProfessorSectonView = ProfessorSectionView
         self.QuestionAnswerPair = QuestionAnswerPair
         self.inspector = inspect(self.engine)
         self._create_database_session()
@@ -435,6 +453,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
         __safe_create(self.QuestionAnswerPair)
+        __safe_create(self.ProfessorSectonView)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -478,7 +497,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def full_fuzzy_match(self, tag_value, identifier):
         return fuzz.ratio(tag_value, identifier)
 
-    def get_property_from_entity(
+    def _get_property_from_entity(
         self,
         prop: str,
         entity: UNION_ENTITIES,
@@ -538,7 +557,16 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             return None
 
         sorted_results = sorted(results, key=lambda pair: pair[0])
-        return sorted_results[-1][2]
+        return sorted_results
+
+    def get_property_from_entity(self,
+        prop: str,
+        entity: UNION_ENTITIES,
+        identifier: str,
+        tag_column_map: dict = default_tag_column_dict):
+
+        props = self._get_property_from_entity(prop, entity, identifier, tag_column_map)
+        return props[-1][2]
 
     def get_course_properties(
         self, department: str, course_num: Union[str, int]
@@ -603,11 +631,15 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         Returns:
             True if all is good, else False
         """
+        # Initialize the entity and check if it's a View
+        entity = entity_type()
+        if entity.is_view:
+            msg = "insert_entity for View: {} is not supported"
+            raise InvalidOperationOnView(msg.format(entity_type))
 
         # Get formatted data, entity attributes, and entity object
         formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
         entity_attributes = entity_type.__dict__
-        entity = entity_type()
 
         # Logging...
         print(
@@ -615,6 +647,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 CYAN_COLOR_CODE, entity_attributes["__tablename__"], RESET_COLOR_CODE
             )
         )
+
 
         # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
@@ -625,9 +658,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )[1:-1]
 
         # Ignore the first field, since it's assumed to be a primary key
+        # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
@@ -665,6 +699,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         Returns:
             True if all is good, else False
         """
+        # Initialize dummy entity to check if it's a View
+        dummy_entity = entity_type()
+        if dummy_entity.is_view:
+            msg = "update_entity for View: {} is not supported"
+            raise InvalidOperationOnView(msg.format(entity_type))
 
         # If we're not filtering for anything, we shouldn't be calling update_entity
         if len(filter_fields) == 0:
@@ -711,9 +750,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                     entity_attributes.items(),
                 )
             ).keys()
-        )[1:]
+        )[1:-1]
 
         # Ignore the first field, since it's assumed to be a primary key
+        # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
             setattr(entity, entity_field, formatted_data[entity_field])
@@ -739,7 +779,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "tone": "serious-but-not-really",
             "timestamp": 1577077883,
             "username": "guest",
-            "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
+            "emphasis": "us",
+            "script": "Nimbus"
+            "audio_file_id": Id from Google Drive  # noqa because too hard.
         }
 
         Raises:
@@ -844,13 +886,12 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "timestamp": feedback["timestamp"],
         }
 
-    def get_all_answerable_pairs(self):
-        qa_entity = QuestionAnswerPair
 
-        query_session = self.session.query(
-            qa_entity.question_format, qa_entity.answer_format, qa_entity.can_we_answer
-        )
-        result = query_session.all()
-        true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
 
-        return true_result
+if __name__=="__main__":
+    db = NimbusMySQLAlchemy()
+    print(
+        db._get_property_from_entity("section_name",
+                                     ProfessorSectionView,
+                                     "Braun")
+    )

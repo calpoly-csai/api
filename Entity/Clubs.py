@@ -18,6 +18,7 @@ class Clubs(Base):
     box = Column(String(3))
     advisor = Column(String(255))
     affiliation = Column(String(255))
+    is_view = False
 
     def __repr__(self):
         D = self.__dict__

@@ -16,10 +16,9 @@ class SectionType(enum.Enum):
 
 class ProfessorSectionView(Base):
     __tablename__ = "Professor_Teaches_Section"
-    id = Column(Integer, primary_key=True)
     id_sections = Column(Integer)
     profAliasId = Column(Integer)
-    section_name = Column(String(255))
+    section_name = Column(String(255), primary_key=True)
     instructor = Column(String(255))
     profEmailAlias = Column(String(255))
     title = Column(String(255))
@@ -36,6 +35,7 @@ class ProfessorSectionView(Base):
     phoneNumber = Column(String(20))
     researchInterests = Column(Text)
     email = Column(String(255))
+    is_view = True
 
     def __repr__(self):
         D = self.__dict__

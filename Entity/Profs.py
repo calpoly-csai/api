@@ -7,17 +7,18 @@ Base = declarative_base()
 
 class Profs(Base):
     __tablename__ = "Profs"
-    firstName = Column(String(50), primary_key=True)
+    firstName = Column(String(50))
     lastName = Column(String(50))
     phoneNumber = Column(String(20))
     researchInterests = Column(Text)
-    email = Column(String(255))
+    email = Column(String(255), primary_key=True)
     OfficeHours = Column(Text)
     Platform = Column(Text)
     LatestQuarter = Column(Text)
     Office = Column(Text)
     department = Column(String(255))
     title = Column(String(255))
+    is_view = True
 
     def __repr__(self):
         D = self.__dict__

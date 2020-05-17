@@ -26,13 +26,15 @@ class AudioSampleMetaData(Base):
     tone = Column(String(255))
     timestamp = Column(Integer)
     username = Column(String(255))
-    # Text chosen because filename is standarized concatenation of above fields
-    filename = Column(Text)
+    emphasis = Column(String(255))
+    script = Column(String(255))
+    audio_file_id = Column(String(1024))
+    is_view = False
 
     def __repr__(self):
         string = "<AudioSampleMetaData ( id={}, is_wake_word={}, "
         string += "first_name={}, last_name={}, gender={}, noise_level={}, "
-        string += "location={}, tone={}, timestamp={}, username={} )>"
+        string += "location={}, tone={}, timestamp={}, username={}, emphasis={}, script={}, audio_file_id={} )>"
         return string.format(
             self.id,
             self.is_wake_word,
@@ -44,4 +46,7 @@ class AudioSampleMetaData(Base):
             self.tone,
             self.timestamp,
             self.username,
+            self.emphasis,
+            self.script,
+            self.audio_file_id
         )

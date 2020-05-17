@@ -7,3 +7,4 @@ class PolyRating:
         self.avgRating = avgRating
         self.numRatings = numRatings
         self.Professors_id = Professors_id
+        self.is_view = False

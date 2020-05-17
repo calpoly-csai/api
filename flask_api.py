@@ -45,9 +45,32 @@ CONFIG_FILE_PATH = "config.json"
 app = Flask(__name__)
 CORS(app)
 
-# TODO: Initialize these somewhere else
-db = NimbusMySQLAlchemy()
-nimbus = Nimbus(db)
+# NOTE:
+#   1. Flask "@app.route" decorated functions below commonly use a db or nimbus object
+#   2. Because the decorated functions can't take parameters (because they're called by
+#      the flask web server) the database and nimbus objects must be global
+#   3. Instantiating objects at the global level (especially ones that are resource-intensive
+#      to create like db and nimbus objects) is obviously bad practice
+#
+# Due to these points, the very un-Pythonic solution chosen is to initialize these objects as
+# None at the top level, associate them with actual objects in the `initialize*()` functions,
+# and do None checks in the functions below.
+
+db = None
+nimbus = None
+
+
+def initializeDB():
+    global db
+    if db is None:
+        db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+
+
+def initializeNimbus():
+    global nimbus
+    if nimbus is None:
+        initializeDB()
+        nimbus = Nimbus(db)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -73,6 +96,7 @@ def handle_question():
     server are:
         * storage of the logs of this question-answer-session.
     """
+    initializeNimbus()
 
     if request.is_json is False:
         return "request must be JSON", BAD_REQUEST
@@ -98,6 +122,8 @@ def handle_question():
 def save_a_recording():
     """Given the audio metadata & audio file, resamples it, saves to storage.
     """
+    if("wav_file" not in request.files):
+         return "Please provide an audio file under the key 'wav_file' in your FormData", BAD_REQUEST
     validator = WakeWordValidator()
     formatter = WakeWordFormatter()
     data = request.form
@@ -105,22 +131,21 @@ def save_a_recording():
     if issues:
         try:
             data = validator.fix(data, issues)
-        except FormatterValidatorError as err:
+        except WakeWordValidatorError as err:
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
-
-    # Save the audiofile first because if error then we stop here
-    # We do not want to save any metadata to the NimbusDatabase
-    #   if the audio fails to save.
-    save_audiofile(filename, request.files["wav_file"])
-
-    # Let's also save the filename to the database for quick reference
-    formatted_data["filename"] = filename
-
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
     try:
-        db.save_audio_sample_meta_data(formatted_data)
+         file_id = save_audiofile(filename, request.files["wav_file"])
+    except Exception as err:
+         return f"Failed to save audio file because... {err}", BAD_REQUEST
+
+    formatted_data["audio_file_id"] = file_id
+
+    initializeDB()
+
+    try:
+        db.insert_entity(AudioSampleMetaData, formatted_data)
     except BadDictionaryKeyError as e:
         return str(e), BAD_REQUEST
     except BadDictionaryValueError as e:
@@ -133,7 +158,7 @@ def save_a_recording():
         # HINT: security always wins
         raise e
 
-    return filename
+    return f"Successfully stored audiofile as '{filename}'", SUCCESS
 
 
 @app.route("/new_data/office_hours", methods=["POST"])
@@ -141,7 +166,8 @@ def save_office_hours():
     """
     Persists list of office hours
     """
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
+
     data = request.get_json()
     for professor in data:
         try:
@@ -179,7 +205,8 @@ def save_query_phrase():
             print("error", err)
             return str(err), BAD_REQUEST
 
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
+
     try:
         phrase_saved = db.insert_entity(QuestionAnswerPair, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
@@ -213,7 +240,8 @@ def save_feedback():
             print("error:", err)
             return str(err), BAD_REQUEST
 
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    initializeDB()
+
     try:
         feedback_saved = db.insert_entity(QueryFeedback, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
@@ -234,8 +262,9 @@ def save_courses():
     """
     Persists list of courses
     """
-    data = json.loads(request.get_json())
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    data = request.get_json()
+    initializeDB()
+
     for course in data["courses"]:
         try:
             db.update_entity(Courses, course, ['dept', 'courseNum'])
@@ -259,8 +288,9 @@ def save_clubs():
     """
     Persists list of clubs
     """
-    data = json.loads(request.get_json())
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    data = request.get_json()
+    initializeDB()
+
     for club in data["clubs"]:
         try:
             db.update_entity(Clubs, club, ['club_name'])
@@ -284,8 +314,9 @@ def save_locations():
     """
     Persists list of locations
     """
-    data = json.loads(request.get_json())
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    data = request.get_json()
+    initializeDB()
+
     for location in data["locations"]:
         try:
             db.update_entity(Locations, location, ['longitude', 'latitude'])
@@ -309,8 +340,9 @@ def save_calendars():
     """
     Persists list of calendars
     """
-    data = json.loads(request.get_json())
-    db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+    data = request.get_json()
+    initializeDB()
+
     for calendar in data["calendars"]:
         try:
             db.update_entity(Calendars, calendar, ['date', 'raw_events_text'])
@@ -344,7 +376,8 @@ def create_filename(form):
         "timestamp",
         "username",
     ]
-    values = list(map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
+    values = list(
+        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return "_".join(values) + ".wav"
 
 
@@ -364,10 +397,10 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
 
     # Check if the current entity is already within the database
     if (
-        db.get_property_from_entity(
-            prop="Name", entity=entity_type, identifier=current_prof["Name"]
-        )
-        != None
+            db.get_property_from_entity(
+                prop="Name", entity=entity_type, identifier=current_prof["Name"]
+            )
+            != None
     ):
 
         update_office_hours = True
@@ -429,7 +462,8 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
     # Update the entity properties if the entity already exists
     if update_office_hours == True:
         db.update_entity(
-            entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"]
+            entity_type=entity_type, data_dict=sql_data, filter_fields=[
+                "Email"]
         )
 
     # Otherwise, add the entity to the database
@@ -445,7 +479,18 @@ def resample_audio():
 
 
 def save_audiofile(filename, content):
-    """Actually save the file into Google Drive."""
+    """
+     Saves audio to the club Google Drive folder.
+
+     Parameters
+     ----------
+     - `filename:str` the name of the file, formatted by `create_filename()`
+     - `content: file` audio file to store
+
+     Returns
+     -------
+     The Google Drive file id that can be used to retrieve the file
+     """
     # Initialize our google drive authentication object using saved credentials,
     # or through the command line
     gauth = GoogleAuth()
@@ -465,6 +510,7 @@ def save_audiofile(filename, content):
     # Set the content of the file to the POST request's wav_file parameter.
     file.content = content
     file.Upload()  # Upload file.
+    return file["id"]
 
 
 def get_folder_id():
@@ -478,4 +524,5 @@ def convert_to_mfcc():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE, port=gunicorn_config.PORT)
+    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE,
+            port=gunicorn_config.PORT)
