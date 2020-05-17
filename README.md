@@ -12,6 +12,8 @@ Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CS
 ## GitHub Actions Status
 ![Deploy To Staging Server](https://github.com/calpoly-csai/api/workflows/Deploy%20Dev%20To%20Staging%20Server/badge.svg)
 
+![Build and Deploy to Google Compute Engine](https://github.com/calpoly-csai/api/workflows/Build%20and%20Deploy%20to%20Google%20Compute%20Engine/badge.svg)
+
 ![Run Tests](https://github.com/calpoly-csai/api/workflows/Run%20Tests/badge.svg)
 
 ![Python PEP8 Style Check](https://github.com/calpoly-csai/api/workflows/Python%20PEP8%20Style%20Check/badge.svg)
@@ -29,7 +31,7 @@ Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CS
 
 ## Dev Environment Setup
 ### Prerequisites
-1. Python 3.6.9
+1. Python 3.6.9 (we're running 3.8 on staging)
 
 2. pip 9.0.1
 
@@ -92,7 +94,7 @@ _Sometimes the format script is not enough, so run `lint` to manually style our 
 
 ## Deployment
 ### What we use
-A Linux server (e.g. Ubuntu 18.04.3 LTS) with open firewall at `tcp:5000` for _Flask_, `tcp:80` for _http_ and `tcp:443` for _https_ and `tcp:22` for _ssh_ and `tcp:3306` for _mysql_
+A Linux server (e.g. Ubuntu 20.04 LTS) with open firewall at `tcp:5000` for _Flask_, `tcp:80` for _http_ and `tcp:443` for _https_ and `tcp:22` for _ssh_ and `tcp:3306` for _mysql_
 
 [See this documentation of the database deployment process](https://github.com/calpoly-csai/wiki/wiki/How-To-Install-and-Set-Up-a-Remote-MySQL-5.7-Database-and-Python-3.6-on-Ubuntu-18.04-with-Google-Cloud-Platform)
 
