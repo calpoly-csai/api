@@ -83,6 +83,7 @@ RUN ./setup_special_files_from_env.py
 # the above "download..." scripts were inconsistent on herkou
 # so lets download the required stuff directly
 RUN python -m pip install --upgrade urllib3 && python3 -m spacy download en_core_web_sm
+
 # TODO: consider en_core_web_lg or en_core_web_md because server can handle it
 # RUN python3 -m spacy download en_core_web_lg
 RUN python3 -m nltk.downloader punkt

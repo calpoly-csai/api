@@ -258,6 +258,7 @@ class NimbusDatabase(ABC):
     ) -> List[str]:
         """A higher-order function to ????
 
+
         Example:
         >>> db = NimbusDatabase("config.json")
         >>> db.get_property_from_related_entities(
@@ -356,6 +357,7 @@ def raises_database_error(func):
             #       versus development time (being able to see errors quickly)
             # HINT: security always wins, so try to catch the EXACT exception
             raise e
+
 
     return wrapper
 
@@ -490,7 +492,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def full_fuzzy_match(self, tag_value, identifier):
         return fuzz.ratio(tag_value, identifier)
 
-    def get_property_from_entity(
+    def _get_property_from_entity(
         self,
         prop: str,
         entity: UNION_ENTITIES,
@@ -550,7 +552,16 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             return None
 
         sorted_results = sorted(results, key=lambda pair: pair[0])
-        return sorted_results[-1][2]
+        return sorted_results
+
+    def get_property_from_entity(self,
+        prop: str,
+        entity: UNION_ENTITIES,
+        identifier: str,
+        tag_column_map: dict = default_tag_column_dict):
+
+        props = self._get_property_from_entity(prop, entity, identifier, tag_column_map)
+        return props[-1][2]
 
     def get_course_properties(
         self, department: str, course_num: Union[str, int]
@@ -632,6 +643,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 CYAN_COLOR_CODE, entity_attributes["__tablename__"], RESET_COLOR_CODE
             )
         )
+
 
         # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
@@ -877,17 +889,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "answer_type": answer_string_to_type[feedback["type"]],
             "timestamp": feedback["timestamp"],
         }
-
-    def get_all_answerable_pairs(self):
-        qa_entity = QuestionAnswerPair
-
-        query_session = self.session.query(
-            qa_entity.question_format, qa_entity.answer_format, qa_entity.can_we_answer
-        )
-        result = query_session.all()
-        true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
-
-        return true_result
 
 if __name__=="__main__":
     db = NimbusMySQLAlchemy()

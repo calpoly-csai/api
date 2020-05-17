@@ -19,13 +19,14 @@ class QuestionClassifier:
         self.overall_features = {}
 
     def train_model(self):
-        self.classifier = self.build_question_classifier()
+        self.classifier = self.build_question_classifier(question_pairs=self.db.get_all_answerable_pairs())
         save_model(self.classifier, "nlp-model")
 
 
     def load_latest_classifier(self):
         self.classifier = load_latest_model()
-        with open(PROJECT_DIR+ '/models/features/overall_features.json', 'r') as fp:
+        with open(PROJECT_DIR + '/models/features/overall_features.json', 'r') as fp:
+
             self.overall_features = json.load(fp)
 
     def get_question_features(self, question):
@@ -137,15 +138,6 @@ class QuestionClassifier:
             json.dump(self.overall_features, fp)
 
         return new_classifier
-
-    def train_model(self):
-        self.classifier = self.build_question_classifier()
-        self.save_model(self.classifier, "nlp-model")
-
-    def load_latest_classifier(self):
-        self.classifier = load_latest_model()
-        with open(PROJECT_DIR + "/models/features/overall_features.json", "r") as fp:
-            self.overall_features = json.load(fp)
 
     def is_wh_word(self, token):
         return token.tag_ in self.WH_WORDS
