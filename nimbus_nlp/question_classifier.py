@@ -90,9 +90,9 @@ class QuestionClassifier:
                 features[token.text] = 90
 
             # Add WH words with weight 60
-            elif self.is_wh_word(token):
+            #elif self.is_wh_word(token):
                 # .lemma_ is already lowercase; no .lower() needed
-                features[token.lemma_] = 60
+            #    features[token.lemma_] = 3
 
             # Add all other words with weight 30
             else:
@@ -130,10 +130,10 @@ class QuestionClassifier:
         # Cast to string because the classifier returns a numpy.str_, which causes issues
         # with the validate_wh function below.
         predicted_question = str(self.classifier.predict(test_vector)[0])
-        wh_words_match = self.validate_wh(doc, predicted_question)
+        #wh_words_match = self.validate_wh(doc, predicted_question)
 
-        if not wh_words_match:
-            return "WH Words Don't Match"
+        #if not wh_words_match:
+        #    return "WH Words Don't Match"
 
         return predicted_question
 
