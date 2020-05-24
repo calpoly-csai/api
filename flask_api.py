@@ -3,6 +3,7 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
+from sqlalchemy.exc import OperationalError
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -60,17 +61,21 @@ db = None
 nimbus = None
 
 
-def initializeDB():
+def init_nimbus_db():
     global db
+    global nimbus
+
+    # If not connected to db, initialize db connection and Nimbus client
     if db is None:
         db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
-
-
-def initializeNimbus():
-    global nimbus
-    if nimbus is None:
-        initializeDB()
         nimbus = Nimbus(db)
+    # If not connected, reset db and Nimbus client
+    else:
+        try:
+            db.engine.connect()
+        except OperationalError:
+            db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+            nimbus - Nimbus(db)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -96,7 +101,7 @@ def handle_question():
     server are:
         * storage of the logs of this question-answer-session.
     """
-    initializeNimbus()
+    init_nimbus_db()
 
     if request.is_json is False:
         return "request must be JSON", BAD_REQUEST
@@ -142,7 +147,7 @@ def save_a_recording():
 
     formatted_data["audio_file_id"] = file_id
 
-    initializeDB()
+    init_nimbus_db()
 
     try:
         db.insert_entity(AudioSampleMetaData, formatted_data)
@@ -166,7 +171,7 @@ def save_office_hours():
     """
     Persists list of office hours
     """
-    initializeDB()
+    init_nimbus_db()
 
     data = request.get_json()
     for professor in data:
@@ -205,7 +210,7 @@ def save_query_phrase():
             print("error", err)
             return str(err), BAD_REQUEST
 
-    initializeDB()
+    init_nimbus_db()
 
     try:
         phrase_saved = db.insert_entity(QuestionAnswerPair, data)
@@ -240,7 +245,7 @@ def save_feedback():
             print("error:", err)
             return str(err), BAD_REQUEST
 
-    initializeDB()
+    init_nimbus_db()
 
     try:
         feedback_saved = db.insert_entity(QueryFeedback, data)
@@ -263,7 +268,7 @@ def save_courses():
     Persists list of courses
     """
     data = request.get_json()
-    initializeDB()
+    init_nimbus_db()
 
     for course in data["courses"]:
         try:
@@ -289,7 +294,7 @@ def save_clubs():
     Persists list of clubs
     """
     data = request.get_json()
-    initializeDB()
+    init_nimbus_db()
 
     for club in data["clubs"]:
         try:
@@ -315,7 +320,7 @@ def save_locations():
     Persists list of locations
     """
     data = request.get_json()
-    initializeDB()
+    init_nimbus_db()
 
     for location in data["locations"]:
         try:
@@ -341,7 +346,7 @@ def save_calendars():
     Persists list of calendars
     """
     data = request.get_json()
-    initializeDB()
+    init_nimbus_db()
 
     for calendar in data["calendars"]:
         try:
