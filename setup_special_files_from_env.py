@@ -25,8 +25,8 @@ SAMPLE_CONFIG_FILE = "config.json_SAMPLE"
 CONFIG_FILE = "config.json"
 
 # PYDRIVE stuff
-SAMPLE_PYDRIVE_FILE = "settings.yml_SAMPLE"
-PYDRIVE_FILE = "settings.yml"
+SAMPLE_PYDRIVE_FILE = "settings.yaml_SAMPLE"
+PYDRIVE_FILE = "settings.yaml"
 PYDRIVE_FOLDER_ID_FILE = "folder_id.txt"
 GOOGLE_DRIVE_FOLDER_ID_FILE = "folder_id.txt"
 GOOGLE_DRIVE_FOLDER_ID_KEY = "GOOGLE_DRIVE_FOLDER_ID"
