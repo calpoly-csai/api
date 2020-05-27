@@ -118,7 +118,16 @@ if __name__ == "__main__":
         # ---------------------------------------------------------------------
         # install some nice-to-have terminal color packages
         # ---------------------------------------------------------------------
-        cmd = [python, "-m", "pip", "install", "colorful", "termcolor", "ansicolors", "colorama"]
+        cmd = [
+            python,
+            "-m",
+            "pip",
+            "install",
+            "colorful",
+            "termcolor",
+            "ansicolors",
+            "colorama",
+        ]
         run(cmd, fail_msg="oops color packages failed to install. that's ok.", q=Q)
         from colorama import init
         import colorful as cf
@@ -236,11 +245,22 @@ if __name__ == "__main__":
     res = run(cmd_tokens=cmd, fail_msg="failed to get `urllib3`", q=Q)
 
     # =========================================================================
+    # GET THE `en_core_web_sm` SPACY MODEL
+    # =========================================================================
+    cmd = [python, "-m", "spacy", "download", "en_core_web_sm"]
+    res = run(cmd_tokens=cmd, fail_msg="failed to get `urllib3`", q=Q)
+
+    # =========================================================================
     # GET THE `en_core_web_lg` SPACY MODEL
     # TODO: consider letting people download the small/medium one...
     # =========================================================================
     if SKIP_SPACY_DOWNLOAD:
-        print(bold_blue("\n\nskipping spacy download...\n\n"))
+        print(
+            bold_blue(
+                "\n\nskipping spacy's `en_core_web_lg` download..."
+                "\nnimbus will work with `en_core_web_sm` at least\n"
+            )
+        )
     else:
         cmd = [python, "-m", "spacy", "download", "en_core_web_lg"]
         res = run(cmd_tokens=cmd, fail_msg="failed to get `urllib3`", q=Q)
