@@ -1,0 +1,3 @@
+[submodule "nimbus-config-secrets"]
+	path = nimbus-config-secrets
+	url = http://github.com/calpoly-csai/nimbus-config-secrets.git
