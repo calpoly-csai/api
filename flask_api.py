@@ -78,15 +78,17 @@ def init_nimbus_db():
             nimbus - Nimbus(db)
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def hello():
+    """
+    always return SUCCESS (200) code on this route, to serve as a health check.
+    """
     if request.method == "POST":
         request_body = request.get_json()
-        return jsonify({"you sent": request_body})
+        return jsonify({"you sent": request_body}), SUCCESS
     else:
-        response_code = 42
         response_json = jsonify({"name": "hello {}".format(str(app))})
-        return response_json, response_code
+        return response_json, SUCCESS
 
 
 def generate_session_token() -> str:
