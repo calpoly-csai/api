@@ -248,7 +248,7 @@ if __name__ == "__main__":
     # GET THE `en_core_web_sm` SPACY MODEL
     # =========================================================================
     cmd = [python, "-m", "spacy", "download", "en_core_web_sm"]
-    res = run(cmd_tokens=cmd, fail_msg="failed to get `urllib3`", q=Q)
+    res = run(cmd_tokens=cmd, fail_msg="failed to get `en_core_web_sm`", q=Q)
 
     # =========================================================================
     # GET THE `en_core_web_lg` SPACY MODEL
@@ -263,7 +263,7 @@ if __name__ == "__main__":
         )
     else:
         cmd = [python, "-m", "spacy", "download", "en_core_web_lg"]
-        res = run(cmd_tokens=cmd, fail_msg="failed to get `urllib3`", q=Q)
+        res = run(cmd_tokens=cmd, fail_msg="failed to get `en_core_web_lg`", q=Q)
 
     # =========================================================================
     # DONE
