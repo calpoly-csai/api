@@ -20,7 +20,7 @@ docker build -t gcr.io/$GCE_PROJECT/$GCE_INSTANCE-image:$GITHUB_SHA \
           --build-arg GOOGLE_CLOUD_NLP_CREDENTIALS \
           --build-arg GOOGLE_CLOUD_NLP_MODEL_NAME \
           --build-arg GIT_SSH_CERT \
-          --build-arg PORT .
+          --build-arg PORT="$SSL_PORT" .
 
 docker push gcr.io/$GCE_PROJECT/$GCE_INSTANCE-image:$GITHUB_SHA
 
