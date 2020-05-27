@@ -60,7 +60,7 @@ def run(
     stdout = subprocess.DEVNULL if q else None  # default STDOUT
     stderr = subprocess.DEVNULL if q else None  # default STDERR
     stdout = subprocess.PIPE if capture_output else stdout
-    res = subprocess.run(cmd, stdout=stdout, stderr=stdout)
+    res = subprocess.run(cmd_tokens, stdout=stdout, stderr=stdout)
     if skip_assert:
         return res.stdout.decode("utf-8").strip() if capture_output else res
     else:
