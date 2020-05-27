@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# This script manually deploys to Google Compute Engine
+#
+#
 
 export GITHUB_SHA=`git rev-parse HEAD`
 

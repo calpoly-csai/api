@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+
+"""
+This python script will initialize variables
+to configure Gunicorn workers that support the Flask API server.
+"""
+
 from os import environ
 import multiprocessing
 
