@@ -1,3 +1,6 @@
+#
+# This Dockerfile will configure the environment for Google Compute Engine
+#
 FROM ubuntu:latest
 
 # the chmod will
@@ -84,8 +87,12 @@ RUN ls -lah /usr/lib/python3/dist-packages/
 # setup SSH keys correctly
 RUN /nimbus/setup_letsencrypt.sh
 
-# https://github.com/heroku/alpinehelloworld/blob/master/Dockerfile
-# Heroku will set the PORT environment variable
 # the gunicorn_config.py will check the env vars for PORT
 # else it will do port=8080
-CMD ["gunicorn", "flask_api:app", "--config=gunicorn_config.py"]
+CMD ["gunicorn", \
+  "flask_api:app", \
+  "--config=gunicorn_config.py", \
+  "--keyfile=/etc/letsencrypt/live/nimbus.api.calpolycsai.com/privkey.pem", \
+  "--certfile=/etc/letsencrypt/live/nimbus.api.calpolycsai.com/cert.pem", \
+  "--ca-certs=/etc/letsencrypt/live/nimbus.api.calpolycsai.com/chain.pem" \
+  ]

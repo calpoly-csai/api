@@ -18,6 +18,3 @@ bind = ":" + str(PORT)
 # We have 1 core, so 1 * 2 + 1 = 3
 workers = 3
 timeout = 90
-keyfile = "/etc/letsencrypt/live/nimbus.api.calpolycsai.com/privkey.pem"
-certfile = "/etc/letsencrypt/live/nimbus.api.calpolycsai.com/cert.pem"
-ca_certs = "/etc/letsencrypt/live/nimbus.api.calpolycsai.com/chain.pem"
