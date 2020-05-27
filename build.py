@@ -118,7 +118,7 @@ if __name__ == "__main__":
         # ---------------------------------------------------------------------
         # install some nice-to-have terminal color packages
         # ---------------------------------------------------------------------
-        cmd = [python, "-m", "pip", "install", "colorful", "termcolor", "ansicolors"]
+        cmd = [python, "-m", "pip", "install", "colorful", "termcolor", "ansicolors", "colorama"]
         run(cmd, fail_msg="oops color packages failed to install. that's ok.", q=Q)
         from colorama import init
         import colorful as cf
