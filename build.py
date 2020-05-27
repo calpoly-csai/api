@@ -53,8 +53,11 @@ def run(
     capture_output=False,
     qq=False,
 ):
+    # print(os.path.split(cmd_tokens[0:1])[1] + cmd_tokens[1:])
+    fname = os.path.split(cmd_tokens[0])[1]
+    args = cmd_tokens[1:]
     run_msg = run_msg or bold_blue(
-        "\nrunning... " + " ".join(cmd_tokens) + "\n", nested=True
+        "\nrunning... " + " ".join([fname] + args) + "\n", nested=True
     )
     print(run_msg) if not qq else None
     stdout = subprocess.DEVNULL if q else None  # default STDOUT
