@@ -1,9 +1,8 @@
 #!/bin/bash
 #
-# This script will build and deploy using gunicorn locally, without docker.
+# This script will just deploy using gunicorn locally, without docker.
 #
+# This deployment script is not concerned with SSL encryption.
+# It just gets the code running on multiple CPU processors.
 #
-python3 setup_special_files_from_env.py
-./download_nlp_stuff.sh
-python3 download_nltk_stuff.py
 gunicorn flask_api:app --config=gunicorn_config.py
