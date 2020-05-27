@@ -96,9 +96,15 @@ if __name__ == "__main__":
         action="store_true",
         help="optionally skip the download of spacy's `en_core_web_lg` model (default: False).",
     )
+    parser.add_argument(
+        "--no-overwrite-secrets",
+        action="store_true",
+        help="optionally avoid passing in --overwrite-all into setup_special_files_from_env (default: False).",
+    )
     args = parser.parse_args()
     Q = args.quiet
     SKIP_SPACY_DOWNLOAD = args.skip_spacy_download
+    NO_OVERWRITE_SECRETS = args.no_overwrite_secrets
 
     # =========================================================================
     # GET THE CURRENTLY RUNNING PYTHON EXECUTABLE PATH
@@ -174,7 +180,10 @@ if __name__ == "__main__":
     # =========================================================================
     # SETUP THE SPECIAL/SECRET FILES
     # =========================================================================
-    cmd = [python, "setup_special_files_from_env.py"]
+    if NO_OVERWRITE_SECRETS:
+        cmd = [python, "setup_special_files_from_env.py"]
+    else:
+        cmd = [python, "setup_special_files_from_env.py", "--overwrite-all"]
     missing_secrets_msg = (
         bold_red(
             "failed to setup special files" + "\n\n" + "you need the ", nested=True
