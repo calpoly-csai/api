@@ -7,11 +7,12 @@ Base = declarative_base()
 
 
 class SectionType(enum.Enum):
-    activity = Act = 0
-    seminar = Sem = 1
-    independent = Ind = 2
-    lab = 3
-    lecture = Lec = 4
+    NA = 0
+    activity = Act = 1
+    seminar = Sem = 2
+    independent = Ind = 3
+    lab = 4
+    lecture = Lec = 5
 
 
 class Sections(Base):
@@ -24,7 +25,7 @@ class Sections(Base):
     phone = Column(String(255))
     office = Column(String(255))
     type = Column(Enum(SectionType))
-    days = Column(SET("M", "T", "W", "R", "F"))
+    days = Column(String(255))
     start = Column(String(255))
     end = Column(String(255))
     location = Column(String(255))

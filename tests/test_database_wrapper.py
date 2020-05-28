@@ -22,7 +22,7 @@ ENTITY_TYPES = [
     "Courses",
     "Locations",
     "QuestionAnswerPair",
-    "Profs",
+    "Professors",
     "Clubs",
     "Sections",
 ]

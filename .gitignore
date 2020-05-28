@@ -123,3 +123,6 @@ auth.json
 settings.yml
 settings.yaml
 nimbus_api.iml
+
+# models
+*pkl

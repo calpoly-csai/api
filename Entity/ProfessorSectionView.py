@@ -17,10 +17,10 @@ class SectionType(enum.Enum):
 class ProfessorSectionView(Base):
     __tablename__ = "Professor_Teaches_Section"
     id_sections = Column(Integer)
-    profAliasId = Column(Integer)
+    prof_alias_id = Column(Integer)
     section_name = Column(String(255), primary_key=True)
     instructor = Column(String(255))
-    profEmailAlias = Column(String(255))
+    prof_email_alias = Column(String(255))
     title = Column(String(255))
     phone = Column(String(255))
     office = Column(String(255))
@@ -30,10 +30,10 @@ class ProfessorSectionView(Base):
     end = Column(String(255))
     location = Column(String(255))
     department = Column(String(255))
-    firstName = Column(String(50))
-    lastName = Column(String(50))
-    phoneNumber = Column(String(20))
-    researchInterests = Column(Text)
+    first_name = Column(String(50))
+    last_name = Column(String(50))
+    phone_number = Column(String(20))
+    research_interests = Column(Text)
     email = Column(String(255))
     is_view = True
 
