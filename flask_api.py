@@ -119,7 +119,6 @@ def handle_question():
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
 
-    init_nimbus_db()
     response = {"answer": nimbus.answer_question(question)}
 
     if "session" in request_body:
@@ -591,7 +590,5 @@ def convert_to_mfcc():
 
 
 if __name__ == "__main__":
-    db = NimbusMySQLAlchemy();
-    db._create_all_tables();
     app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE,
             port=gunicorn_config.PORT)

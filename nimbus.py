@@ -73,11 +73,6 @@ class Nimbus:
 
 
 if __name__ == "__main__":
-    ve = VariableExtractor()
     db = NimbusMySQLAlchemy()
-    qa_pairs = db.get_all_answerable_pairs()
-    qa_pairs.append(("What sections does [PROF] teach?",
-                     "[PROF] teaches [PROF..section_name..PROF_SECTION..and]."))
-    qa_dict = create_qa_mapping(generate_qa_pairs(qa_pairs, db))
-    extracted = ve.extract_variables("What sections does Khosmood teach?")
-    print(qa_dict["What sections does [PROF] teach?"].answer(extracted))
+    qc = QuestionClassifier(db)
+    qc.train_model()

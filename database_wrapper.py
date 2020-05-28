@@ -545,9 +545,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         MATCH_THRESHOLD = 80
 
-        if prop not in entity.__dict__:
-            return None
-
+        identifier = identifier.lower()
         # TODO: be smart by check only Professor.firstName Professor.lastName
         # TODO: only check Course.dept, Course.course_num, Course.course_name
         tag_props = []
@@ -562,7 +560,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             tags = []
             for tag_prop in tag_props:
                 total_similarity += self.full_fuzzy_match(
-                    str(row.__dict__[tag_prop]), identifier
+                    str(row.__dict__[tag_prop]).lower(), identifier
                 )
                 tags.append(str(row.__dict__[tag_prop]))
 
@@ -573,6 +571,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             return None
 
         sorted_results = sorted(results, key=lambda pair: pair[0])
+        print(sorted_results)
         return sorted_results
 
     def get_property_from_entity(self,
