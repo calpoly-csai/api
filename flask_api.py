@@ -46,6 +46,7 @@ CONFIG_FILE_PATH = "config.json"
 app = Flask(__name__)
 CORS(app)
 
+
 # NOTE:
 #   1. Flask "@app.route" decorated functions below commonly use a db or nimbus object
 #   2. Because the decorated functions can't take parameters (because they're called by
@@ -78,7 +79,7 @@ def init_nimbus_db():
             nimbus - Nimbus(db)
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def hello():
     """
     always return SUCCESS (200) code on this route, to serve as a health check.
