@@ -75,8 +75,9 @@ RUN ./setup_special_files_from_env.py
 
 RUN python -m pip install --upgrade urllib3
 
-# go en_core_web_lg "big" or go home xD
-RUN python3 -m spacy download en_core_web_lg
+# get en_core_web_sm
+RUN python3 -m spacy download en_core_web_sm
+# RUN python3 -m spacy download en_core_web_lg
 
 # just make sure the file is there
 RUN ls | grep config
