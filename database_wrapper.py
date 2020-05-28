@@ -391,7 +391,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.Profs = Profs
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
-        self.ProfessorSectonView = ProfessorSectionView
+        self.ProfessorSectionView = ProfessorSectionView
         self.OfficeHours = OfficeHours
         self.QuestionAnswerPair = QuestionAnswerPair
         self.Professors = Professors
