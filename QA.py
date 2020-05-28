@@ -6,6 +6,7 @@ from Entity.Locations import Locations
 from Entity.Profs import Profs
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections
+from Entity.ProfessorSectionView import ProfessorSectionView
 from database_wrapper import NimbusMySQLAlchemy
 import itertools
 
@@ -21,6 +22,7 @@ tag_lookup = {
     "COURSE": Courses,
     "SECRET_HIDEOUT": Locations,
     "SECTION": Sections,
+    "PROF_SECTION": ProfessorSectionView
 }
 
 
@@ -80,9 +82,15 @@ def string_sub(a_format):
     return functools.partial(_string_sub, a_format)
 
 
-def _get_property(prop: str, extracted_info: Extracted_Vars, db: NimbusMySQLAlchemy):
+def _get_property(prop: str,
+                  table: str,
+                  extracted_info: Extracted_Vars,
+                  db: NimbusMySQLAlchemy):
     ent_string = extracted_info["normalized entity"]
-    ent = tag_lookup[extracted_info["tag"]]
+    if table is None:
+        ent = tag_lookup[extracted_info["tag"]]
+    else:
+        ent = tag_lookup[table]
     try:
         value = db.get_property_from_entity(
             prop=prop, entity=ent, identifier=ent_string
@@ -93,8 +101,36 @@ def _get_property(prop: str, extracted_info: Extracted_Vars, db: NimbusMySQLAlch
         return {f"db_{prop}": value}
 
 
-def get_property(prop: str):
-    return functools.partial(_get_property, prop)
+def get_property(prop: str, table: str = None):
+    return functools.partial(_get_property, prop, table)
+
+
+def _get_property_list(prop: str,
+                       joiner: str,
+                       table: str,
+                       extracted_info: Extracted_Vars,
+                       db: NimbusMySQLAlchemy):
+    ent_string = extracted_info["normalized entity"]
+    if table is None:
+        ent = tag_lookup[extracted_info["tag"]]
+    else:
+        ent = tag_lookup[table]
+
+    try:
+        values = db._get_property_from_entity(
+            prop=prop, entity=ent, identifier=ent_string
+        )
+    except IndexError:
+        return {f"db_{prop}": None}
+    else:
+        exact_matches = get_all_exact_matches(values)
+        return {f"db_{prop}": _grammatical_join(exact_matches, joiner)}
+
+
+def get_property_list(prop: str,
+                      joiner: str,
+                      table: str = None):
+    return functools.partial(_get_property_list, prop, joiner, table)
 
 
 def _generic_answer_formatter(
@@ -207,39 +243,55 @@ def chain_db_access(fns: List[DB_Query]) -> DB_Query:
     return functools.partial(_chain_db_access, fns)
 
 
+def get_all_exact_matches(matches):
+    exact = matches[-1][1]
+    exact_matches = []
+    for match in reversed(matches):
+        if match[1] == exact:
+            exact_matches.append(match[2])
+    return exact_matches
+
+
 def generate_qa_pairs(qa_pairs: Tuple[str, str], db: NimbusMySQLAlchemy):
-    text_in_brackets = r"\[[^\[\]]*\]"
     qa_objs = []
     for pair in qa_pairs:
-        q = pair[0]
-        a = pair[1]
+        q, a = pair
         db_access_fns = []
-        # Find all bracketed tokens ([PROF], [COURSE..units], etc)
-        matches = re.findall(text_in_brackets, a)
-        ents = []
-        for match in matches:
-            # If match is a property
-            if ".." in match:
-                ent, prop = match[1:-1].split("..", 1)
-                db_access_fns.append(get_property(prop))
-                # "db" prefix is used to disambiguate database and entity data
-                # in _string_sub and _generic_answer_formatter. See above.
-                a = a.replace(match, "{db_" + prop + "}")
-            # If match is an entity
+        tokens = a.split()
+        for i, token in enumerate(tokens):
+            # I get errors if I don't cast token to a string here, even though str.split() should
+            # return a list of strings
+            match = re.match(r"\[(.*?)\]", str(token))
+            if not match:
+                continue
             else:
-                ents.append(match)
-        if len(ents) == 1:
-            a = a.replace(ents[0], "{ex}")
-        else:
-            for ent in ents:
-                # "ex" prefix is added for the same reason as above.
-                # Not necessary for current _string_sub function, but useful
-                # for when we extract multiple variables
-                a = a.replace(ent, "{ex_" + ent[1:-1] + "}")
+                subtokens = match.group(1).split("..")
+                # Match is an entity
+                if len(subtokens) == 1:
+                    tokens[i] = "{ex}"
+                # Match is a single-item property
+                elif len(subtokens) == 2:
+                    ent, prop = subtokens
+                    db_access_fns.append(get_property(prop))
+                    tokens[i] = "{db_" + prop + "}"
+                elif len(subtokens) == 3:
+                    ent, prop, third = subtokens
+                    if third in tag_lookup:
+                        # third is a table name
+                        db_access_fns.append(get_property(prop, third))
+                    else:
+                        # third is the string used to join the last two of a list of items
+                        db_access_fns.append(get_property_list(prop, third))
+                    tokens[i] = "{db_" + prop + "}"
+                elif len(subtokens) == 4:
+                    ent, prop, table, joiner = subtokens
+                    db_access_fns.append(get_property_list(prop, joiner, table))
+                    tokens[i] = "{db_" + prop + "}"
+
         o = QA(
             q_format=q,
             db_query=chain_db_access(db_access_fns),
-            format_answer=string_sub(a),
+            format_answer=string_sub(" ".join(tokens)),
             db=db,
         )
         qa_objs.append(o)

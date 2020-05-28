@@ -64,12 +64,3 @@ class Nimbus:
         )
 
         return nlp_props
-
-
-if __name__ == "__main__":
-    ve = VariableExtractor()
-    db = NimbusMySQLAlchemy()
-    qa_pairs = db.get_all_answerable_pairs()
-    qa_dict = create_qa_mapping(generate_qa_pairs(qa_pairs, db))
-    extracted = ve.extract_variables("How do I zoom Dr. Khosmood?")
-    print(qa_dict["How do I zoom [PROF]?"].answer(extracted))

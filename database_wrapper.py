@@ -30,7 +30,9 @@ from Entity.Professors import ProfessorsProperties
 from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
 from Entity.Profs import Profs
+from Entity.Professors import Professors
 from Entity.ProfessorSectionView import ProfessorSectionView
+from Entity.OfficeHours import OfficeHours
 
 from fuzzywuzzy import fuzz
 
@@ -48,12 +50,12 @@ UNION_PROPERTIES = Union[ProfessorsProperties]
 
 default_tag_column_dict = {
     Calendars: {"date"},
-    Courses: {"courseName", "courseNum", "dept"},
+    Courses: {"course_name", "course_num", "dept"},
     Locations: {"building_number", "name"},
-    Profs: {"firstName", "lastName"},
+    Profs: {"first_name", "last_name"},
     Clubs: {"club_name"},
     Sections: {"section_name"},
-    ProfessorSectionView: {"firstName", "lastName"},
+    ProfessorSectionView: {"first_name", "last_name"},
 }
 
 EXPECTED_KEYS_BY_ENTITY = {
@@ -90,13 +92,16 @@ EXPECTED_KEYS_BY_ENTITY = {
     ],
     Courses: [
         'dept',
-        'courseNum',
-        'courseName',
+        'course_num',
+        'course_name',
         'units',
-        'raw_prerequisites_text',
-        'raw_concurrent_text',
-        'raw_recommended_text',
-        'termsOffered',
+        'prerequisites',
+        'corequisites',
+        'concurrent',
+        'recommended',
+        'terms_offered',
+        'ge_areas',
+        'desc',
     ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
@@ -121,6 +126,13 @@ EXPECTED_KEYS_BY_ENTITY = {
         "answer_format",
     ],
     QueryFeedback: ["question", "answer", "answer_type", "timestamp",],
+    Professors: ["first_name",
+                 "last_name",
+                 "phone_number",
+                 "email",
+                 "research_interests",
+                 "office",
+    ]
 }
 
 
@@ -376,7 +388,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
         self.ProfessorSectonView = ProfessorSectionView
+        self.OfficeHours = OfficeHours
         self.QuestionAnswerPair = QuestionAnswerPair
+        self.Professors = Professors
         self.inspector = inspect(self.engine)
         self._create_database_session()
         print("initialized NimbusMySQLAlchemy")
@@ -445,11 +459,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.Sections)
         __safe_create(self.Calendars)
         __safe_create(self.Courses)
-        __safe_create(self.Profs)
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
+        __safe_create(self.OfficeHours)
         __safe_create(self.QuestionAnswerPair)
-        __safe_create(self.ProfessorSectonView)
+        __safe_create(self.Professors)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -493,7 +507,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def full_fuzzy_match(self, tag_value, identifier):
         return fuzz.ratio(tag_value, identifier)
 
-    def get_property_from_entity(
+    def _get_property_from_entity(
         self,
         prop: str,
         entity: UNION_ENTITIES,
@@ -528,6 +542,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         MATCH_THRESHOLD = 80
 
+        if prop not in entity.__dict__:
+            return None
+
         # TODO: be smart by check only Professor.firstName Professor.lastName
         # TODO: only check Course.dept, Course.course_num, Course.course_name
         tag_props = []
@@ -553,7 +570,18 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             return None
 
         sorted_results = sorted(results, key=lambda pair: pair[0])
-        return sorted_results[-1][2]
+        return sorted_results
+
+    def get_property_from_entity(self,
+        prop: str,
+        entity: UNION_ENTITIES,
+        identifier: str,
+        tag_column_map: dict = default_tag_column_dict):
+
+        props = self._get_property_from_entity(prop, entity, identifier, tag_column_map)
+        if props is None:
+            return None
+        return props[-1][2]
 
     def get_course_properties(
         self, department: str, course_num: Union[str, int]
@@ -742,7 +770,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
-            setattr(entity, entity_field, formatted_data[entity_field])
+            setattr(entity, entity_field, str(formatted_data[entity_field]))
 
         # Perform the actual UPDATE/INSERT
         print("Saving to database: {}...".format(entity))
@@ -880,11 +908,3 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
 
         return true_result
-
-if __name__=="__main__":
-    db = NimbusMySQLAlchemy()
-    print(
-        db._get_property_from_entity("section_name",
-                                     ProfessorSectionView,
-                                     "Braun")
-    )

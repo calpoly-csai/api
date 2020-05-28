@@ -2,9 +2,9 @@
 
 
 class PolyRating:
-    def __init__(self, id, avgRating, numRatings, Professors_id):
+    def __init__(self, id, avg_rating, num_ratings, professors_id):
         self.id = id
-        self.avgRating = avgRating
-        self.numRatings = numRatings
-        self.Professors_id = Professors_id
+        self.avg_rating = avg_rating
+        self.num_ratings = num_ratings
+        self.professors_id = professors_id
         self.is_view = False

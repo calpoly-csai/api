@@ -8,12 +8,15 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+import json
 
 import gunicorn_config
 from Entity.Calendars import Calendars
 from Entity.Clubs import Clubs
 from Entity.Courses import Courses
 from Entity.Locations import Locations
+from Entity.Sections import Sections
+from Entity.Professors import Professors
 from database_wrapper import (
     BadDictionaryKeyError,
     BadDictionaryValueError,
@@ -108,6 +111,7 @@ def handle_question():
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
 
+    initializeNimbus()
     response = {"answer": nimbus.answer_question(question)}
 
     if "session" in request_body:
@@ -168,7 +172,7 @@ def save_office_hours():
     """
     initializeDB()
 
-    data = request.get_json()
+    data = json.loads(request.get_json())
     for professor in data:
         try:
             process_office_hours(data[professor], db)
@@ -190,7 +194,7 @@ def save_office_hours():
 @app.route("/new_data/phrase", methods=["POST"])
 def save_query_phrase():
     validator = PhrasesValidator()
-    data = request.get_json()
+    data = json.loads(request.get_json())
     try:
         issues = validator.validate(data)
     except:
@@ -225,7 +229,7 @@ def save_query_phrase():
 @app.route("/new_data/feedback", methods=["POST"])
 def save_feedback():
     validator = FeedbackValidator()
-    data = request.get_json()
+    data = json.loads(request.get_json())
     try:
         issues = validator.validate(data)
     except:
@@ -262,12 +266,12 @@ def save_courses():
     """
     Persists list of courses
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     initializeDB()
 
     for course in data["courses"]:
         try:
-            db.update_entity(Courses, course, ['dept', 'courseNum'])
+            db.update_entity(Courses, course, ['dept', 'course_num'])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -282,13 +286,37 @@ def save_courses():
 
     return "SUCCESS"
 
+@app.route("/new_data/sections", methods=["POST"])
+def save_sections():
+    """
+    Persists list of sections
+    """
+    data = json.loads(request.get_json())
+    initializeDB()
+
+    for section in data["sections"]:
+        try:
+            db.update_entity(Sections, section, ["section_name"])
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
 
 @app.route("/new_data/clubs", methods=["POST"])
 def save_clubs():
     """
     Persists list of clubs
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     initializeDB()
 
     for club in data["clubs"]:
@@ -314,7 +342,7 @@ def save_locations():
     """
     Persists list of locations
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     initializeDB()
 
     for location in data["locations"]:
@@ -335,12 +363,39 @@ def save_locations():
     return "SUCCESS"
 
 
+@app.route("/new_data/professors", methods=["POST"])
+def save_professors():
+    """
+    Persists a list of professors
+    """
+    data = json.loads(request.get_json())
+    initializeDB()
+
+    for prof in data["professors"]:
+        try:
+            print("PROF:", prof)
+            db.update_entity(Professors, prof, ["email"])
+        except BadDictionaryKeyError as e:
+            return str(e), BAD_REQUEST
+        except BadDictionaryValueError as e:
+            return str(e), BAD_REQUEST
+        except NimbusDatabaseError as e:
+            return str(e), BAD_REQUEST
+        except Exception as e:
+            # TODO: consider security tradeoff of displaying internal server errors
+            #       versus development time (being able to see errors quickly)
+            # HINT: security always wins
+            raise e
+
+    return "SUCCESS"
+
+
 @app.route("/new_data/calendars", methods=["POST"])
 def save_calendars():
     """
     Persists list of calendars
     """
-    data = request.get_json()
+    data = json.loads(request.get_json())
     initializeDB()
 
     for calendar in data["calendars"]:
@@ -445,18 +500,18 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
 
     # Generate the data structure for the database entry
     sql_data = {
-        "Name": last_name + ", " + first_name,
-        "LastName": last_name,
-        "FirstName": first_name,
-        "Office": current_prof["Office"],
-        "Phone": current_prof["Phone"],
-        "Email": current_prof["Email"],
-        "Monday": current_prof["Monday"],
-        "Tuesday": current_prof["Tuesday"],
-        "Wednesday": current_prof["Wednesday"],
-        "Thursday": current_prof["Thursday"],
-        "Friday": current_prof["Friday"],
-        "OfficeHours": office_hours,
+        "name": last_name + ", " + first_name,
+        "last_name": last_name,
+        "first_name": first_name,
+        "office": current_prof["Office"],
+        "phone": current_prof["Phone"],
+        "email": current_prof["Email"],
+        "monday": current_prof["Monday"],
+        "tuesday": current_prof["Tuesday"],
+        "wednesday": current_prof["Wednesday"],
+        "thursday": current_prof["Thursday"],
+        "friday": current_prof["Friday"],
+        "office_hours": office_hours,
     }
 
     # Update the entity properties if the entity already exists
@@ -512,5 +567,7 @@ def convert_to_mfcc():
 
 
 if __name__ == "__main__":
+    db = NimbusMySQLAlchemy();
+    db._create_all_tables();
     app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE,
             port=gunicorn_config.PORT)
