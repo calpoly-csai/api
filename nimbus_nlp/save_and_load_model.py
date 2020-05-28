@@ -30,5 +30,8 @@ def load_latest_model():
     train_path = PROJECT_DIR + "/models/classification/*"
     list_of_files = glob.glob(train_path)
     latest_file = max(list_of_files, key=os.path.getctime)
-    print(latest_file)
-    return joblib.load(latest_file)
+    filename, file_extension = os.path.splitext(latest_file)
+    if file_extension != ".pkl":
+        raise ValueError
+    else:
+        return joblib.load(latest_file)
