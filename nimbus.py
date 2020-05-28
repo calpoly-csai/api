@@ -28,12 +28,14 @@ class Nimbus:
             self.classifier.train_model()
             self.classifier.load_latest_classifier()
 
-
     def answer_question(self, question):
         ans_dict = self.predict_question(question)
         print(ans_dict)
         try:
-            qa = self.qa_dict[ans_dict["question class"]]
+            if ans_dict is None:
+                qa = self.qa_dict[self.classifier.classify_question(question)]
+            else:
+                qa = self.qa_dict[ans_dict["question class"]]
         except KeyError:
             # Printed if question isn't found. This occurs because the training set is broader
             # than the answerable question set.
@@ -63,6 +65,9 @@ class Nimbus:
 
         # Get dictionary of extracted variables + info from question
         nlp_props = self.variable_extractor.extract_variables(question)
+
+        if nlp_props is None:
+            return None
 
         # Add classified question to nlp_props dictionary
         nlp_props["question class"] = self.classifier.classify_question(
