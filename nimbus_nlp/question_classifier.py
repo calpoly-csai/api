@@ -34,7 +34,7 @@ class QuestionClassifier:
         Train KNN classification model with overall feature set.
         """
         questions = [q[0] for q in question_pairs]
-        question_features = [self.get_question_features(self.nlp(q)) for q in questions]
+        question_features = [self.get_question_features(self.nlp(str(q))) for q in questions]
 
         for feature in question_features:
             for key in feature:
