@@ -21,7 +21,13 @@ class Nimbus:
         self.variable_extractor = VariableExtractor()
         self.classifier = QuestionClassifier(db)
         # Load classifier model
-        self.classifier.load_latest_classifier()
+        try:
+            self.classifier.load_latest_classifier()
+        except ValueError as e:
+            # happens when the model doesn't exist; train a new model.
+            self.classifier.train_model()
+            self.classifier.load_latest_classifier()
+
 
     def answer_question(self, question):
         ans_dict = self.predict_question(question)
@@ -64,3 +70,14 @@ class Nimbus:
         )
 
         return nlp_props
+
+
+if __name__ == "__main__":
+    ve = VariableExtractor()
+    db = NimbusMySQLAlchemy()
+    qa_pairs = db.get_all_answerable_pairs()
+    qa_pairs.append(("What sections does [PROF] teach?",
+                     "[PROF] teaches [PROF..section_name..PROF_SECTION..and]."))
+    qa_dict = create_qa_mapping(generate_qa_pairs(qa_pairs, db))
+    extracted = ve.extract_variables("What sections does Khosmood teach?")
+    print(qa_dict["What sections does [PROF] teach?"].answer(extracted))

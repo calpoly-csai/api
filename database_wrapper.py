@@ -69,7 +69,9 @@ EXPECTED_KEYS_BY_ENTITY = {
         "tone",
         "timestamp",
         "username",
-        "filename",
+        "audio_file_id",
+        "script",
+        "emphasis"
     ],
     Clubs: [
         "club_name",
@@ -272,6 +274,7 @@ class NimbusDatabase(ABC):
     ) -> List[str]:
         """A higher-order function to ????
 
+
         Example:
         >>> db = NimbusDatabase("config.json")
         >>> db.get_property_from_related_entities(
@@ -370,6 +373,7 @@ def raises_database_error(func):
             #       versus development time (being able to see errors quickly)
             # HINT: security always wins, so try to catch the EXACT exception
             raise e
+
 
     return wrapper
 
@@ -490,7 +494,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
 
         return true_result
-
 
     def return_qa_pair_csv(self):
         data = self.get_all_qa_pairs()
@@ -663,6 +666,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             )
         )
 
+
         # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
         entity_fields = list(
@@ -793,7 +797,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "tone": "serious-but-not-really",
             "timestamp": 1577077883,
             "username": "guest",
-            "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
+            "emphasis": "us",
+            "script": "Nimbus"
+            "audio_file_id": Id from Google Drive  # noqa because too hard.
         }
 
         Raises:
@@ -898,13 +904,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "timestamp": feedback["timestamp"],
         }
 
-    def get_all_answerable_pairs(self):
-        qa_entity = QuestionAnswerPair
-
-        query_session = self.session.query(
-            qa_entity.question_format, qa_entity.answer_format, qa_entity.can_we_answer
-        )
-        result = query_session.all()
-        true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
-
-        return true_result
+if __name__=="__main__":
+    db = NimbusMySQLAlchemy()
+    print(
+        db._get_property_from_entity("section_name",
+                                     ProfessorSectionView,
+                                     "Braun")
+    )

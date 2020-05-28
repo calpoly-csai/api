@@ -43,7 +43,9 @@ TEST_AUDIO_SAMPLE_META_DATA_DATA_DICT = {
     "tone": "serious-but-not-really",
     "timestamp": 1577077883,
     "username": "guest",
-    "filename": "ww_q_serious-fake_m_doe_jj_1577077883_guest.wav",
+    "audio_file_id": "OZ234FSDWER5GDF234F4G5",
+    "script": "Nimbus",
+    "emphasis": "us"
 }
 
 TEST_CONFIG_FILENAME = "testConfig.json"

@@ -3,6 +3,7 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
+from sqlalchemy.exc import OperationalError
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -48,6 +49,7 @@ CONFIG_FILE_PATH = "config.json"
 app = Flask(__name__)
 CORS(app)
 
+
 # NOTE:
 #   1. Flask "@app.route" decorated functions below commonly use a db or nimbus object
 #   2. Because the decorated functions can't take parameters (because they're called by
@@ -63,28 +65,34 @@ db = None
 nimbus = None
 
 
-def initializeDB():
+def init_nimbus_db():
     global db
+    global nimbus
+
+    # If not connected to db, initialize db connection and Nimbus client
     if db is None:
         db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
-
-
-def initializeNimbus():
-    global nimbus
-    if nimbus is None:
-        initializeDB()
         nimbus = Nimbus(db)
+    # If not connected, reset db and Nimbus client
+    else:
+        try:
+            db.engine.connect()
+        except OperationalError:
+            db = NimbusMySQLAlchemy(config_file=CONFIG_FILE_PATH)
+            nimbus = Nimbus(db)
 
 
 @app.route("/", methods=["GET", "POST"])
 def hello():
+    """
+    always return SUCCESS (200) code on this route, to serve as a health check.
+    """
     if request.method == "POST":
         request_body = request.get_json()
-        return jsonify({"you sent": request_body})
+        return jsonify({"you sent": request_body}), SUCCESS
     else:
-        response_code = 42
         response_json = jsonify({"name": "hello {}".format(str(app))})
-        return response_json, response_code
+        return response_json, SUCCESS
 
 
 def generate_session_token() -> str:
@@ -99,7 +107,7 @@ def handle_question():
     server are:
         * storage of the logs of this question-answer-session.
     """
-    initializeNimbus()
+    init_nimbus_db()
 
     if request.is_json is False:
         return "request must be JSON", BAD_REQUEST
@@ -111,7 +119,7 @@ def handle_question():
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
 
-    initializeNimbus()
+    init_nimbus_db()
     response = {"answer": nimbus.answer_question(question)}
 
     if "session" in request_body:
@@ -126,6 +134,8 @@ def handle_question():
 def save_a_recording():
     """Given the audio metadata & audio file, resamples it, saves to storage.
     """
+    if("wav_file" not in request.files):
+         return "Please provide an audio file under the key 'wav_file' in your FormData", BAD_REQUEST
     validator = WakeWordValidator()
     formatter = WakeWordFormatter()
     data = request.form
@@ -133,23 +143,21 @@ def save_a_recording():
     if issues:
         try:
             data = validator.fix(data, issues)
-        except FormatterValidatorError as err:
+        except WakeWordValidatorError as err:
             return str(err), BAD_REQUEST
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
+    try:
+         file_id = save_audiofile(filename, request.files["wav_file"])
+    except Exception as err:
+         return f"Failed to save audio file because... {err}", BAD_REQUEST
 
-    # Save the audiofile first because if error then we stop here
-    # We do not want to save any metadata to the NimbusDatabase
-    #   if the audio fails to save.
-    save_audiofile(filename, request.files["wav_file"])
+    formatted_data["audio_file_id"] = file_id
 
-    # Let's also save the filename to the database for quick reference
-    formatted_data["filename"] = filename
-
-    initializeDB()
+    init_nimbus_db()
 
     try:
-        db.save_audio_sample_meta_data(formatted_data)
+        db.insert_entity(AudioSampleMetaData, formatted_data)
     except BadDictionaryKeyError as e:
         return str(e), BAD_REQUEST
     except BadDictionaryValueError as e:
@@ -162,7 +170,7 @@ def save_a_recording():
         # HINT: security always wins
         raise e
 
-    return filename
+    return f"Successfully stored audiofile as '{filename}'", SUCCESS
 
 
 @app.route("/new_data/office_hours", methods=["POST"])
@@ -170,7 +178,7 @@ def save_office_hours():
     """
     Persists list of office hours
     """
-    initializeDB()
+    init_nimbus_db()
 
     data = json.loads(request.get_json())
     for professor in data:
@@ -209,7 +217,7 @@ def save_query_phrase():
             print("error", err)
             return str(err), BAD_REQUEST
 
-    initializeDB()
+    init_nimbus_db()
 
     try:
         phrase_saved = db.insert_entity(QuestionAnswerPair, data)
@@ -244,7 +252,7 @@ def save_feedback():
             print("error:", err)
             return str(err), BAD_REQUEST
 
-    initializeDB()
+    init_nimbus_db()
 
     try:
         feedback_saved = db.insert_entity(QueryFeedback, data)
@@ -266,8 +274,9 @@ def save_courses():
     """
     Persists list of courses
     """
+
     data = json.loads(request.get_json())
-    initializeDB()
+    init_nimbus_db()
 
     for course in data["courses"]:
         try:
@@ -292,7 +301,7 @@ def save_sections():
     Persists list of sections
     """
     data = json.loads(request.get_json())
-    initializeDB()
+    init_nimbus_db()
 
     for section in data["sections"]:
         try:
@@ -316,8 +325,9 @@ def save_clubs():
     """
     Persists list of clubs
     """
+
     data = json.loads(request.get_json())
-    initializeDB()
+    init_nimbus_db()
 
     for club in data["clubs"]:
         try:
@@ -342,8 +352,9 @@ def save_locations():
     """
     Persists list of locations
     """
+
     data = json.loads(request.get_json())
-    initializeDB()
+    init_nimbus_db()
 
     for location in data["locations"]:
         try:
@@ -369,7 +380,7 @@ def save_professors():
     Persists a list of professors
     """
     data = json.loads(request.get_json())
-    initializeDB()
+    init_nimbus_db()
 
     for prof in data["professors"]:
         try:
@@ -395,8 +406,9 @@ def save_calendars():
     """
     Persists list of calendars
     """
+
     data = json.loads(request.get_json())
-    initializeDB()
+    init_nimbus_db()
 
     for calendar in data["calendars"]:
         try:
@@ -534,7 +546,18 @@ def resample_audio():
 
 
 def save_audiofile(filename, content):
-    """Actually save the file into Google Drive."""
+    """
+     Saves audio to the club Google Drive folder.
+
+     Parameters
+     ----------
+     - `filename:str` the name of the file, formatted by `create_filename()`
+     - `content: file` audio file to store
+
+     Returns
+     -------
+     The Google Drive file id that can be used to retrieve the file
+     """
     # Initialize our google drive authentication object using saved credentials,
     # or through the command line
     gauth = GoogleAuth()
@@ -554,6 +577,7 @@ def save_audiofile(filename, content):
     # Set the content of the file to the POST request's wav_file parameter.
     file.content = content
     file.Upload()  # Upload file.
+    return file["id"]
 
 
 def get_folder_id():

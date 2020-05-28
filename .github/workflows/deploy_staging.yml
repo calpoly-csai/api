@@ -1,9 +1,10 @@
 name: Deploy Dev To Staging Server
 
-on:
-  push:
-    branches:
-      - dev
+# on:
+#   push:
+#     branches:
+#       - dev
+
 
 jobs:
   deploy:

@@ -126,7 +126,6 @@ def _get_property_list(prop: str,
         exact_matches = get_all_exact_matches(values)
         return {f"db_{prop}": _grammatical_join(exact_matches, joiner)}
 
-
 def get_property_list(prop: str,
                       joiner: str,
                       table: str = None):
