@@ -7,9 +7,9 @@ class Corrections:
         tableNameToCorrect,
         columnNameToCorrect,
     ):
-        self.correctionId = correctionId
-        self.rawText = rawText
-        self.correctionText = correctionText
-        self.tableNameToCorrect = tableNameToCorrect
-        self.columnNameToCorrect = columnNameToCorrect
+        self.correction_id = correctionId
+        self.raw_text = rawText
+        self.correction_text = correctionText
+        self.table_name_to_correct = tableNameToCorrect
+        self.column_name_to_correct = columnNameToCorrect
         self.is_view = False

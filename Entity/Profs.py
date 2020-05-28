@@ -7,15 +7,15 @@ Base = declarative_base()
 
 class Profs(Base):
     __tablename__ = "Profs"
-    firstName = Column(String(50))
-    lastName = Column(String(50))
-    phoneNumber = Column(String(20))
-    researchInterests = Column(Text)
+    first_name = Column(String(50))
+    last_name = Column(String(50))
+    phone_number = Column(String(20))
+    research_interests = Column(Text)
     email = Column(String(255), primary_key=True)
-    OfficeHours = Column(Text)
-    Platform = Column(Text)
-    LatestQuarter = Column(Text)
-    Office = Column(Text)
+    office_hours = Column(Text)
+    platform = Column(Text)
+    latest_quarter = Column(Text)
+    office = Column(Text)
     department = Column(String(255))
     title = Column(String(255))
     is_view = True

@@ -25,14 +25,17 @@ class Courses(Base):
     # TODO: update schema and this Courses class to follow snake_case convention
     id = Column(Integer, primary_key=True)
     dept = Column(String(5))
-    courseNum = Column(Integer)
-    termsOffered = Column(SET("F", "W", "SP", "SU", "TBD"))
+    course_num = Column(Integer)
+    terms_offered = Column(SET("F", "W", "SP", "SU", "TBD", "CR/NC", "NA"))
     units = Column(String(5))
-    courseName = Column(String(255))
-    raw_concurrent_text = Column(Text)
-    raw_recommended_text = Column(Text)
-    raw_prerequisites_text = Column(Text)
+    course_name = Column(String(255))
+    concurrent = Column(Text)
+    corequisites = Column(Text)
+    recommended = Column(Text)
+    prerequisites = Column(Text)
+    ge_areas = Column(Text)
+    desc = Column(Text)
     is_view = False
 
     def __repr__(self):
-        return "<Courses (dept={}, course_num={})>".format(self.dept, self.courseNum)
+        return "<Courses (dept={}, course_num={})>".format(self.dept, self.course_num)

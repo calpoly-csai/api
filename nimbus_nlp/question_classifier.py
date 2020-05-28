@@ -10,7 +10,7 @@ from typing import Tuple
 
 
 class QuestionClassifier:
-    def __init__(self, db, file_path="question_set_clean.csv"):
+    def __init__(self, db):
         self.db = db
         self.classifier = None
         self.nlp = spacy.load('en_core_web_sm')
@@ -127,8 +127,5 @@ class QuestionClassifier:
         # with the validate_wh function below.
         predicted_question = str(self.classifier.predict(test_vector)[0])
         # wh_words_match = self.validate_wh(doc, predicted_question)
-
-        # if not wh_words_match:
-        #    return "WH Words Don't Match"
 
         return predicted_question
