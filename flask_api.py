@@ -46,6 +46,7 @@ CONFIG_FILE_PATH = "config.json"
 app = Flask(__name__)
 CORS(app)
 
+
 # NOTE:
 #   1. Flask "@app.route" decorated functions below commonly use a db or nimbus object
 #   2. Because the decorated functions can't take parameters (because they're called by
@@ -80,13 +81,15 @@ def init_nimbus_db():
 
 @app.route("/", methods=["GET", "POST"])
 def hello():
+    """
+    always return SUCCESS (200) code on this route, to serve as a health check.
+    """
     if request.method == "POST":
         request_body = request.get_json()
-        return jsonify({"you sent": request_body})
+        return jsonify({"you sent": request_body}), SUCCESS
     else:
-        response_code = 42
         response_json = jsonify({"name": "hello {}".format(str(app))})
-        return response_json, response_code
+        return response_json, SUCCESS
 
 
 def generate_session_token() -> str:

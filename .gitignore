@@ -121,4 +121,5 @@ settings.yaml
 .export_env_vars
 auth.json
 settings.yml
+settings.yaml
 nimbus_api.iml
