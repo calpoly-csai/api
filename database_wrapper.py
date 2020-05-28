@@ -566,7 +566,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         tag_column_map: dict = default_tag_column_dict):
 
         props = self._get_property_from_entity(prop, entity, identifier, tag_column_map)
-        return props[-1][2]
+
+        if props is not None:
+            return props[-1][2]
 
     def get_course_properties(
         self, department: str, course_num: Union[str, int]
