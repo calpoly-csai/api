@@ -49,6 +49,8 @@ class QA:
         self.format_answer = format_answer
 
     def answer(self, extracted_vars):
+        if self.db_query is None:
+            return self.format_answer({"normalized entity": ""}, dict())
         db_data = self.db_query(extracted_vars, self.db)
         answer = self.format_answer(extracted_vars, db_data)
         return answer
@@ -239,6 +241,8 @@ def _chain_db_access(
 
 # Actually returns partial[Dict[str, Any]]
 def chain_db_access(fns: List[DB_Query]) -> DB_Query:
+    if fns is None:
+        return None
     return functools.partial(_chain_db_access, fns)
 
 
@@ -286,6 +290,9 @@ def generate_qa_pairs(qa_pairs: Tuple[str, str], db: NimbusMySQLAlchemy):
                     ent, prop, table, joiner = subtokens
                     db_access_fns.append(get_property_list(prop, joiner, table))
                     tokens[i] = "{db_" + prop + "}"
+
+        if not db_access_fns:
+            db_access_fns = None
 
         o = QA(
             q_format=q,
