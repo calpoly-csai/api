@@ -13,6 +13,7 @@ import json
 import csv
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
+import datetime
 
 
 import sqlalchemy
@@ -33,6 +34,7 @@ from Entity.Profs import Profs
 from Entity.Professors import Professors
 from Entity.ProfessorSectionView import ProfessorSectionView
 from Entity.OfficeHours import OfficeHours
+from Entity.QuestionLog import QuestionLog
 
 from fuzzywuzzy import fuzz
 
@@ -134,7 +136,8 @@ EXPECTED_KEYS_BY_ENTITY = {
                  "email",
                  "research_interests",
                  "office",
-    ]
+    ],
+    QuestionLog: ["question", "timestamp"],
 }
 
 
@@ -621,6 +624,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             AudioSampleMetaData: self.format_audio_sample_meta_data_dict,
             QuestionAnswerPair: self.format_query_phrase_dict,
             QueryFeedback: self.format_query_feedback_dict,
+            QuestionLog: self.format_question_log,
         }
 
         # Format data (if needed), and validate data
@@ -867,6 +871,17 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "question_format": phrases["question"]["format"],
             "answer_format": phrases["answer"]["format"],
         }
+
+    def format_question_log(self, question_info: dict) -> dict:
+        """
+        Extracts question data from the provided dictionary to upload data to the server.
+        """
+
+        return {
+            "question": question_info["question"],
+            "timestamp": datetime.datetime.now(),
+        }
+
 
     def __del__(self):
         print("NimbusMySQLAlchemy closed")
