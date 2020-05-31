@@ -71,25 +71,46 @@ class VariableExtractor:
         # Make the prediction
         request = self.get_prediction(sent)
 
-        # Obtain the entity in the sentence
-        entity = request.payload[0].text_extraction.text_segment.content
+        # Create entity dictionary
+        e = {"entities": [], "normalized question": None, "input question": None}
 
-        # Obtain the predicted tag
-        tag = request.payload[0].display_name
+        normalized_question = sent
 
-        # Removes excessive words from the entity
-        normalized_entity = VariableExtractor.excess_word_removal(entity, tag)
+        for n in range(0, len(request.payload)):
 
-        # Replaces the entity of input question with its corresponding tag
-        normalized_question = sent.replace(entity, "[" + tag + "]")
+            # Obtain the entity in the sentence
+            entity = request.payload[n].text_extraction.text_segment.content
 
-        return {
-            "entity": entity,
-            "tag": tag,
-            "normalized entity": normalized_entity,
-            "input question": sent,
-            "normalized question": normalized_question,
-        }
+            # Obtain the predicted tag
+            tag = request.payload[n].display_name
+
+            # Removes excessive words from the entity
+            normalized_entity = VariableExtractor.excess_word_removal(entity, tag)
+
+            # Replaces the entity of input question with its corresponding tag
+            normalized_entity_question = sent.replace(entity, "[" + tag + "]")
+
+            # Replaces the entity of input question with its corresponding tag along with previous tags
+            normalized_question = normalized_question.replace(entity, "[" + tag + "]")
+
+            e['entities'].append({
+                "entity": entity,
+                "tag": tag,
+                "normalized entity": normalized_entity,
+                #"input question": sent,
+                "normalized entity question": normalized_entity_question
+            })
+
+        # Add the raw question
+        e['input question'] = sent
+
+        # Add the question with all its corresponding tags replaced
+        e['normalized question'] = normalized_question
+
+        return e
+
+
+
 
     @staticmethod
     def excess_word_removal(entity, tag):
