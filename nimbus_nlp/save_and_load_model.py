@@ -1,16 +1,9 @@
 import glob
 import os
-import numpy as np
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction import DictVectorizer
-from sklearn import svm
 import joblib
 import pickle
 from datetime import datetime
-from os import listdir
-from os.path import isfile, join
-import re
+
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 now = datetime.now()
@@ -37,4 +30,8 @@ def load_latest_model():
     train_path = PROJECT_DIR + "/models/classification/*"
     list_of_files = glob.glob(train_path)
     latest_file = max(list_of_files, key=os.path.getctime)
-    return joblib.load(latest_file)
+    filename, file_extension = os.path.splitext(latest_file)
+    if file_extension != ".pkl":
+        raise ValueError
+    else:
+        return joblib.load(latest_file)

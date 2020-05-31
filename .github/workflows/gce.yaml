@@ -30,17 +30,17 @@ env:
   DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
   PYDRIVE_CLIENT_ID: ${{ secrets.PYDRIVE_CLIENT_ID }}
   PYDRIVE_CLIENT_SECRET: ${{ secrets.PYDRIVE_CLIENT_SECRET }}
-  # in issue #67 we considered generating 
+  # in issue #67 we considered generating
   # credentials.json in a similar fashion to config.json
   # but figured that the file was unreasonably large
-  # and therefore a simple JSON string would suffice. 
+  # and therefore a simple JSON string would suffice.
   # https://github.com/calpoly-csai/api/issues/67
   GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
   GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
   GOOGLE_CLOUD_NLP_CREDENTIALS: ${{ secrets.GOOGLE_CLOUD_NLP_CREDENTIALS }}
   GOOGLE_CLOUD_NLP_MODEL_NAME:  ${{ secrets.GOOGLE_CLOUD_NLP_MODEL_NAME }}
   GIT_SSH_CERT: ${{secrets.GIT_SSH_CERT}}
-  PORT: ${{secrets.PORT}}
+  PORT: ${{secrets.SSL_PORT}}
 
 jobs:
   setup-build-publish-deploy:
@@ -91,7 +91,7 @@ jobs:
           --container-image=gcr.io/$GCE_PROJECT/$GCE_INSTANCE-image:$GITHUB_SHA \
           --project=$GCE_PROJECT
 
-    # if we don't run cleanup, the disk on google cloud will fill with old images.  
+    # if we don't run cleanup, the disk on google cloud will fill with old images.
     # run docker's prune command to cleanup old images.
     - name: Cleanup
       run: |

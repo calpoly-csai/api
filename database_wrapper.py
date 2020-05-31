@@ -32,8 +32,9 @@ from Entity.Clubs import Clubs
 from Entity.Sections import Sections, SectionType
 from Entity.Profs import Profs
 from Entity.QuestionLog import QuestionLog
+from Entity.Professors import Professors
 from Entity.ProfessorSectionView import ProfessorSectionView
-from Entity.QuestionLog import QuestionLog
+from Entity.OfficeHours import OfficeHours
 
 from fuzzywuzzy import fuzz
 
@@ -45,18 +46,23 @@ CYAN_COLOR_CODE = "\033[96m"
 RESET_COLOR_CODE = "\033[00m"
 
 UNION_ENTITIES = Union[
-    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair, ProfessorSectionView
+    AudioSampleMetaData,
+    Calendars,
+    Courses,
+    Profs,
+    QuestionAnswerPair,
+    ProfessorSectionView,
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
 default_tag_column_dict = {
     Calendars: {"date"},
-    Courses: {"courseName", "courseNum", "dept"},
+    Courses: {"course_name", "course_num", "dept"},
     Locations: {"building_number", "name"},
-    Profs: {"firstName", "lastName"},
+    Profs: {"first_name", "last_name"},
     Clubs: {"club_name"},
     Sections: {"section_name"},
-    ProfessorSectionView: {"firstName", "lastName"},
+    ProfessorSectionView: {"first_name", "last_name"},
 }
 
 EXPECTED_KEYS_BY_ENTITY = {
@@ -70,7 +76,9 @@ EXPECTED_KEYS_BY_ENTITY = {
         "tone",
         "timestamp",
         "username",
-        "filename",
+        "audio_file_id",
+        "script",
+        "emphasis",
     ],
     Clubs: [
         "club_name",
@@ -86,14 +94,17 @@ EXPECTED_KEYS_BY_ENTITY = {
     ],
     Calendars: ["date", "day", "month", "year", "raw_events_text",],
     Courses: [
-        'dept',
-        'courseNum',
-        'courseName',
-        'units',
-        'raw_prerequisites_text',
-        'raw_concurrent_text',
-        'raw_recommended_text',
-        'termsOffered',
+        "dept",
+        "course_num",
+        "course_name",
+        "units",
+        "prerequisites",
+        "corequisites",
+        "concurrent",
+        "recommended",
+        "terms_offered",
+        "ge_areas",
+        "desc",
     ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
@@ -119,6 +130,14 @@ EXPECTED_KEYS_BY_ENTITY = {
     ],
     QueryFeedback: ["question", "answer", "answer_type", "timestamp",],
     QuestionLog: ["question", "timestamp"],
+    Professors: [
+        "first_name",
+        "last_name",
+        "phone_number",
+        "email",
+        "research_interests",
+        "office",
+    ],
 }
 
 
@@ -358,7 +377,6 @@ def raises_database_error(func):
             # HINT: security always wins, so try to catch the EXACT exception
             raise e
 
-
     return wrapper
 
 
@@ -375,8 +393,10 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.Profs = Profs
         self.AudioSampleMetaData = AudioSampleMetaData
         self.Locations = Locations
-        self.ProfessorSectonView = ProfessorSectionView
+        self.ProfessorSectionView = ProfessorSectionView
+        self.OfficeHours = OfficeHours
         self.QuestionAnswerPair = QuestionAnswerPair
+        self.Professors = Professors
         self.inspector = inspect(self.engine)
         self._create_database_session()
         print("initialized NimbusMySQLAlchemy")
@@ -445,11 +465,11 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         __safe_create(self.Sections)
         __safe_create(self.Calendars)
         __safe_create(self.Courses)
-        __safe_create(self.Profs)
         __safe_create(self.AudioSampleMetaData)
         __safe_create(self.Locations)
+        __safe_create(self.OfficeHours)
         __safe_create(self.QuestionAnswerPair)
-        __safe_create(self.ProfessorSectonView)
+        __safe_create(self.Professors)
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
@@ -527,6 +547,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         MATCH_THRESHOLD = 80
 
+        identifier = identifier.lower()
         # TODO: be smart by check only Professor.firstName Professor.lastName
         # TODO: only check Course.dept, Course.course_num, Course.course_name
         tag_props = []
@@ -541,7 +562,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             tags = []
             for tag_prop in tag_props:
                 total_similarity += self.full_fuzzy_match(
-                    str(row.__dict__[tag_prop]), identifier
+                    str(row.__dict__[tag_prop]).lower(), identifier
                 )
                 tags.append(str(row.__dict__[tag_prop]))
 
@@ -552,15 +573,20 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             return None
 
         sorted_results = sorted(results, key=lambda pair: pair[0])
+        print(sorted_results)
         return sorted_results
 
-    def get_property_from_entity(self,
+    def get_property_from_entity(
+        self,
         prop: str,
         entity: UNION_ENTITIES,
         identifier: str,
-        tag_column_map: dict = default_tag_column_dict):
+        tag_column_map: dict = default_tag_column_dict,
+    ):
 
         props = self._get_property_from_entity(prop, entity, identifier, tag_column_map)
+        if props is None:
+            return None
         return props[-1][2]
 
     def get_course_properties(
@@ -643,7 +669,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 CYAN_COLOR_CODE, entity_attributes["__tablename__"], RESET_COLOR_CODE
             )
         )
-
 
         # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
@@ -752,7 +777,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         # Ignore the last field, since it's the is_view boolean
         # Populate the entity with values from formatted_data
         for entity_field in entity_fields:
-            setattr(entity, entity_field, formatted_data[entity_field])
+            setattr(entity, entity_field, str(formatted_data[entity_field]))
 
         # Perform the actual UPDATE/INSERT
         print("Saving to database: {}...".format(entity))
@@ -775,7 +800,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "tone": "serious-but-not-really",
             "timestamp": 1577077883,
             "username": "guest",
-            "filename": "ww_q_serious-but-not-really_here_m_doe_jj_1577077883_guest.wav"  # noqa because too hard.
+            "emphasis": "us",
+            "script": "Nimbus"
+            "audio_file_id": Id from Google Drive  # noqa because too hard.
         }
 
         Raises:
@@ -822,7 +849,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def format_query_phrase_dict(self, phrases: dict) -> dict:
         """
         Formats query phrase to be saved to the server.
-        
+
         Parameters
         ----------
         `phrases : dict` A question answer pair:
@@ -861,7 +888,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def format_query_feedback_dict(self, feedback: dict) -> dict:
         """
             Formats query feedback to be saved to the server.
-            
+
             Parameters
             ----------
             `feedback : dict` A query feedback:
@@ -890,10 +917,8 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "timestamp": feedback["timestamp"],
         }
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     db = NimbusMySQLAlchemy()
-    print(
-        db._get_property_from_entity("section_name",
-                                     ProfessorSectionView,
-                                     "Braun")
-    )
+    print(db._get_property_from_entity("section_name", ProfessorSectionView, "Braun"))
+
