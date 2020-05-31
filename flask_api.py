@@ -120,10 +120,10 @@ def handle_question():
     if "question" not in request_body:
         return "request body should include the question", BAD_REQUEST
 
-    # try:
-    #     feedback_saved = db.insert_entity(QuestionLog, {"question": question})
-    # except (Exception) as e:
-    #     print("Could not store question upon user ask: ", str(e))
+    try:
+        feedback_saved = db.insert_entity(QuestionLog, {"question": question})
+    except (Exception) as e:
+        print("Could not store question upon user ask: ", str(e))
 
 
     response = {"answer": nimbus.answer_question(question)}
