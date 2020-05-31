@@ -86,15 +86,15 @@ if __name__ == "__main__":
     # ==================================================================
     parser = argparse.ArgumentParser(description="Build Nimbus.")
     parser.add_argument(
-        "-q",
-        "--quiet",
-        action="store_true",
-        help="optionally silence some execution printouts (default: False).",
+        "-v",
+        "--verbose",
+        action="store_false",  # default is True so that all the funcs with `q=Q` (True) will be quiet by default  # noqa
+        help="optionally be VERBOSE with printouts (default: not verbose).",
     )
     parser.add_argument(
-        "--skip-spacy-download",
+        "--spacy-large",
         action="store_true",
-        help="optionally skip the download of spacy's `en_core_web_lg` model (default: False).",
+        help="optionally download spacy's `en_core_web_lg` model (default: False).",
     )
     parser.add_argument(
         "--no-overwrite-secrets",
@@ -102,8 +102,8 @@ if __name__ == "__main__":
         help="optionally avoid passing in --overwrite-all into setup_special_files_from_env (default: False).",
     )
     args = parser.parse_args()
-    Q = args.quiet
-    SKIP_SPACY_DOWNLOAD = args.skip_spacy_download
+    Q = args.verbose
+    SPACY_LARGE = args.spacy_large
     NO_OVERWRITE_SECRETS = args.no_overwrite_secrets
 
     # =========================================================================
@@ -254,16 +254,16 @@ if __name__ == "__main__":
     # GET THE `en_core_web_lg` SPACY MODEL
     # TODO: consider letting people download the small/medium one...
     # =========================================================================
-    if SKIP_SPACY_DOWNLOAD:
+    if SPACY_LARGE:
+        cmd = [python, "-m", "spacy", "download", "en_core_web_lg"]
+        res = run(cmd_tokens=cmd, fail_msg="failed to get `en_core_web_lg`", q=Q)
+    else:
         print(
             bold_blue(
                 "\n\nskipping spacy's `en_core_web_lg` download..."
                 "\nnimbus will work with `en_core_web_sm` at least\n"
             )
         )
-    else:
-        cmd = [python, "-m", "spacy", "download", "en_core_web_lg"]
-        res = run(cmd_tokens=cmd, fail_msg="failed to get `en_core_web_lg`", q=Q)
 
     # =========================================================================
     # DONE
