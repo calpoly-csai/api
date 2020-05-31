@@ -121,7 +121,7 @@ def handle_question():
         return "request body should include the question", BAD_REQUEST
 
     # Store
-    initializeDB()
+    init_nimbus_db()
     try:
         feedback_saved = db.insert_entity(QuestionLog, {"question": question})
     except (Exception) as e:
