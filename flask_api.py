@@ -83,6 +83,21 @@ def init_nimbus_db():
             nimbus = Nimbus(db)
 
 
+@app.errorhandler(OperationalError)
+def handle_database_error(error):
+    global db
+    if db is None:
+        # reinit the database
+        init_nimbus_db()
+    else:
+        # we *probably* have a bad session - try and roll it back, 
+        # then create a new database connection.
+        db.session.rollback()
+        db.session.close()
+        db = None
+        init_nimbus_db()
+
+
 @app.route("/", methods=["GET", "POST"])
 def hello():
     """
