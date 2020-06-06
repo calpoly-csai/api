@@ -21,6 +21,7 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
+from Entity.Entity import Entity
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Calendars import Calendars
 from Entity.Courses import Courses
@@ -46,7 +47,12 @@ CYAN_COLOR_CODE = "\033[96m"
 RESET_COLOR_CODE = "\033[00m"
 
 UNION_ENTITIES = Union[
-    AudioSampleMetaData, Calendars, Courses, Profs, QuestionAnswerPair, ProfessorSectionView
+    AudioSampleMetaData,
+    Calendars,
+    Courses,
+    Profs,
+    QuestionAnswerPair,
+    ProfessorSectionView,
 ]
 UNION_PROPERTIES = Union[ProfessorsProperties]
 
@@ -73,7 +79,7 @@ EXPECTED_KEYS_BY_ENTITY = {
         "username",
         "audio_file_id",
         "script",
-        "emphasis"
+        "emphasis",
     ],
     Clubs: [
         "club_name",
@@ -87,25 +93,19 @@ EXPECTED_KEYS_BY_ENTITY = {
         "advisor",
         "affiliation",
     ],
-    Calendars: [
-        'date',
-        'day',
-        'month',
-        'year',
-        'raw_events_text',
-    ],
+    Calendars: ["date", "day", "month", "year", "raw_events_text",],
     Courses: [
-        'dept',
-        'course_num',
-        'course_name',
-        'units',
-        'prerequisites',
-        'corequisites',
-        'concurrent',
-        'recommended',
-        'terms_offered',
-        'ge_areas',
-        'desc',
+        "dept",
+        "course_num",
+        "course_name",
+        "units",
+        "prerequisites",
+        "corequisites",
+        "concurrent",
+        "recommended",
+        "terms_offered",
+        "ge_areas",
+        "desc",
     ],
     Locations: ["building_number", "name", "longitude", "latitude"],
     Sections: [
@@ -130,12 +130,13 @@ EXPECTED_KEYS_BY_ENTITY = {
         "answer_format",
     ],
     QueryFeedback: ["question", "answer", "answer_type", "timestamp",],
-    Professors: ["first_name",
-                 "last_name",
-                 "phone_number",
-                 "email",
-                 "research_interests",
-                 "office",
+    Professors: [
+        "first_name",
+        "last_name",
+        "phone_number",
+        "email",
+        "research_interests",
+        "office",
     ],
     QuestionLog: ["question", "timestamp"],
 }
@@ -377,7 +378,6 @@ def raises_database_error(func):
             # HINT: security always wins, so try to catch the EXACT exception
             raise e
 
-
     return wrapper
 
 
@@ -577,11 +577,13 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         print(sorted_results)
         return sorted_results
 
-    def get_property_from_entity(self,
+    def get_property_from_entity(
+        self,
         prop: str,
         entity: UNION_ENTITIES,
         identifier: str,
-        tag_column_map: dict = default_tag_column_dict):
+        tag_column_map: dict = default_tag_column_dict,
+    ):
 
         props = self._get_property_from_entity(prop, entity, identifier, tag_column_map)
         if props is None:
@@ -634,6 +636,26 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.validate_input_keys(data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
         return data_dict
 
+    def add_entity(self, entity) -> bool:
+        """
+        A simplified version of insert_entity that relies on the entity performing its own formatting in the constructor call.
+        Parameters
+        ---------
+        `entity - Entity` an initialized entity object to be added to the database.
+
+        Returns
+        -------
+        `bool` whether entity was successfully added.
+        """
+        # Don't post if the entity doesn't abide by the rules of the Entity superclass
+        if not isinstance(entity, Entity):
+            return False
+        print("Saving to database: {}...".format(entity))
+        self.session.add(entity)
+        self.session.commit()
+        print("{}Saved!\n{}".format(GREEN_COLOR_CODE, RESET_COLOR_CODE))
+        return True
+
     def insert_entity(self, entity_type, data_dict: dict) -> bool:
         """
         Inserts an entity into the database. The keys of data_dict should follow camelCase
@@ -668,7 +690,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 CYAN_COLOR_CODE, entity_attributes["__tablename__"], RESET_COLOR_CODE
             )
         )
-
 
         # Grab the entity class fields by cleaning the attributes dictionary
         # Note: Make sure you don't label any important data fields with underscores in the front or back!
@@ -882,7 +903,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "timestamp": datetime.datetime.now(),
         }
 
-
     def __del__(self):
         print("NimbusMySQLAlchemy closed")
 
@@ -918,10 +938,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             "timestamp": feedback["timestamp"],
         }
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     db = NimbusMySQLAlchemy()
-    print(
-        db._get_property_from_entity("section_name",
-                                     ProfessorSectionView,
-                                     "Braun")
-    )
+    print(db._get_property_from_entity("section_name", ProfessorSectionView, "Braun"))
