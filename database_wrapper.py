@@ -651,9 +651,12 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         if not isinstance(entity, Entity):
             return False
         print("Saving to database: {}...".format(entity))
-        self.session.add(entity)
-        self.session.commit()
-        print("{}Saved!\n{}".format(GREEN_COLOR_CODE, RESET_COLOR_CODE))
+        try:
+            self.session.add(entity)
+            self.session.commit()
+            print("{}Saved!\n{}".format(GREEN_COLOR_CODE, RESET_COLOR_CODE))
+        except:
+            return False
         return True
 
     def insert_entity(self, entity_type, data_dict: dict) -> bool:

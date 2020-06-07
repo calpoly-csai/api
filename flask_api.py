@@ -474,9 +474,8 @@ def add_entity_token():
         new_token = EntityToken(data)
     except Exception as ex:
         return ex.args[0], BAD_REQUEST
-    try:
-        db.add_entity(new_token)
-    except:
+    token_added = db.add_entity(new_token)
+    if not token_added:
         return "Could not add token", BAD_REQUEST
     return "Added Token", SUCCESS
 
