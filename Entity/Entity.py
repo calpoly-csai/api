@@ -4,7 +4,14 @@ class Entity:
     """
 
     __mapper_args__ = {
-        "exclude_properties": ["validate", "format", "metadata", "get_data"]
+        "exclude_properties": [
+            "validate",
+            "format",
+            "metadata",
+            "get_data",
+            "validators",
+            "formatters",
+        ]
     }
 
     def __init__(self, data):
@@ -44,6 +51,14 @@ class Entity:
         Returns all fields that are related to table data.
         """
         pass
+
+    def update(self, data: dict) -> bool:
+        """
+        Updates properties of the entity with the values in the `data` dict.
+        Parameters
+        ----------
+        `data:dict` A subset of entity's properties to update. 
+        """
 
     def __repr__(self):
         D = self.__dict__

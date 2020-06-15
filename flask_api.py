@@ -259,6 +259,49 @@ def save_query_phrase():
         return "An error was encountered while saving to database", SERVER_ERROR
 
 
+@app.route("/new_data/update_phrase", methods=["POST"])
+def update_query_phrase():
+    init_nimbus_db()
+    data = request.get_json()
+    try:
+        updated = db.update_entity(QuestionAnswerPair, data, [])
+    except (BadDictionaryKeyError, BadDictionaryValueError) as e:
+        return str(e), BAD_REQUEST
+    except NimbusDatabaseError as e:
+        return str(e), SERVER_ERROR
+    except Exception as e:
+        raise e
+
+    return (
+        ("Phrase updated!", SUCCESS)
+        if updated
+        else ("Failed to update phrase", SERVER_ERROR)
+    )
+
+
+@app.route("/new_data/delete_phrase", methods=["POST"])
+def delete_query_phrase():
+    init_nimbus_db()
+    data = request.get_json()
+    if "id" not in data or type(data["id"]) != int:
+        return "Please provide 'id' as an integer"
+    identifier = data["id"]
+    try:
+        deleted = db.delete_entity(QuestionAnswerPair, identifier)
+    except (BadDictionaryKeyError, BadDictionaryValueError) as e:
+        return str(e), BAD_REQUEST
+    except NimbusDatabaseError as e:
+        return str(e), SERVER_ERROR
+    except Exception as e:
+        raise e
+
+    return (
+        ("Phrase deleted!", SUCCESS)
+        if deleted
+        else ("Failed to delete phrase", SERVER_ERROR)
+    )
+
+
 @app.route("/new_data/feedback", methods=["POST"])
 def save_feedback():
     validator = FeedbackValidator()

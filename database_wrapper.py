@@ -744,6 +744,18 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         Returns:
             True if all is good, else False
         """
+
+        if issubclass(entity_type, Entity):
+            if "id" not in data_dict:
+                raise BadDictionaryKeyError(
+                    "Include an 'id' field so the element to update can be identified."
+                )
+            updated_entity = self.session.query(entity_type).get(data_dict["id"])
+            updated = updated_entity.update(data_dict)
+            if not updated:
+                return False
+            self.session.commit()
+            return True
         # Initialize dummy entity to check if it's a View
         dummy_entity = entity_type()
         if dummy_entity.is_view:
@@ -869,6 +881,26 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             raise BadDictionaryValueError(msg)
 
         return data_dict
+
+    def delete_entity(self, entity_type: Entity, identifier) -> bool:
+        """
+        Deletes entity with matching identifier from its table.
+        Parameters
+        ----------
+        `entity_type:Entity` The class of entity. This is used to relate the identifier to a specific table.
+
+        `identifier`: The unique `primary_key` of the desired entity.
+        Returns
+        -------
+        `bool` Whether the operation was successfully completed.
+        """
+        try:
+            target_entity = self.session.query(entity_type).get(identifier)
+            self.session.delete(target_entity)
+            self.session.commit()
+        except:
+            return False
+        return True
 
     def format_query_phrase_dict(self, phrases: dict) -> dict:
         """
