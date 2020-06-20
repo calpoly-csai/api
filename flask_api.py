@@ -39,6 +39,8 @@ from Entity.QuestionAnswerPair import QuestionAnswerPair
 from Entity.QueryFeedback import QueryFeedback
 from Entity.QuestionLog import QuestionLog
 
+from Entity.EntityToken import EntityToken
+
 from nimbus import Nimbus
 
 BAD_REQUEST = 400
@@ -83,6 +85,21 @@ def init_nimbus_db():
             nimbus = Nimbus(db)
 
 
+@app.errorhandler(OperationalError)
+def handle_database_error(error):
+    global db
+    if db is None:
+        # reinit the database
+        init_nimbus_db()
+    else:
+        # we *probably* have a bad session - try and roll it back,
+        # then create a new database connection.
+        db.session.rollback()
+        db.session.close()
+        db = None
+        init_nimbus_db()
+
+
 @app.route("/", methods=["GET", "POST"])
 def hello():
     """
@@ -125,7 +142,6 @@ def handle_question():
     except (Exception) as e:
         print("Could not store question upon user ask: ", str(e))
 
-
     response = {"answer": nimbus.answer_question(question)}
 
     if "session" in request_body:
@@ -140,8 +156,11 @@ def handle_question():
 def save_a_recording():
     """Given the audio metadata & audio file, resamples it, saves to storage.
     """
-    if("wav_file" not in request.files):
-         return "Please provide an audio file under the key 'wav_file' in your FormData", BAD_REQUEST
+    if "wav_file" not in request.files:
+        return (
+            "Please provide an audio file under the key 'wav_file' in your FormData",
+            BAD_REQUEST,
+        )
     validator = WakeWordValidator()
     formatter = WakeWordFormatter()
     data = request.form
@@ -154,9 +173,9 @@ def save_a_recording():
     formatted_data = formatter.format(data)
     filename = create_filename(formatted_data)
     try:
-         file_id = save_audiofile(filename, request.files["wav_file"])
+        file_id = save_audiofile(filename, request.files["wav_file"])
     except Exception as err:
-         return f"Failed to save audio file because... {err}", BAD_REQUEST
+        return f"Failed to save audio file because... {err}", BAD_REQUEST
 
     formatted_data["audio_file_id"] = file_id
 
@@ -240,6 +259,49 @@ def save_query_phrase():
         return "An error was encountered while saving to database", SERVER_ERROR
 
 
+@app.route("/new_data/update_phrase", methods=["POST"])
+def update_query_phrase():
+    init_nimbus_db()
+    data = request.get_json()
+    try:
+        updated = db.update_entity(QuestionAnswerPair, data, [])
+    except (BadDictionaryKeyError, BadDictionaryValueError) as e:
+        return str(e), BAD_REQUEST
+    except NimbusDatabaseError as e:
+        return str(e), SERVER_ERROR
+    except Exception as e:
+        raise e
+
+    return (
+        ("Phrase updated!", SUCCESS)
+        if updated
+        else ("Failed to update phrase", SERVER_ERROR)
+    )
+
+
+@app.route("/new_data/delete_phrase", methods=["POST"])
+def delete_query_phrase():
+    init_nimbus_db()
+    data = request.get_json()
+    if "id" not in data or type(data["id"]) != int:
+        return "Please provide 'id' as an integer"
+    identifier = data["id"]
+    try:
+        deleted = db.delete_entity(QuestionAnswerPair, identifier)
+    except (BadDictionaryKeyError, BadDictionaryValueError) as e:
+        return str(e), BAD_REQUEST
+    except NimbusDatabaseError as e:
+        return str(e), SERVER_ERROR
+    except Exception as e:
+        raise e
+
+    return (
+        ("Phrase deleted!", SUCCESS)
+        if deleted
+        else ("Failed to delete phrase", SERVER_ERROR)
+    )
+
+
 @app.route("/new_data/feedback", methods=["POST"])
 def save_feedback():
     validator = FeedbackValidator()
@@ -286,7 +348,7 @@ def save_courses():
 
     for course in data["courses"]:
         try:
-            db.update_entity(Courses, course, ['dept', 'course_num'])
+            db.update_entity(Courses, course, ["dept", "course_num"])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -300,6 +362,7 @@ def save_courses():
             raise e
 
     return "SUCCESS"
+
 
 @app.route("/new_data/sections", methods=["POST"])
 def save_sections():
@@ -326,6 +389,7 @@ def save_sections():
 
     return "SUCCESS"
 
+
 @app.route("/new_data/clubs", methods=["POST"])
 def save_clubs():
     """
@@ -337,7 +401,7 @@ def save_clubs():
 
     for club in data["clubs"]:
         try:
-            db.update_entity(Clubs, club, ['club_name'])
+            db.update_entity(Clubs, club, ["club_name"])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -364,7 +428,7 @@ def save_locations():
 
     for location in data["locations"]:
         try:
-            db.update_entity(Locations, location, ['longitude', 'latitude'])
+            db.update_entity(Locations, location, ["longitude", "latitude"])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -418,7 +482,7 @@ def save_calendars():
 
     for calendar in data["calendars"]:
         try:
-            db.update_entity(Calendars, calendar, ['date', 'raw_events_text'])
+            db.update_entity(Calendars, calendar, ["date", "raw_events_text"])
         except BadDictionaryKeyError as e:
             return str(e), BAD_REQUEST
         except BadDictionaryValueError as e:
@@ -432,6 +496,31 @@ def save_calendars():
             raise e
 
     return "SUCCESS"
+
+
+@app.route("/schema/entity_tokens", methods=["GET"])
+def get_entity_tokens():
+    init_nimbus_db()
+    try:
+        identifiers = db.session.query(EntityToken).all()
+    except:
+        return "Could not fetch at this time", BAD_REQUEST
+    data = list(map(lambda token: token.get_data(), identifiers))
+    return jsonify(data)
+
+
+@app.route("/schema/entity_tokens", methods=["POST"])
+def add_entity_token():
+    init_nimbus_db()
+    data = request.get_json()
+    try:
+        new_token = EntityToken(data)
+    except Exception as ex:
+        return ex.args[0], BAD_REQUEST
+    token_added = db.add_entity(new_token)
+    if not token_added:
+        return "Could not add token", BAD_REQUEST
+    return "Added Token", SUCCESS
 
 
 def create_filename(form):
@@ -449,8 +538,7 @@ def create_filename(form):
         "timestamp",
         "username",
     ]
-    values = list(
-        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
+    values = list(map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return "_".join(values) + ".wav"
 
 
@@ -470,10 +558,10 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
 
     # Check if the current entity is already within the database
     if (
-            db.get_property_from_entity(
-                prop="Name", entity=entity_type, identifier=current_prof["Name"]
-            )
-            != None
+        db.get_property_from_entity(
+            prop="Name", entity=entity_type, identifier=current_prof["Name"]
+        )
+        != None
     ):
 
         update_office_hours = True
@@ -535,8 +623,7 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
     # Update the entity properties if the entity already exists
     if update_office_hours == True:
         db.update_entity(
-            entity_type=entity_type, data_dict=sql_data, filter_fields=[
-                "Email"]
+            entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"]
         )
 
     # Otherwise, add the entity to the database
@@ -597,5 +684,4 @@ def convert_to_mfcc():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE,
-            port=gunicorn_config.PORT)
+    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE, port=gunicorn_config.PORT)

@@ -222,7 +222,14 @@ if __name__ == "__main__":
             # -----------------------------------------------------------------
             # setup failed, but we can check if `config.json` is already
             # -----------------------------------------------------------------
-            print(bold_blue("\n\nfound config.json... continuing build...\n\n"))
+            print(bold_yellow(
+                (
+                    "\n\nfound config.json... continuing build...\n\n"
+                    "if you do not want your current config.json\n"
+                    "please follow the steps in the nimbus-config-secrets reposotiry\n"
+                    "ask a Maintainer/Admin for help\n"
+                )
+            ))
         else:
             # -----------------------------------------------------------------
             # okay, fine. last effort to find `config.json` at root of git dir
