@@ -1,6 +1,7 @@
 import json
 import os
 import pytest
+import sys
 
 from database_wrapper import (
     NimbusMySQLAlchemy,
@@ -11,21 +12,13 @@ from database_wrapper import (
     UnsupportedDatabaseError,
     BadConfigFileError,
 )
+from Entity.ExpectedKeys import EXPECTED_KEYS_BY_ENTITY
 from mock import patch, Mock
 from .MockEntity import MockEntity
 from .MockViewEntity import MockViewEntity
 
 
-ENTITY_TYPES = [
-    "AudioSampleMetaData",
-    "Calendars",
-    "Courses",
-    "Locations",
-    "QuestionAnswerPair",
-    "Professors",
-    "Clubs",
-    "Sections",
-]
+ENTITY_TYPES = [i.__name__ for i in EXPECTED_KEYS_BY_ENTITY.keys()]
 
 MOCK_ENTITY_DATA_DICT = {
     "value_one": "test1",
@@ -117,7 +110,11 @@ def test_create_all_tables(mock_create_engine):
 
     # Verify that each Entity had .create() called on it once.
     for entity_type in ENTITY_TYPES:
-        getattr(test_db, entity_type).__table__.create.assert_called_once()
+        try:
+            getattr(test_db, entity_type).__table__.create.assert_called_once()
+        except AssertionError as e: 
+            print("{} table was not created".format(entity_type), file=sys.stderr);
+            raise e
 
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")

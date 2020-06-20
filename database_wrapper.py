@@ -36,6 +36,7 @@ from Entity.Professors import Professors
 from Entity.ProfessorSectionView import ProfessorSectionView
 from Entity.OfficeHours import OfficeHours
 from Entity.QuestionLog import QuestionLog
+from Entity.ExpectedKeys import EXPECTED_KEYS_BY_ENTITY
 
 from fuzzywuzzy import fuzz
 
@@ -65,82 +66,6 @@ default_tag_column_dict = {
     Sections: {"section_name"},
     ProfessorSectionView: {"first_name", "last_name"},
 }
-
-EXPECTED_KEYS_BY_ENTITY = {
-    AudioSampleMetaData: [
-        "is_wake_word",
-        "first_name",
-        "last_name",
-        "gender",
-        "noise_level",
-        "location",
-        "tone",
-        "timestamp",
-        "username",
-        "audio_file_id",
-        "script",
-        "emphasis",
-    ],
-    Clubs: [
-        "club_name",
-        "types",
-        "desc",
-        "contact_email",
-        "contact_email_2",
-        "contact_person",
-        "contact_phone",
-        "box",
-        "advisor",
-        "affiliation",
-    ],
-    Calendars: ["date", "day", "month", "year", "raw_events_text",],
-    Courses: [
-        "dept",
-        "course_num",
-        "course_name",
-        "units",
-        "prerequisites",
-        "corequisites",
-        "concurrent",
-        "recommended",
-        "terms_offered",
-        "ge_areas",
-        "desc",
-    ],
-    Locations: ["building_number", "name", "longitude", "latitude"],
-    Sections: [
-        "section_name",
-        "instructor",
-        "alias",
-        "title",
-        "phone",
-        "office",
-        "type",
-        "days",
-        "start",
-        "end",
-        "location",
-        "department",
-    ],
-    QuestionAnswerPair: [
-        "can_we_answer",
-        "verified",
-        "answer_type",
-        "question_format",
-        "answer_format",
-    ],
-    QueryFeedback: ["question", "answer", "answer_type", "timestamp",],
-    Professors: [
-        "first_name",
-        "last_name",
-        "phone_number",
-        "email",
-        "research_interests",
-        "office",
-    ],
-    QuestionLog: ["question", "timestamp"],
-}
-
 
 class BadDictionaryKeyError(Exception):
     """Raised when the given JSON/dict is missing some required fields.
@@ -387,17 +312,19 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
     def __init__(self, config_file: str = "config.json") -> None:
         self.engine = self._create_engine(config_file)
-        self.Clubs = Clubs
-        self.Sections = Sections
-        self.Calendars = Calendars
-        self.Courses = Courses
-        self.Profs = Profs
         self.AudioSampleMetaData = AudioSampleMetaData
+        self.Calendars = Calendars
+        self.Clubs = Clubs
+        self.Courses = Courses
         self.Locations = Locations
-        self.ProfessorSectionView = ProfessorSectionView
         self.OfficeHours = OfficeHours
-        self.QuestionAnswerPair = QuestionAnswerPair
+        self.ProfessorSectionView = ProfessorSectionView
+        self.Profs = Profs
         self.Professors = Professors
+        self.QueryFeedback = QueryFeedback
+        self.QuestionAnswerPair = QuestionAnswerPair
+        self.QuestionLog = QuestionLog
+        self.Sections = Sections
         self.inspector = inspect(self.engine)
         self._create_database_session()
         print("initialized NimbusMySQLAlchemy")
@@ -462,15 +389,9 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             print(f"<{table_name}> created")
             return
 
-        __safe_create(self.Clubs)
-        __safe_create(self.Sections)
-        __safe_create(self.Calendars)
-        __safe_create(self.Courses)
-        __safe_create(self.AudioSampleMetaData)
-        __safe_create(self.Locations)
-        __safe_create(self.OfficeHours)
-        __safe_create(self.QuestionAnswerPair)
-        __safe_create(self.Professors)
+        for entity_type in EXPECTED_KEYS_BY_ENTITY.keys():
+            __safe_create(getattr(self, entity_type.__name__));
+
 
     def _create_database_session(self):
         Session = sessionmaker(bind=self.engine)
