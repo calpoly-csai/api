@@ -261,12 +261,12 @@ def save_query_phrase():
         return "An error was encountered while saving to database", SERVER_ERROR
 
 
-@app.route("/data/get_phrase", methods=["GET"])
-def get_phrase():
+@app.route("/data/get_phrase/<numQueries>", methods=["GET"])
+def get_phrase(numQueries):
     init_nimbus_db()
     try:
-        return {"data": db.get_all_unvalidated_qa_data()}, SUCCESS
-    # TODO: Handle case where nothing is left unvalidated
+        # if no phrases are unvalidated, will return an empty list
+        return {"data": db.get_all_unvalidated_qa_data(numQueries)}, SUCCESS
     except NimbusDatabaseError as e:
         return str(e), SERVER_ERROR
     except Exception as e:

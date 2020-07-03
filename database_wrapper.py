@@ -408,14 +408,12 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         return result
 
-    # TODO:need to figure out how to turn answerType object into string
-    def get_all_unvalidated_qa_data(self):
+    def get_all_unvalidated_qa_data(self, numQueries: int):
         qa = QuestionAnswerPair
 
         query_session = self.session.query(
-            qa.id, qa.can_we_answer, qa.question_format, qa.answer_format, qa.verified
-        ).filter(qa.verified == 0)
-        # .limit(10)
+            qa.id, qa.can_we_answer, qa.question_format, qa.answer_format, qa.verified, qa.answer_type
+        ).filter(qa.verified == 0).limit(numQueries)
         result = query_session.all()
         unvalidated_qa_pairs = []
         for qa_pair in result:
@@ -424,11 +422,12 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 "can_we_answer": qa_pair[1],
                 "question_format": qa_pair[2],
                 "answer_format": qa_pair[3],
-                "verified": qa_pair[4]
+                "verified": qa_pair[4],
+                "answer_type": qa_pair[5].name,
             }
             unvalidated_qa_pairs.append(formatted_QA_pair)
 
-        return {"data": unvalidated_qa_pairs}
+        return unvalidated_qa_pairs
 
     def get_all_answerable_pairs(self):
         qa_entity = QuestionAnswerPair
