@@ -43,6 +43,8 @@ from Entity.EntityToken import EntityToken
 
 from nimbus import Nimbus
 
+import json
+
 BAD_REQUEST = 400
 SUCCESS = 200
 SERVER_ERROR = 500
@@ -257,6 +259,18 @@ def save_query_phrase():
         return "Phrase has been saved", SUCCESS
     else:
         return "An error was encountered while saving to database", SERVER_ERROR
+
+
+@app.route("/data/get_phrase/<numQueries>", methods=["GET"])
+def get_phrase(numQueries):
+    init_nimbus_db()
+    try:
+        # if no phrases are unvalidated, will return an empty list
+        return {"data": db.get_unvalidated_qa_data(numQueries)}, SUCCESS
+    except NimbusDatabaseError as e:
+        return str(e), SERVER_ERROR
+    except Exception as e:
+        raise e
 
 
 @app.route("/new_data/update_phrase", methods=["POST"])
@@ -538,7 +552,8 @@ def create_filename(form):
         "timestamp",
         "username",
     ]
-    values = list(map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
+    values = list(
+        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return "_".join(values) + ".wav"
 
 
@@ -623,7 +638,8 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
     # Update the entity properties if the entity already exists
     if update_office_hours == True:
         db.update_entity(
-            entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"]
+            entity_type=entity_type, data_dict=sql_data, filter_fields=[
+                "Email"]
         )
 
     # Otherwise, add the entity to the database
@@ -684,4 +700,5 @@ def convert_to_mfcc():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE, port=gunicorn_config.PORT)
+    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE,
+            port=gunicorn_config.PORT)
