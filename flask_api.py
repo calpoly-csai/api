@@ -266,7 +266,7 @@ def get_phrase(numQueries):
     init_nimbus_db()
     try:
         # if no phrases are unvalidated, will return an empty list
-        return {"data": db.get_all_unvalidated_qa_data(numQueries)}, SUCCESS
+        return {"data": db.get_unvalidated_qa_data(numQueries)}, SUCCESS
     except NimbusDatabaseError as e:
         return str(e), SERVER_ERROR
     except Exception as e:

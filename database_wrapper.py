@@ -408,13 +408,14 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         return result
 
-    def get_all_unvalidated_qa_data(self, numQueries: int):
+    def get_unvalidated_qa_data(self, numQueries: int):
         qa = QuestionAnswerPair
 
         query_session = self.session.query(
             qa.id, qa.can_we_answer, qa.question_format, qa.answer_format, qa.verified, qa.answer_type
         ).filter(qa.verified == 0).limit(numQueries)
         result = query_session.all()
+        print(result)
         unvalidated_qa_pairs = []
         for qa_pair in result:
             formatted_QA_pair = {
