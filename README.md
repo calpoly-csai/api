@@ -36,9 +36,11 @@ Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CS
 
 ## Dev Environment Setup
 ### Prerequisites
-1. Python 3.6.9 (we're running 3.8 on gce)
+1. Python 3.6.9+ (we're running 3.8 on gce)
+2. pip 9.0.1+ (pip 20.1.1 is whats on gce as of this writing, but whatever version you have with your python install is probably fine)
+3. git (can you run `git --version`?) (we're using 2.25.1 on gce, but any version will *almost certainly* work)
+4. Access to database credentials/api keys (contact us)
 
-2. pip 9.0.1
 
 
 ### Database Configuration
@@ -59,16 +61,30 @@ Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CS
 }
 ```
 
-**You can also use [`config_SAMPLE.json`](https://github.com/calpoly-csai/api/blob/dev/config_SAMPLE.json) as a reference**
+**You can also use [`config_SAMPLE.json`](https://github.com/calpoly-csai/api/blob/dev/config_SAMPLE.json) as a reference (easier!)**
 
 _Contact anyone on the Data Team to get connection details for the Nimbus database_
 
 
-### Install
+### Install pip packages
+> Note: If you don't have pip installed for python2, you may have to call `pip` instead of `pip3`)
 
 ```bash
 pip3 install -r requirements.txt
 ```
+
+### Download spaCy model
+There are two spaCy models usable for nimbus predictions.  These are (from [spaCy's docs](https://spacy.io/models)) General-purpose pretrained models to predict named entities, part-of-speech tags and syntactic dependencies. Can be used out-of-the-box and fine-tuned on more specific data.  We use these to classify a question someone asks Nimbus, so we can retrieve an answer from our database.See [here](https://stackoverflow.com/a/57337084/13291759) for an idea of the difference between lg and sm.
+
+```bash
+python3 -m spacy download en_core_web_sm
+```
+or 
+```bash
+python3 -m spacy download en_core_web_lg
+```
+
+You should now have everything you need to run the API server.
 
 ### Run the API server
 
@@ -85,6 +101,10 @@ python3 nimbus_api.py&
 ```bash
 pytest
 ```
+(you may have to run the following if you have python 2.7 installed as well):
+```bash
+python3 -m pytest
+```
 
 ### Python PEP8 Style Standards
 **_Run the `format` script to automatically make our code look nice_**
@@ -97,11 +117,28 @@ _Sometimes the format script is not enough, so run `lint` to manually style our 
 ./lint.sh
 ```
 
+### Some common issues and solutions
+##### ```/bin/bash^M: bad interpreter: No such file or directory```:
+>Note: This issue can occur (for me, at least) in files other than just format.sh.  These instructions should fix this problem in any file.
+```
+snekiam@P1:api$ ./format.sh
+-bash: ./format.sh: /bin/bash^M: bad interpreter: No such file or directory
+```
+This can happen when you're running bash on windows sometimes.  Linux doesn't recognize carriage returns (^M) the same way windows does.  You may have this error in more than one file, but it can be fixed by running `dos2unix` like this:
+```
+snekiam@P1:api$ dos2unix format.sh
+dos2unix: converting file format.sh to Unix format...
+snekiam@P1:api$ ./format.sh
+(output of format.sh, which can be long so I haven't included it here)
+```
+
 ## Deployment
 ### What we use
 A Linux server (e.g. Ubuntu 20.04 LTS) with open firewall at `tcp:5000` for _Flask_, `tcp:80` for _http_ and `tcp:443` for _https_ and `tcp:22` for _ssh_ and `tcp:3306` for _mysql_
 
 [See this documentation of the database deployment process](https://github.com/calpoly-csai/wiki/wiki/How-To-Install-and-Set-Up-a-Remote-MySQL-5.7-Database-and-Python-3.6-on-Ubuntu-18.04-with-Google-Cloud-Platform)
+
+We're using docker to deploy - at some point, it'll be easy for you to run the Nimbus API in a local docker container, but at the moment it requires some things (like SSH keys and SSL private keys) which shouldn't be required for a development environment.  
 
 
 ## Contributing
@@ -144,3 +181,5 @@ Please make sure to update tests as appropriate.
 [Tyler Campanile](https://www.github.com/tecampani)
 
 [Steven Bradley](https://www.github.com/stbradle)
+
+And many more...
