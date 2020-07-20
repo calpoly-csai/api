@@ -1,4 +1,4 @@
- # api
+# api
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/calpoly-csai/api)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/calpoly-csai/api)
