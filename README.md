@@ -1,4 +1,4 @@
-# api
+ # api
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/calpoly-csai/api)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/calpoly-csai/api)
@@ -84,18 +84,39 @@ or
 python3 -m spacy download en_core_web_lg
 ```
 
+### Get API keys for terminal instance
+
+```bash
+git clone https://github.com/calpoly-csai/nimbus-config-secrets.git
+
+cd nimbus-config-secrets 
+
+source .export_env_vars
+```
+
+
 You should now have everything you need to run the API server.
+
 
 ### Run the API server
 
 ```bash
-python3 nimbus_api.py
+python3 flask_api.py
 ```
+- Opens localhost:PORT
+- PORT is changed in gunicorn_config.py
 
 **_Run in the background_**
 ```bash
-python3 nimbus_api.py&
+python3 flask_api.py&
 ```
+
+### Run your first API request
+```bash
+curl --location --request POST 'localhost:8080/ask' --header 'Content-Type: application/json' --data-raw '{ "question": "What are the prereqs for CSC 480?" }'
+```
+- Sends Query to Database through localhost:8080/ask
+
 
 ### Run the tests
 ```bash
