@@ -119,6 +119,8 @@ def generate_session_token() -> str:
     return "SOME_NEW_TOKEN"
 
 
+
+
 @app.route("/ask", methods=["POST"])
 def handle_question():
     """
@@ -144,7 +146,18 @@ def handle_question():
     except (Exception) as e:
         print("Could not store question upon user ask: ", str(e))
 
-    response = {"answer": nimbus.answer_question(question)}
+    try:
+        response = {"answer": nimbus.answer_question(question)}
+    except (Exception) as e:
+
+        def catchall_Ans_retreival_exception():
+            # Log Question Exception Pair
+            # feedback_saved = db.insert_entity(ErrorTrace, {"question": question})
+            response = {"answer": "oops, something went wrong... Try another question"}
+
+            return response
+
+        response = catchall_Ans_retreival_exception()
 
     if "session" in request_body:
         response["session"] = request_body["session"]
