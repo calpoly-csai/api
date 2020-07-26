@@ -5,7 +5,11 @@ Contains all the handlers for the API. Also the main code to run Flask.
 """
 from sqlalchemy.exc import OperationalError
 
-from flask import Flask, jsonify, request
+#abort added
+from flask import Flask, jsonify, request, abort
+#traceback added for stacktrace logging
+import traceback
+
 from flask_cors import CORS
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
@@ -38,6 +42,9 @@ from Entity.AudioSampleMetaData import AudioSampleMetaData
 from Entity.QuestionAnswerPair import QuestionAnswerPair
 from Entity.QueryFeedback import QueryFeedback
 from Entity.QuestionLog import QuestionLog
+
+# NOT NEEDED?
+from Entity.ErrorLog import ErrorLog
 
 from Entity.EntityToken import EntityToken
 
@@ -101,6 +108,22 @@ def handle_database_error(error):
         db = None
         init_nimbus_db()
 
+#Flask Based catchall (Doesn't seem to catch db Errors properly)
+#https://stackoverflow.com/questions/29332056/global-error-handler-for-any-exception#29332131
+@app.errorhandler(Exception)
+def handle_error(e):
+    code = 500
+    YELLOW_COLOR_CODE = "\033[93m"
+    RESET_COLOR_CODE = "\033[00m"
+    print(
+        "{}In catch-all handler!{}".format(
+            YELLOW_COLOR_CODE, RESET_COLOR_CODE
+        )
+    )
+    if isinstance(e, HTTPException):
+        code = e.code
+    return jsonify(error=str(e)), code
+
 
 @app.route("/", methods=["GET", "POST"])
 def hello():
@@ -117,6 +140,10 @@ def hello():
 
 def generate_session_token() -> str:
     return "SOME_NEW_TOKEN"
+
+# Stores Question Error in database
+def question_error(error, question):
+    feedback_saved = db.insert_entity(ErrorLog, {"question": question, "error_code":"TODO", "stacktrace":"TODO" })
 
 
 
@@ -145,19 +172,37 @@ def handle_question():
         feedback_saved = db.insert_entity(QuestionLog, {"question": question})
     except (Exception) as e:
         print("Could not store question upon user ask: ", str(e))
-
+    
     try:
         response = {"answer": nimbus.answer_question(question)}
     except (Exception) as e:
 
-        def catchall_Ans_retreival_exception():
-            # Log Question Exception Pair
-            # feedback_saved = db.insert_entity(ErrorTrace, {"question": question})
-            response = {"answer": "oops, something went wrong... Try another question"}
+        CYAN_COLOR_CODE = "\033[96m"
+        YELLOW_COLOR_CODE = "\033[93m"
+        RESET_COLOR_CODE = "\033[00m"
 
+        def catchall_Ans_retreival_exception():
+            
+            # Log Question Exception Pair
+            # feedback_saved = db.insert_entity(ErrorLog, {"question": question})
+            response = {"answer": "oops, something went wrong... Try another question"}
+            print("question: {}{}{}".format(
+                    CYAN_COLOR_CODE, question, RESET_COLOR_CODE)
+            ) 
+            print("error_code: {}{}{}".format(
+                    YELLOW_COLOR_CODE, type(e).__name__, RESET_COLOR_CODE)
+            )
+            print("stacktrace: {}{}{}".format(
+                    CYAN_COLOR_CODE, traceback.format_exc(), RESET_COLOR_CODE)
+            )
+            print("message: {}{}{}".format(
+                    YELLOW_COLOR_CODE, str(e), RESET_COLOR_CODE)
+            )
+            #feedback_saved = db.insert_entity(ErrorLog, {"question": question, "error_code":"sdafas", "stacktrace":"fdsadfdsfs" })
             return response
 
         response = catchall_Ans_retreival_exception()
+        #abort(type(e).__name__)
 
     if "session" in request_body:
         response["session"] = request_body["session"]

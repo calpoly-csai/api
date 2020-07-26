@@ -36,6 +36,7 @@ from Entity.Professors import Professors
 from Entity.ProfessorSectionView import ProfessorSectionView
 from Entity.OfficeHours import OfficeHours
 from Entity.QuestionLog import QuestionLog
+from Entity.ErrorLog import ErrorLog
 from Entity.ExpectedKeys import EXPECTED_KEYS_BY_ENTITY
 
 from fuzzywuzzy import fuzz
@@ -325,6 +326,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.QueryFeedback = QueryFeedback
         self.QuestionAnswerPair = QuestionAnswerPair
         self.QuestionLog = QuestionLog
+        self.ErrorLog = ErrorLog
         self.Sections = Sections
         self.inspector = inspect(self.engine)
         self._create_database_session()
