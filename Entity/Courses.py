@@ -36,6 +36,7 @@ class Courses(Base):
     ge_areas = Column(Text)
     desc = Column(Text)
     is_view = False
+    synonyms = ["class", "lesson", "lecture", "lab"]
 
     def __repr__(self):
         return "<Courses (dept={}, course_num={})>".format(self.dept, self.course_num)
