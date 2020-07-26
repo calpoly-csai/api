@@ -94,7 +94,26 @@ def init_nimbus_db():
             nimbus = Nimbus(db)
 
 
-@app.errorhandler(OperationalError)
+# Replace with actual database logging!
+def Log_Error(error):
+    # Log Question Exception Pair
+
+    CYAN_COLOR_CODE = "\033[96m"
+    YELLOW_COLOR_CODE = "\033[93m"
+    RESET_COLOR_CODE = "\033[00m"
+
+    EntryLog = {
+        "question"   : "Unknown",
+        "error_code" : type(error).__name__,
+        "stacktrace" : traceback.format_exc(),
+        "message"    : str(error)
+    }
+
+    print("{}{}{}".format(
+            CYAN_COLOR_CODE, json.dumps(EntryLog, indent=4), RESET_COLOR_CODE)
+    )
+
+
 def handle_database_error(error):
     global db
     if db is None:
@@ -108,21 +127,12 @@ def handle_database_error(error):
         db = None
         init_nimbus_db()
 
-#Flask Based catchall (Doesn't seem to catch db Errors properly)
-#https://stackoverflow.com/questions/29332056/global-error-handler-for-any-exception#29332131
+
 @app.errorhandler(Exception)
-def handle_error(e):
-    code = 500
-    YELLOW_COLOR_CODE = "\033[93m"
-    RESET_COLOR_CODE = "\033[00m"
-    print(
-        "{}In catch-all handler!{}".format(
-            YELLOW_COLOR_CODE, RESET_COLOR_CODE
-        )
-    )
-    if isinstance(e, HTTPException):
-        code = e.code
-    return jsonify(error=str(e)), code
+def handle_all_errors(e):
+    if isinstance(e, OperationalError):
+        handle_database_error(e)
+    Log_Error(e)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -134,18 +144,13 @@ def hello():
         request_body = request.get_json()
         return jsonify({"you sent": request_body}), SUCCESS
     else:
+
         response_json = jsonify({"name": "hello {}".format(str(app))})
         return response_json, SUCCESS
 
 
 def generate_session_token() -> str:
     return "SOME_NEW_TOKEN"
-
-# Stores Question Error in database
-def question_error(error, question):
-    feedback_saved = db.insert_entity(ErrorLog, {"question": question, "error_code":"TODO", "stacktrace":"TODO" })
-
-
 
 
 @app.route("/ask", methods=["POST"])
@@ -172,37 +177,16 @@ def handle_question():
         feedback_saved = db.insert_entity(QuestionLog, {"question": question})
     except (Exception) as e:
         print("Could not store question upon user ask: ", str(e))
-    
+
+    #############################################################
+    # REMOVE! Included just so Errors will still be raised!
+    response = {"answer": nimbus.answer_question(question)}
+    #############################################################
     try:
         response = {"answer": nimbus.answer_question(question)}
     except (Exception) as e:
-
-        CYAN_COLOR_CODE = "\033[96m"
-        YELLOW_COLOR_CODE = "\033[93m"
-        RESET_COLOR_CODE = "\033[00m"
-
-        def catchall_Ans_retreival_exception():
-            
-            # Log Question Exception Pair
-            # feedback_saved = db.insert_entity(ErrorLog, {"question": question})
-            response = {"answer": "oops, something went wrong... Try another question"}
-            print("question: {}{}{}".format(
-                    CYAN_COLOR_CODE, question, RESET_COLOR_CODE)
-            ) 
-            print("error_code: {}{}{}".format(
-                    YELLOW_COLOR_CODE, type(e).__name__, RESET_COLOR_CODE)
-            )
-            print("stacktrace: {}{}{}".format(
-                    CYAN_COLOR_CODE, traceback.format_exc(), RESET_COLOR_CODE)
-            )
-            print("message: {}{}{}".format(
-                    YELLOW_COLOR_CODE, str(e), RESET_COLOR_CODE)
-            )
-            #feedback_saved = db.insert_entity(ErrorLog, {"question": question, "error_code":"sdafas", "stacktrace":"fdsadfdsfs" })
-            return response
-
-        response = catchall_Ans_retreival_exception()
-        #abort(type(e).__name__)
+        response = {"answer": "oops, something went wrong... Try another question"}
+    #############################################################
 
     if "session" in request_body:
         response["session"] = request_body["session"]
