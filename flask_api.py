@@ -96,21 +96,14 @@ def init_nimbus_db():
 
 # Replace with actual database logging!
 def Log_Error(error):
-    # Log Question Exception Pair
-
-    CYAN_COLOR_CODE = "\033[96m"
-    YELLOW_COLOR_CODE = "\033[93m"
-    RESET_COLOR_CODE = "\033[00m"
-
     EntryLog = {
         "question"   : "Unknown",
         "error_code" : type(error).__name__,
         "stacktrace" : traceback.format_exc(),
         "message"    : str(error)
     }
-
     print("{}{}{}".format(
-            CYAN_COLOR_CODE, json.dumps(EntryLog, indent=4), RESET_COLOR_CODE)
+            "\033[96m", json.dumps(EntryLog, indent=4), "\033[00m")
     )
 
 
