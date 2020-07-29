@@ -326,8 +326,8 @@ def get_entity_structure():
             }
 
     props = {
-        "courses": get_class_info(Courses),
-        "clubs": get_class_info(Clubs)
+        "COURSE": get_class_info(Courses),
+        "CLUB": get_class_info(Clubs)
         }
     return jsonify(props)
 
