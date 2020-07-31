@@ -112,12 +112,6 @@ def log_error(error, question):
     }
     db.insert_entity(ErrorLog, error_entry)
 
-    # Remove?
-    # Adds cyan output to terminal running flask_api
-    print("{}{}{}".format(
-        "\033[96m", json.dumps(error_entry, indent=4), "\033[00m")
-    )
-
 
 @app.errorhandler(Exception)
 def handle_all_errors(e):
@@ -187,7 +181,7 @@ def handle_question():
     except Exception as e:
         log_error(e, question)
         response = {"answer": "oops, something went wrong... Try another question"}
-        return jsonify(response), SERVER_ERROR # Not sure about this being SERVER_ERROR
+        return jsonify(response), SERVER_ERROR # Should this really be SERVER_ERROR? 
 
 
 @app.route("/new_data/wakeword", methods=["POST"])
