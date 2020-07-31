@@ -5,8 +5,7 @@ Contains all the handlers for the API. Also the main code to run Flask.
 """
 from sqlalchemy.exc import OperationalError
 
-#abort added
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request
 #traceback added for stacktrace logging
 import traceback
 
@@ -42,8 +41,6 @@ from Entity.AudioSampleMetaData import AudioSampleMetaData
 from Entity.QuestionAnswerPair import QuestionAnswerPair
 from Entity.QueryFeedback import QueryFeedback
 from Entity.QuestionLog import QuestionLog
-
-# NOT NEEDED?
 from Entity.ErrorLog import ErrorLog
 
 from Entity.EntityToken import EntityToken
@@ -94,19 +91,6 @@ def init_nimbus_db():
             nimbus = Nimbus(db)
 
 
-# Replace with actual database logging!
-def Log_Error(error):
-    EntryLog = {
-        "question"   : "Unknown",
-        "error_code" : type(error).__name__,
-        "stacktrace" : traceback.format_exc(),
-        "message"    : str(error)
-    }
-    print("{}{}{}".format(
-            "\033[96m", json.dumps(EntryLog, indent=4), "\033[00m")
-    )
-
-
 def handle_database_error(error):
     global db
     if db is None:
@@ -121,11 +105,26 @@ def handle_database_error(error):
         init_nimbus_db()
 
 
+def log_error(error, question):
+    error_entry = {
+        "question" : question,
+        "stacktrace" : traceback.format_exc()
+    }
+    db.insert_entity(ErrorLog, error_entry)
+
+    # Remove?
+    # Adds cyan output to terminal running flask_api
+    print("{}{}{}".format(
+        "\033[96m", json.dumps(error_entry, indent=4), "\033[00m")
+    )
+
+
 @app.errorhandler(Exception)
 def handle_all_errors(e):
     if isinstance(e, OperationalError):
         handle_database_error(e)
-    Log_Error(e)
+    log_error(e, None)
+    return jsonify({"ErrorLog": type(e).__name__}), SUCCESS
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -154,39 +153,41 @@ def handle_question():
     server are:
         * storage of the logs of this question-answer-session.
     """
-    init_nimbus_db()
-
-    if request.is_json is False:
-        return "request must be JSON", BAD_REQUEST
-
-    request_body = request.get_json()
-
-    question = request_body.get("question", None)
-
-    if "question" not in request_body:
-        return "request body should include the question", BAD_REQUEST
-
     try:
-        feedback_saved = db.insert_entity(QuestionLog, {"question": question})
-    except (Exception) as e:
-        print("Could not store question upon user ask: ", str(e))
 
-    #############################################################
-    # REMOVE! Included just so Errors will still be raised!
-    response = {"answer": nimbus.answer_question(question)}
-    #############################################################
-    try:
-        response = {"answer": nimbus.answer_question(question)}
-    except (Exception) as e:
+        init_nimbus_db()
+
+        if request.is_json is False:
+            return "request must be JSON", BAD_REQUEST
+
+        request_body = request.get_json()
+
+        question = request_body.get("question", None)
+
+        if "question" not in request_body:
+            return "request body should include the question", BAD_REQUEST
+
+        try:
+            entity = db.insert_entity(QuestionLog, {"question": question})
+        except (Exception) as e:
+            print("Could not store question upon user ask: ", str(e))
+
+        try:
+            response = {"answer": nimbus.answer_question(question)}
+        except (Exception) as e:
+            response = {"answer": "Sorry, unable to provide answer to question. Try another question"}
+
+        if "session" in request_body:
+            response["session"] = request_body["session"]
+        else:
+            response["session"] = generate_session_token()
+
+        return jsonify(response), SUCCESS
+
+    except Exception as e:
+        log_error(e, question)
         response = {"answer": "oops, something went wrong... Try another question"}
-    #############################################################
-
-    if "session" in request_body:
-        response["session"] = request_body["session"]
-    else:
-        response["session"] = generate_session_token()
-
-    return jsonify(response), SUCCESS
+        return jsonify(response), SERVER_ERROR # Not sure about this being SERVER_ERROR
 
 
 @app.route("/new_data/wakeword", methods=["POST"])
@@ -282,7 +283,7 @@ def save_query_phrase():
     init_nimbus_db()
 
     try:
-        phrase_saved = db.insert_entity(QuestionAnswerPair, data)
+        entity_saved = db.insert_entity(QuestionAnswerPair, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
         return str(e), BAD_REQUEST
     except NimbusDatabaseError as e:
@@ -290,7 +291,7 @@ def save_query_phrase():
     except Exception as e:
         raise e
 
-    if phrase_saved:
+    if entity_saved:
         return "Phrase has been saved", SUCCESS
     else:
         return "An error was encountered while saving to database", SERVER_ERROR
@@ -372,7 +373,7 @@ def save_feedback():
     init_nimbus_db()
 
     try:
-        feedback_saved = db.insert_entity(QueryFeedback, data)
+        entity = db.insert_entity(QueryFeedback, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
         return str(e), BAD_REQUEST
     except NimbusDatabaseError as e:
@@ -380,7 +381,7 @@ def save_feedback():
     except Exception as e:
         raise e
 
-    if feedback_saved:
+    if entity:
         return "Feedback has been saved", SUCCESS
     else:
         return "An error was encountered while saving to database", SERVER_ERROR

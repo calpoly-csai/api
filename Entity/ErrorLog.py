@@ -4,16 +4,11 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
-# EDITED Version of QuestionLog
 class ErrorLog(Base):
     __tablename__ = "ErrorLog"
     id = Column(Integer, primary_key=True)
     question = Column(Text)
-    
-    # ADDED
-    error_code = Column(Text)
     stacktrace = Column(Text)
-
     timestamp = Column(TIMESTAMP)
     is_view = False
 
