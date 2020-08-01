@@ -41,9 +41,11 @@ Official API for the [NIMBUS Voice Assistant](https://github.com/calpoly-csai/CS
 3. git (can you run `git --version`?) (we're using 2.25.1 on gce, but any version will *almost certainly* work)
 4. Access to database credentials/api keys (contact us)
 
-
+If you're running Windows, we recommend (it is not required) setting up the [Windows subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
 ### Database Configuration
+
+**There are THREE ways to get your database config setup. If you're a member of CSAI, there's a script to generate a config file - contact a club member to get access to it. ** 
 
 **Create a file** called `config.json` that should include at least the following details of a MySQL database:
 ```json
