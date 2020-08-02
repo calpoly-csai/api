@@ -321,15 +321,15 @@ def get_entity_structure():
     def get_class_info(entity):
         keys = list(filter(lambda key: not key[0] == '_', entity.__dict__.keys()))
         return {
-            "props": keys,
+            "attributes": keys,
             "synonyms": entity.synonyms
             }
 
-    props = {
+    entities = {
         "COURSE": get_class_info(Courses),
         "CLUB": get_class_info(Clubs)
         }
-    return jsonify(props)
+    return jsonify(entities)
 
 
 @app.route("/new_data/feedback", methods=["POST"])

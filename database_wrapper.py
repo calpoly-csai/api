@@ -37,6 +37,7 @@ from Entity.ProfessorSectionView import ProfessorSectionView
 from Entity.OfficeHours import OfficeHours
 from Entity.QuestionLog import QuestionLog
 from Entity.ExpectedKeys import EXPECTED_KEYS_BY_ENTITY
+from Entity.EntitySynonyms import EntitySynonyms
 
 from fuzzywuzzy import fuzz
 
@@ -441,6 +442,17 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                        for pair in result if pair[2] == True]
 
         return true_result
+
+    def get_entity_synonyms(self):
+        # TODO: Make this function retrieve the synonyms from the database
+        entity_synonyms = EntitySynonyms
+
+        query_session = self.session.query(
+            qa_entity.question_format, qa_entity.answer_format
+        )
+        result = query_session.all()
+
+        return result
 
     def return_qa_pair_csv(self):
         data = self.get_all_qa_pairs()
