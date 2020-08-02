@@ -25,7 +25,6 @@ from Entity.Entity import Entity
 from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Calendars import Calendars
 from Entity.Courses import Courses
-from Entity.ErrorLog import ErrorLog
 from Entity.Locations import Locations
 from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
 from Entity.QueryFeedback import QueryFeedback
@@ -326,7 +325,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.QueryFeedback = QueryFeedback
         self.QuestionAnswerPair = QuestionAnswerPair
         self.QuestionLog = QuestionLog
-        self.ErrorLog = ErrorLog
         self.Sections = Sections
         self.inspector = inspect(self.engine)
         self._create_database_session()
@@ -575,7 +573,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             QuestionAnswerPair: self.format_query_phrase_dict,
             QueryFeedback: self.format_query_feedback_dict,
             QuestionLog: self.format_question_log,
-            ErrorLog: self.format_error_log,
         }
 
         # Format data (if needed), and validate data
@@ -609,7 +606,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             return False
         return True
 
-    def insert_entity(self, entity_type, data_dict: dict) -> Entity:
+    def insert_entity(self, entity_type, data_dict: dict) -> bool:
         """
         Inserts an entity into the database. The keys of data_dict should follow camelCase
         so they can be translated into snake_case.
@@ -668,7 +665,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         self.session.commit()
         print("{}Saved!\n{}".format(GREEN_COLOR_CODE, RESET_COLOR_CODE))
 
-        return entity
+        return True
 
     def update_entity(self, entity_type, data_dict: dict, filter_fields: list) -> bool:
         """
@@ -891,17 +888,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         return {
             "question": question_info["question"],
-            "timestamp": datetime.datetime.now(),
-        }
-
-    def format_error_log(self, error_info: dict) -> dict:
-        """
-        Extracts question data from the provided dictionary to upload data to the server.
-        """
-
-        return {
-            "question": error_info["question"],
-            "stacktrace": error_info["stacktrace"],
             "timestamp": datetime.datetime.now(),
         }
 
