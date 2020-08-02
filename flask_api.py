@@ -6,6 +6,9 @@ Contains all the handlers for the API. Also the main code to run Flask.
 from sqlalchemy.exc import OperationalError
 
 from flask import Flask, jsonify, request
+#traceback added for stacktrace logging
+import traceback
+
 from flask_cors import CORS
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
@@ -38,6 +41,7 @@ from Entity.AudioSampleMetaData import AudioSampleMetaData
 from Entity.QuestionAnswerPair import QuestionAnswerPair
 from Entity.QueryFeedback import QueryFeedback
 from Entity.QuestionLog import QuestionLog
+from Entity.ErrorLog import ErrorLog
 
 from Entity.EntityToken import EntityToken
 
@@ -87,7 +91,6 @@ def init_nimbus_db():
             nimbus = Nimbus(db)
 
 
-@app.errorhandler(OperationalError)
 def handle_database_error(error):
     global db
     if db is None:
@@ -102,6 +105,22 @@ def handle_database_error(error):
         init_nimbus_db()
 
 
+def log_error(error, question):
+    error_entry = {
+        "question" : question,
+        "stacktrace" : traceback.format_exc()
+    }
+    db.insert_entity(ErrorLog, error_entry)
+
+
+@app.errorhandler(Exception)
+def handle_all_errors(e):
+    if isinstance(e, OperationalError):
+        handle_database_error(e)
+    log_error(e, None)
+    return jsonify({"ErrorLog": type(e).__name__}), SUCCESS
+
+
 @app.route("/", methods=["GET", "POST"])
 def hello():
     """
@@ -111,6 +130,7 @@ def hello():
         request_body = request.get_json()
         return jsonify({"you sent": request_body}), SUCCESS
     else:
+
         response_json = jsonify({"name": "hello {}".format(str(app))})
         return response_json, SUCCESS
 
@@ -127,31 +147,41 @@ def handle_question():
     server are:
         * storage of the logs of this question-answer-session.
     """
-    init_nimbus_db()
-
-    if request.is_json is False:
-        return "request must be JSON", BAD_REQUEST
-
-    request_body = request.get_json()
-
-    question = request_body.get("question", None)
-
-    if "question" not in request_body:
-        return "request body should include the question", BAD_REQUEST
-
     try:
-        feedback_saved = db.insert_entity(QuestionLog, {"question": question})
-    except (Exception) as e:
-        print("Could not store question upon user ask: ", str(e))
 
-    response = {"answer": nimbus.answer_question(question)}
+        init_nimbus_db()
 
-    if "session" in request_body:
-        response["session"] = request_body["session"]
-    else:
-        response["session"] = generate_session_token()
+        if request.is_json is False:
+            return "request must be JSON", BAD_REQUEST
 
-    return jsonify(response), SUCCESS
+        request_body = request.get_json()
+
+        question = request_body.get("question", None)
+
+        if "question" not in request_body:
+            return "request body should include the question", BAD_REQUEST
+
+        try:
+            entity = db.insert_entity(QuestionLog, {"question": question})
+        except (Exception) as e:
+            print("Could not store question upon user ask: ", str(e))
+
+        try:
+            response = {"answer": nimbus.answer_question(question)}
+        except (Exception) as e:
+            response = {"answer": "Sorry, unable to provide answer to question. Try another question"}
+
+        if "session" in request_body:
+            response["session"] = request_body["session"]
+        else:
+            response["session"] = generate_session_token()
+
+        return jsonify(response), SUCCESS
+
+    except Exception as e:
+        log_error(e, question)
+        response = {"answer": "oops, something went wrong... Try another question"}
+        return jsonify(response), SERVER_ERROR # Should this really be SERVER_ERROR? 
 
 
 @app.route("/new_data/wakeword", methods=["POST"])
@@ -247,7 +277,7 @@ def save_query_phrase():
     init_nimbus_db()
 
     try:
-        phrase_saved = db.insert_entity(QuestionAnswerPair, data)
+        entity_saved = db.insert_entity(QuestionAnswerPair, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
         return str(e), BAD_REQUEST
     except NimbusDatabaseError as e:
@@ -255,7 +285,7 @@ def save_query_phrase():
     except Exception as e:
         raise e
 
-    if phrase_saved:
+    if entity_saved:
         return "Phrase has been saved", SUCCESS
     else:
         return "An error was encountered while saving to database", SERVER_ERROR
@@ -337,7 +367,7 @@ def save_feedback():
     init_nimbus_db()
 
     try:
-        feedback_saved = db.insert_entity(QueryFeedback, data)
+        entity = db.insert_entity(QueryFeedback, data)
     except (BadDictionaryKeyError, BadDictionaryValueError) as e:
         return str(e), BAD_REQUEST
     except NimbusDatabaseError as e:
@@ -345,7 +375,7 @@ def save_feedback():
     except Exception as e:
         raise e
 
-    if feedback_saved:
+    if entity:
         return "Feedback has been saved", SUCCESS
     else:
         return "An error was encountered while saving to database", SERVER_ERROR

@@ -7,6 +7,7 @@ from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
 from Entity.Calendars import Calendars
 from Entity.Clubs import Clubs
 from Entity.Courses import Courses
+from Entity.ErrorLog import ErrorLog
 from Entity.Locations import Locations
 from Entity.QueryFeedback import QueryFeedback
 from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
@@ -66,10 +67,15 @@ EXPECTED_KEYS_BY_ENTITY = {
         'ge_areas',
         'desc',
     ],
+    ErrorLog: [
+        "question",
+        "stacktrace",
+        "timestamp",
+    ],
     Locations: [
-        "building_number", 
-        "name", 
-        "longitude", 
+        "building_number",
+        "name",
+        "longitude",
         "latitude",
     ],
     Sections: [
@@ -94,13 +100,13 @@ EXPECTED_KEYS_BY_ENTITY = {
         "answer_format",
     ],
     QueryFeedback: [
-        "question", 
-        "answer", 
-        "answer_type", 
+        "question",
+        "answer",
+        "answer_type",
         "timestamp",
     ],
     QuestionLog: [
-        "question", 
+        "question",
         "timestamp",
     ],
     Professors: [
