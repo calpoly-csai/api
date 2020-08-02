@@ -77,7 +77,7 @@ class VariableExtractor:
         request = self.get_prediction(sent)
 
         # Input had detected entities
-        if request.payload:
+        if list(request.payload):
 
             # Obtain the entity in the sentence
             entity = request.payload[0].text_extraction.text_segment.content
@@ -86,7 +86,8 @@ class VariableExtractor:
             tag = request.payload[0].display_name
 
             # Removes excessive words from the entity
-            normalized_entity = VariableExtractor.excess_word_removal(entity, tag)
+            normalized_entity = VariableExtractor.excess_word_removal(
+                entity, tag)
 
             # Replaces the entity of input question with its corresponding tag
             normalized_question = sent.replace(entity, "[" + tag + "]")

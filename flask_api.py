@@ -53,6 +53,7 @@ BAD_REQUEST = 400
 SUCCESS = 200
 SERVER_ERROR = 500
 
+
 CONFIG_FILE_PATH = "config.json"
 
 app = Flask(__name__)
@@ -166,10 +167,7 @@ def handle_question():
         except (Exception) as e:
             print("Could not store question upon user ask: ", str(e))
 
-        try:
-            response = {"answer": nimbus.answer_question(question)}
-        except (Exception) as e:
-            response = {"answer": "Sorry, unable to provide answer to question. Try another question"}
+        response = {"answer": nimbus.answer_question(question)}
 
         if "session" in request_body:
             response["session"] = request_body["session"]
@@ -181,7 +179,7 @@ def handle_question():
     except Exception as e:
         log_error(e, question)
         response = {"answer": "oops, something went wrong... Try another question"}
-        return jsonify(response), SERVER_ERROR # Should this really be SERVER_ERROR? 
+        return jsonify(response), SERVER_ERROR 
 
 
 @app.route("/new_data/wakeword", methods=["POST"])
