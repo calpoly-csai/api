@@ -86,8 +86,7 @@ class VariableExtractor:
             tag = request.payload[0].display_name
 
             # Removes excessive words from the entity
-            normalized_entity = VariableExtractor.excess_word_removal(
-                entity, tag)
+            normalized_entity = VariableExtractor.excess_word_removal(entity, tag)
 
             # Replaces the entity of input question with its corresponding tag
             normalized_question = sent.replace(entity, "[" + tag + "]")
