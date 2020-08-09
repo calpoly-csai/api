@@ -89,7 +89,7 @@ WORKDIR /nimbus
 RUN ls -lah /usr/lib/python3/dist-packages/
 
 # setup SSH keys correctly
-RUN /nimbus/setup_letsencrypt.sh
+RUN /nimbus/scripts/setup_letsencrypt.sh
 
 # the gunicorn_config.py will check the env vars for PORT
 # else it will do port=8080

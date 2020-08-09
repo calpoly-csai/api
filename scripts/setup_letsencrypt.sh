@@ -11,8 +11,8 @@ git config --global user.email "cpcsai.nimbus@gmail.com"
 git config --global user.name "GCE_GIT_BOT"
 cd /api-certificates
 tar xvf letsencrypt_backup.tar -C /
-crontab /nimbus/letsencrypt-backup-tar.cron
+crontab /nimbus/scripts/letsencrypt-backup-tar.cron
 # updating the certs is free, and shouldn't actually happen if the above has all
 # been successful.  This avoids us not updating if deploys interrupt the update
 # from happening.
-/bin/bash /nimbus/cert-update.sh
+/bin/bash /nimbus/scripts/cert-update.sh
