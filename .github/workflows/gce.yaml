@@ -21,7 +21,7 @@ on:
 
 env:
   GCE_PROJECT: ${{ secrets.GCE_PROJECT }}
-  GCE_INSTANCE: nimbus-api-test
+  GCE_INSTANCE: ${{ secrets.INSTANCE_NAME }}
   GCE_INSTANCE_ZONE: us-west1-b # e.g. us-central1-a
   # environment variables for the build
   DATABASE_HOSTNAME: ${{ secrets.DATABASE_HOSTNAME }}
