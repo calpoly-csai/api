@@ -1,5 +1,9 @@
 #!/bin/bash
 
+eval `ssh-agent`
+ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+ssh-add /nimbus/id_rsa
+
 certbot renew
 cd /api-certificates
 git pull
