@@ -77,7 +77,7 @@ class VariableExtractor:
         request = self.get_prediction(sent)
 
         # Input had detected entities
-        if request.payload:
+        if list(request.payload):
 
             # Obtain the entity in the sentence
             entity = request.payload[0].text_extraction.text_segment.content
