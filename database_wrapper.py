@@ -443,17 +443,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         return true_result
 
-    def get_entity_synonyms(self):
-        # TODO: Make this function retrieve the synonyms from the database
-        entity_synonyms = EntitySynonyms
-
-        query_session = self.session.query(
-            qa_entity.question_format, qa_entity.answer_format
-        )
-        result = query_session.all()
-
-        return result
-
     def return_qa_pair_csv(self):
         data = self.get_all_qa_pairs()
 

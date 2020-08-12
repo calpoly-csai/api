@@ -327,7 +327,9 @@ def get_entity_structure():
 
     entities = {
         "COURSE": get_class_info(Courses),
-        "CLUB": get_class_info(Clubs)
+        "CLUB": get_class_info(Clubs),
+        "PROF": get_class_info(Professors),
+        "LOCATION": get_class_info(Locations)
         }
     return jsonify(entities)
 
