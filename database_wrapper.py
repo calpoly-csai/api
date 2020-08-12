@@ -37,7 +37,6 @@ from Entity.ProfessorSectionView import ProfessorSectionView
 from Entity.OfficeHours import OfficeHours
 from Entity.QuestionLog import QuestionLog
 from Entity.ExpectedKeys import EXPECTED_KEYS_BY_ENTITY
-from Entity.EntitySynonyms import EntitySynonyms
 
 from fuzzywuzzy import fuzz
 
