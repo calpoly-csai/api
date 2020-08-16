@@ -19,6 +19,7 @@ class Clubs(Base):
     advisor = Column(String(255))
     affiliation = Column(String(255))
     is_view = False
+    synonyms = ["fraternities", "sororities", "organizations", "extracurriculars", "groups"]
 
     def __repr__(self):
         D = self.__dict__

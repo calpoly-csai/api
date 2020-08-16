@@ -343,6 +343,24 @@ def delete_query_phrase():
         else ("Failed to delete phrase", SERVER_ERROR)
     )
 
+@app.route("/entity_structure", methods=["GET"])
+def get_entity_structure():
+    
+    def get_class_info(entity):
+        keys = list(filter(lambda key: not key[0] == '_', entity.__dict__.keys()))
+        return {
+            "attributes": keys,
+            "synonyms": entity.synonyms
+            }
+
+    entities = {
+        "COURSE": get_class_info(Courses),
+        "CLUB": get_class_info(Clubs),
+        "PROF": get_class_info(Professors),
+        "LOCATION": get_class_info(Locations)
+        }
+    return jsonify(entities)
+
 
 @app.route("/new_data/feedback", methods=["POST"])
 def save_feedback():
