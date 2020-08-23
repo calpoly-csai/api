@@ -3,10 +3,11 @@
 
 Contains all the handlers for the API. Also the main code to run Flask.
 """
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, InvalidRequestError
 
 from flask import Flask, jsonify, request
-#traceback added for stacktrace logging
+
+# traceback added for stacktrace logging
 import traceback
 
 from flask_cors import CORS
@@ -107,16 +108,14 @@ def handle_database_error(error):
 
 
 def log_error(error, question):
-    error_entry = {
-        "question" : question,
-        "stacktrace" : traceback.format_exc()
-    }
+    error_entry = {"question": question, "stacktrace": traceback.format_exc()}
     db.insert_entity(ErrorLog, error_entry)
 
 
 @app.errorhandler(Exception)
 def handle_all_errors(e):
-    if isinstance(e, OperationalError):
+    # InvalidRequestError happens when the transaction is broken
+    if isinstance(e, OperationalError) or isinstance(e, InvalidRequestError):
         handle_database_error(e)
     log_error(e, None)
     return jsonify({"ErrorLog": type(e).__name__}), SUCCESS
@@ -179,7 +178,7 @@ def handle_question():
     except Exception as e:
         log_error(e, question)
         response = {"answer": "oops, something went wrong... Try another question"}
-        return jsonify(response), SERVER_ERROR 
+        return jsonify(response), SERVER_ERROR
 
 
 @app.route("/new_data/wakeword", methods=["POST"])
@@ -343,22 +342,19 @@ def delete_query_phrase():
         else ("Failed to delete phrase", SERVER_ERROR)
     )
 
+
 @app.route("/entity_structure", methods=["GET"])
 def get_entity_structure():
-    
     def get_class_info(entity):
-        keys = list(filter(lambda key: not key[0] == '_', entity.__dict__.keys()))
-        return {
-            "attributes": keys,
-            "synonyms": entity.synonyms
-            }
+        keys = list(filter(lambda key: not key[0] == "_", entity.__dict__.keys()))
+        return {"attributes": keys, "synonyms": entity.synonyms}
 
     entities = {
         "COURSE": get_class_info(Courses),
         "CLUB": get_class_info(Clubs),
         "PROF": get_class_info(Professors),
-        "LOCATION": get_class_info(Locations)
-        }
+        "LOCATION": get_class_info(Locations),
+    }
     return jsonify(entities)
 
 
@@ -598,8 +594,7 @@ def create_filename(form):
         "timestamp",
         "username",
     ]
-    values = list(
-        map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
+    values = list(map(lambda key: str(form[key]).lower().replace(" ", "-"), order))
     return "_".join(values) + ".wav"
 
 
@@ -684,8 +679,7 @@ def process_office_hours(current_prof: dict, db: NimbusMySQLAlchemy):
     # Update the entity properties if the entity already exists
     if update_office_hours == True:
         db.update_entity(
-            entity_type=entity_type, data_dict=sql_data, filter_fields=[
-                "Email"]
+            entity_type=entity_type, data_dict=sql_data, filter_fields=["Email"]
         )
 
     # Otherwise, add the entity to the database
@@ -746,5 +740,4 @@ def convert_to_mfcc():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE,
-            port=gunicorn_config.PORT)
+    app.run(host="0.0.0.0", debug=gunicorn_config.DEBUG_MODE, port=gunicorn_config.PORT)

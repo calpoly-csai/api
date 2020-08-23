@@ -413,9 +413,18 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
     def get_unvalidated_qa_data(self, numQueries: int):
         qa = QuestionAnswerPair
 
-        query_session = self.session.query(
-            qa.id, qa.can_we_answer, qa.question_format, qa.answer_format, qa.verified, qa.answer_type
-        ).filter(qa.verified == 0).limit(numQueries)
+        query_session = (
+            self.session.query(
+                qa.id,
+                qa.can_we_answer,
+                qa.question_format,
+                qa.answer_format,
+                qa.verified,
+                qa.answer_type,
+            )
+            .filter(qa.verified == 0)
+            .limit(numQueries)
+        )
         result = query_session.all()
         print(result)
         unvalidated_qa_pairs = []
@@ -439,8 +448,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             qa_entity.question_format, qa_entity.answer_format, qa_entity.can_we_answer
         )
         result = query_session.all()
-        true_result = [(pair[0], pair[1])
-                       for pair in result if pair[2] == True]
+        true_result = [(pair[0], pair[1]) for pair in result if pair[2] == True]
 
         return true_result
 
@@ -514,8 +522,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 tags.append(str(row.__dict__[tag_prop]))
 
             if total_similarity > MATCH_THRESHOLD:
-                results.append(
-                    (total_similarity, tags, str(row.__dict__[prop])))
+                results.append((total_similarity, tags, str(row.__dict__[prop])))
 
         if len(results) < 1:
             return None
@@ -532,8 +539,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         tag_column_map: dict = default_tag_column_dict,
     ):
 
-        props = self._get_property_from_entity(
-            prop, entity, identifier, tag_column_map)
+        props = self._get_property_from_entity(prop, entity, identifier, tag_column_map)
         if props is None:
             return None
         return props[-1][2]
@@ -582,8 +588,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
         if entity_type in format_method_by_entity:
             data_dict = format_method_by_entity[entity_type](data_dict)
 
-        self.validate_input_keys(
-            data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
+        self.validate_input_keys(data_dict, EXPECTED_KEYS_BY_ENTITY[entity_type])
         return data_dict
 
     def add_entity(self, entity) -> bool:
@@ -634,8 +639,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             raise InvalidOperationOnView(msg.format(entity_type))
 
         # Get formatted data, entity attributes, and entity object
-        formatted_data = self.validate_and_format_entity_data(
-            entity_type, data_dict)
+        formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
         entity_attributes = entity_type.__dict__
 
         # Logging...
@@ -701,8 +705,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
                 raise BadDictionaryKeyError(
                     "Include an 'id' field so the element to update can be identified."
                 )
-            updated_entity = self.session.query(
-                entity_type).get(data_dict["id"])
+            updated_entity = self.session.query(entity_type).get(data_dict["id"])
             updated = updated_entity.update(data_dict)
             if not updated:
                 return False
@@ -720,15 +723,13 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             raise RuntimeError(msg.format(entity_type))
 
         # Get formatted data and entity attributes
-        formatted_data = self.validate_and_format_entity_data(
-            entity_type, data_dict)
+        formatted_data = self.validate_and_format_entity_data(entity_type, data_dict)
         entity_attributes = entity_type.__dict__
 
         # Run a SELECT query to see if an entity that matches the values under the fields in the filter_fields list exists
         query = self.session.query(entity_type)
         for field in filter_fields:
-            query = query.filter(getattr(entity_type, field)
-                                 == formatted_data[field])
+            query = query.filter(getattr(entity_type, field) == formatted_data[field])
         entity = query.first()
 
         # Logging...
@@ -802,8 +803,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             A new, formatted data dictionary
         """
 
-        is_wake_word_by_label = {"ww": True,
-                                 "nww": False, True: True, False: False}
+        is_wake_word_by_label = {"ww": True, "nww": False, True: True, False: False}
 
         noise_level_by_label = {
             "q": NoiseLevel.quiet,
@@ -828,8 +828,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             raise BadDictionaryValueError(msg)
 
         if data_dict["noiseLevel"] in noise_level_by_label:
-            data_dict["noise_level"] = noise_level_by_label[data_dict.pop(
-                "noiseLevel")]
+            data_dict["noise_level"] = noise_level_by_label[data_dict.pop("noiseLevel")]
         else:
             msg = "unexpected values for noiseLevel\n"
             msg += "expected 'q' or 'm' or 'l' but got '{}'"
@@ -943,5 +942,4 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
 if __name__ == "__main__":
     db = NimbusMySQLAlchemy()
-    print(db._get_property_from_entity(
-        "section_name", ProfessorSectionView, "Braun"))
+    print(db._get_property_from_entity("section_name", ProfessorSectionView, "Braun"))

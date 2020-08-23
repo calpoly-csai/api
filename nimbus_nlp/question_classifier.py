@@ -13,17 +13,19 @@ class QuestionClassifier:
     def __init__(self, db):
         self.db = db
         self.classifier = None
-        self.nlp = spacy.load('en_core_web_sm')
-        self.WH_WORDS = {'WDT', 'WP', 'WP$', 'WRB'}
+        self.nlp = spacy.load("en_core_web_sm")
+        self.WH_WORDS = {"WDT", "WP", "WP$", "WRB"}
         self.overall_features = {}
 
     def train_model(self):
-        self.classifier = self.build_question_classifier(question_pairs=self.db.get_all_answerable_pairs())
+        self.classifier = self.build_question_classifier(
+            question_pairs=self.db.get_all_answerable_pairs()
+        )
         save_model(self.classifier, "nlp-model")
 
     def load_latest_classifier(self):
         self.classifier = load_latest_model()
-        with open(PROJECT_DIR + '/models/features/overall_features.json', 'r') as fp:
+        with open(PROJECT_DIR + "/models/features/overall_features.json", "r") as fp:
             self.overall_features = json.load(fp)
 
     # Added question pairs as a parameter to remove database_wrapper as a dependency
@@ -34,7 +36,9 @@ class QuestionClassifier:
         Train KNN classification model with overall feature set.
         """
         questions = [q[0] for q in question_pairs]
-        question_features = [self.get_question_features(self.nlp(str(q))) for q in questions]
+        question_features = [
+            self.get_question_features(self.nlp(str(q))) for q in questions
+        ]
 
         for feature in question_features:
             for key in feature:
@@ -87,7 +91,7 @@ class QuestionClassifier:
 
             # Add WH words with weight 60
             # elif self.is_wh_word(token):
-                # .lemma_ is already lowercase; no .lower() needed
+            # .lemma_ is already lowercase; no .lower() needed
             #    features[token.lemma_] = 3
 
             # Add all other words with weight 30

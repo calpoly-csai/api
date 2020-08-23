@@ -38,7 +38,7 @@ TEST_AUDIO_SAMPLE_META_DATA_DATA_DICT = {
     "username": "guest",
     "audio_file_id": "OZ234FSDWER5GDF234F4G5",
     "script": "Nimbus",
-    "emphasis": "us"
+    "emphasis": "us",
 }
 
 TEST_CONFIG_FILENAME = "testConfig.json"
@@ -112,8 +112,8 @@ def test_create_all_tables(mock_create_engine):
     for entity_type in ENTITY_TYPES:
         try:
             getattr(test_db, entity_type).__table__.create.assert_called_once()
-        except AssertionError as e: 
-            print("{} table was not created".format(entity_type), file=sys.stderr);
+        except AssertionError as e:
+            print("{} table was not created".format(entity_type), file=sys.stderr)
             raise e
 
 
@@ -297,7 +297,7 @@ def test_insert_entity_view_error(mock_create_engine):
     test_db = NimbusMySQLAlchemy()
 
     with pytest.raises(InvalidOperationOnView):
-        test_db.insert_entity(MockViewEntity, {});
+        test_db.insert_entity(MockViewEntity, {})
 
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
@@ -305,4 +305,4 @@ def test_update_entity_view_error(mock_create_engine):
     test_db = NimbusMySQLAlchemy()
 
     with pytest.raises(InvalidOperationOnView):
-        test_db.update_entity(MockViewEntity, {}, []);
+        test_db.update_entity(MockViewEntity, {}, [])

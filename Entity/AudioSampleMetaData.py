@@ -48,5 +48,5 @@ class AudioSampleMetaData(Base):
             self.username,
             self.emphasis,
             self.script,
-            self.audio_file_id
+            self.audio_file_id,
         )
