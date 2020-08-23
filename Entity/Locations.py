@@ -12,7 +12,23 @@ class Locations(Base):
     longitude = Column(String(255))
     latitude = Column(String(255))
     is_view = False
-    synonyms = ["locations", "secret hideout", "secret_hideout", "rooms", "offices", "buildings", "labs", "laboratory", "laboratories", "units", "north", "west", "south", "east", "centers"]
+    synonyms = [
+        "locations",
+        "secret hideout",
+        "secret_hideout",
+        "rooms",
+        "offices",
+        "buildings",
+        "labs",
+        "laboratory",
+        "laboratories",
+        "units",
+        "north",
+        "west",
+        "south",
+        "east",
+        "centers",
+    ]
 
     def __repr__(self):
         return "<Locations (building_number = {}, name = {}, longitude = {}, latitude = {})>".format(

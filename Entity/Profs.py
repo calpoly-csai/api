@@ -19,7 +19,17 @@ class Profs(Base):
     department = Column(String(255))
     title = Column(String(255))
     is_view = True
-    synonyms = ["professors", "teachers", "lecturers", "faculty", "staff", "administration", "instructors", "educators", "TA"]
+    synonyms = [
+        "professors",
+        "teachers",
+        "lecturers",
+        "faculty",
+        "staff",
+        "administration",
+        "instructors",
+        "educators",
+        "TA",
+    ]
 
     def __repr__(self):
         D = self.__dict__

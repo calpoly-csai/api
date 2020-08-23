@@ -22,7 +22,7 @@ tag_lookup = {
     "COURSE": Courses,
     "SECRET_HIDEOUT": Locations,
     "SECTION": Sections,
-    "PROF_SECTION": ProfessorSectionView
+    "PROF_SECTION": ProfessorSectionView,
 }
 
 
@@ -82,10 +82,9 @@ def string_sub(a_format):
     return functools.partial(_string_sub, a_format)
 
 
-def _get_property(prop: str,
-                  table: str,
-                  extracted_info: Extracted_Vars,
-                  db: NimbusMySQLAlchemy):
+def _get_property(
+    prop: str, table: str, extracted_info: Extracted_Vars, db: NimbusMySQLAlchemy
+):
     ent_string = extracted_info["normalized entity"]
     if table is None:
         ent = tag_lookup[extracted_info["tag"]]
@@ -105,11 +104,13 @@ def get_property(prop: str, table: str = None):
     return functools.partial(_get_property, prop, table)
 
 
-def _get_property_list(prop: str,
-                       joiner: str,
-                       table: str,
-                       extracted_info: Extracted_Vars,
-                       db: NimbusMySQLAlchemy):
+def _get_property_list(
+    prop: str,
+    joiner: str,
+    table: str,
+    extracted_info: Extracted_Vars,
+    db: NimbusMySQLAlchemy,
+):
     ent_string = extracted_info["normalized entity"]
     if table is None:
         ent = tag_lookup[extracted_info["tag"]]
@@ -126,9 +127,8 @@ def _get_property_list(prop: str,
         exact_matches = get_all_exact_matches(values)
         return {f"db_{prop}": _grammatical_join(exact_matches, joiner)}
 
-def get_property_list(prop: str,
-                      joiner: str,
-                      table: str = None):
+
+def get_property_list(prop: str, joiner: str, table: str = None):
     return functools.partial(_get_property_list, prop, joiner, table)
 
 

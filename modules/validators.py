@@ -121,8 +121,8 @@ class WakeWordValidator(Validator):
                     form[key] = int(time.time())
                     print("fixed timestamp", form[key])
                 elif key == "script" and form["isWakeWord"] == "ww":
-                     form[key] = "nimbus"
-                     print("Added 'script' value of 'nimbus'")
+                    form[key] = "nimbus"
+                    print("Added 'script' value of 'nimbus'")
                 else:
                     raise WakeWordValidatorError(
                         f"Required audio metadata '{key}' was not provided"

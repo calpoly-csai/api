@@ -15,8 +15,17 @@ class Professors(Base):
     research_interests = Column(Text)
     email = Column(String(255))
     is_view = False
-    synonyms = ["professors", "teachers", "lecturers", "faculty", "staff", "administration", "instructors", "educators", "TA"]
-
+    synonyms = [
+        "professors",
+        "teachers",
+        "lecturers",
+        "faculty",
+        "staff",
+        "administration",
+        "instructors",
+        "educators",
+        "TA",
+    ]
 
     def __str__(self):
         return self.__repr__()

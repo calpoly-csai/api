@@ -28,7 +28,6 @@ class Nimbus:
             self.classifier.train_model()
             self.classifier.load_latest_classifier()
 
-
     def answer_question(self, question):
         ans_dict = self.predict_question(question)
         print(ans_dict)
