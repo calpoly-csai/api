@@ -15,20 +15,20 @@ from pydrive.drive import GoogleDrive
 import json
 
 import gunicorn_config
-from Entity.Calendars import Calendars
-from Entity.Clubs import Clubs
-from Entity.Courses import Courses
-from Entity.Locations import Locations
-from Entity.Sections import Sections
-from Entity.Professors import Professors
-from database_wrapper import (
+from .Entity.Calendars import Calendars
+from .Entity.Clubs import Clubs
+from .Entity.Courses import Courses
+from .Entity.Locations import Locations
+from .Entity.Sections import Sections
+from .Entity.Professors import Professors
+from .database_wrapper import (
     BadDictionaryKeyError,
     BadDictionaryValueError,
     NimbusDatabaseError,
     NimbusMySQLAlchemy,
 )
-from modules.formatters import WakeWordFormatter
-from modules.validators import (
+from .formatters import WakeWordFormatter
+from .validators import (
     WakeWordValidator,
     WakeWordValidatorError,
     PhrasesValidator,
@@ -37,15 +37,15 @@ from modules.validators import (
     FeedbackValidatorError,
 )
 
-from Entity.AudioSampleMetaData import AudioSampleMetaData
-from Entity.QuestionAnswerPair import QuestionAnswerPair
-from Entity.QueryFeedback import QueryFeedback
-from Entity.QuestionLog import QuestionLog
-from Entity.ErrorLog import ErrorLog
+from .Entity.AudioSampleMetaData import AudioSampleMetaData
+from .Entity.QuestionAnswerPair import QuestionAnswerPair
+from .Entity.QueryFeedback import QueryFeedback
+from .Entity.QuestionLog import QuestionLog
+from .Entity.ErrorLog import ErrorLog
 
-from Entity.EntityToken import EntityToken
+from .Entity.EntityToken import EntityToken
 
-from nimbus import Nimbus
+from .nimbus import Nimbus
 
 import json
 

@@ -1,13 +1,13 @@
 from typing import Callable, Dict, Any, List, Tuple
 import functools
 import re
-from Entity.Courses import Courses
-from Entity.Locations import Locations
-from Entity.Profs import Profs
-from Entity.Clubs import Clubs
-from Entity.Sections import Sections
-from Entity.ProfessorSectionView import ProfessorSectionView
-from database_wrapper import NimbusMySQLAlchemy
+from .Entity.Courses import Courses
+from .Entity.Locations import Locations
+from .Entity.Profs import Profs
+from .Entity.Clubs import Clubs
+from .Entity.Sections import Sections
+from .Entity.ProfessorSectionView import ProfessorSectionView
+from .database_wrapper import NimbusMySQLAlchemy
 import itertools
 
 Extracted_Vars = Dict[str, Any]

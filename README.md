@@ -189,6 +189,8 @@ Please make sure to update tests as appropriate.
 
 [Miles Aikens](https://www.github.com/snekiam)
 
+[Cameron Toy](https://www.github.com/cameron-toy)
+
 [Daniel DeFoe](https://www.github.com/danield2255)
 
 [Taylor Nguyen](https://www.github.com/taylor-nguyen-987)

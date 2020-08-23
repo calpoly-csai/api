@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Text, Enum, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-from Entity.Entity import Entity
+from .Entity import Entity
 import enum
 
 # This is the way SQLAlchemy initializes their special classes

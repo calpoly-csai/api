@@ -1,0 +1,290 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.8.5, pytest-5.3.5, py-1.9.0, pluggy-0.13.1
+rootdir: /Users/camerontoy/nimbus/api
+collected 25 items
+
+tests/test_database_wrapper.py .............FF...                        [ 72%]
+tests/test_flask_api.py .....F                                           [ 96%]
+tests/test_validators.py .                                               [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_create_engine ______________________________
+
+mock_create_engine = <MagicMock name='create_engine' id='140722457966624'>
+
+    @patch("src.database_wrapper.create_engine")
+    def test_create_engine(mock_create_engine):
+        mock_engine = Mock()
+        mock_create_engine.return_value = mock_engine
+    
+        with open("testConfig.json", "w+") as test_config:
+            json.dump(TEST_CONFIG_DICT, test_config)
+    
+>       test_db = NimbusMySQLAlchemy(TEST_CONFIG_FILENAME)
+
+tests/test_database_wrapper.py:268: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/database_wrapper.py:316: in __init__
+    self.engine = self._create_engine(config_file)
+src/database_wrapper.py:352: in _create_engine
+    engine = create_engine(SQLALCHEMY_DATABASE_URI)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/__init__.py:479: in create_engine
+    return strategy.create(*args, **kwargs)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/strategies.py:54: in create
+    u = url.make_url(name_or_url)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/url.py:229: in make_url
+    return _parse_rfc1738_args(name_or_url)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/url.py:288: in _parse_rfc1738_args
+    return URL(name, **components)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <[AttributeError("'URL' object has no attribute 'port'") raised in repr()] URL object at 0x7ffc801f1220>
+drivername = 'mysql+mysqlconnector', username = 'testUser'
+password = 'testPassword', host = 'testHost', port = 'testPort'
+database = 'testDatabase', query = None
+
+    def __init__(
+        self,
+        drivername,
+        username=None,
+        password=None,
+        host=None,
+        port=None,
+        database=None,
+        query=None,
+    ):
+        self.drivername = drivername
+        self.username = username
+        self.password_original = password
+        self.host = host
+        if port is not None:
+>           self.port = int(port)
+E           ValueError: invalid literal for int() with base 10: 'testPort'
+
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/url.py:71: ValueError
+________________________ test_create_engine_bad_config _________________________
+
+mock_create_engine = <MagicMock name='create_engine' id='140722459389760'>
+
+    @patch("src.database_wrapper.create_engine", return_value=None)
+    def test_create_engine_bad_config(mock_create_engine):
+        with open(TEST_CONFIG_FILENAME, "w+") as test_config:
+            json.dump(TEST_CONFIG_DICT, test_config)
+    
+        with pytest.raises(BadConfigFileError, match="failed to connect"):
+>           test_db = NimbusMySQLAlchemy(TEST_CONFIG_FILENAME)
+
+tests/test_database_wrapper.py:281: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/database_wrapper.py:316: in __init__
+    self.engine = self._create_engine(config_file)
+src/database_wrapper.py:352: in _create_engine
+    engine = create_engine(SQLALCHEMY_DATABASE_URI)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/__init__.py:479: in create_engine
+    return strategy.create(*args, **kwargs)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/strategies.py:54: in create
+    u = url.make_url(name_or_url)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/url.py:229: in make_url
+    return _parse_rfc1738_args(name_or_url)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/url.py:288: in _parse_rfc1738_args
+    return URL(name, **components)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <[AttributeError("'URL' object has no attribute 'port'") raised in repr()] URL object at 0x7ffc801e7580>
+drivername = 'mysql+mysqlconnector', username = 'testUser'
+password = 'testPassword', host = 'testHost', port = 'testPort'
+database = 'testDatabase', query = None
+
+    def __init__(
+        self,
+        drivername,
+        username=None,
+        password=None,
+        host=None,
+        port=None,
+        database=None,
+        query=None,
+    ):
+        self.drivername = drivername
+        self.username = username
+        self.password_original = password
+        self.host = host
+        if port is not None:
+>           self.port = int(port)
+E           ValueError: invalid literal for int() with base 10: 'testPort'
+
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/sqlalchemy/engine/url.py:71: ValueError
+___________________ test_new_data_wakeword_validator_issues ____________________
+
+self = <Flask 'src.flask_api'>
+
+    def full_dispatch_request(self):
+        """Dispatches the request and on top of that performs request
+        pre and postprocessing as well as HTTP exception catching and
+        error handling.
+    
+        .. versionadded:: 0.7
+        """
+        self.try_trigger_before_first_request_functions()
+        try:
+            request_started.send(self)
+            rv = self.preprocess_request()
+            if rv is None:
+>               rv = self.dispatch_request()
+
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/app.py:1949: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Flask 'src.flask_api'>
+
+    def dispatch_request(self):
+        """Does the request dispatching.  Matches the URL and returns the
+        return value of the view or error handler.  This does not have to
+        be a response object.  In order to convert the return value to a
+        proper response object, call :func:`make_response`.
+    
+        .. versionchanged:: 0.7
+           This no longer does the exception handling, this code was
+           moved to the new :meth:`full_dispatch_request`.
+        """
+        req = _request_ctx_stack.top.request
+        if req.routing_exception is not None:
+            self.raise_routing_exception(req)
+        rule = req.url_rule
+        # if we provide automatic options for this URL and the
+        # request came with the OPTIONS method, reply automatically
+        if (
+            getattr(rule, "provide_automatic_options", False)
+            and req.method == "OPTIONS"
+        ):
+            return self.make_default_options_response()
+        # otherwise dispatch to the handler for that endpoint
+>       return self.view_functions[rule.endpoint](**req.view_args)
+
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/app.py:1935: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @app.route("/new_data/wakeword", methods=["POST"])
+    def save_a_recording():
+        """Given the audio metadata & audio file, resamples it, saves to storage.
+        """
+        if "wav_file" not in request.files:
+            return (
+                "Please provide an audio file under the key 'wav_file' in your FormData",
+                BAD_REQUEST,
+            )
+        validator = WakeWordValidator()
+        formatter = WakeWordFormatter()
+        data = request.form
+        issues = validator.validate(data)
+        if issues:
+            try:
+>               data = validator.fix(data, issues)
+
+src/flask_api.py:200: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+_mock_self = <Mock name='WakeWordValidator().fix' id='140722458370000'>
+args = (ImmutableMultiDict([('dummy1', 'dummy2')]), <Mock name='WakeWordValidator().validate()' id='140722459752192'>)
+kwargs = {}
+
+    def __call__(_mock_self, *args, **kwargs):
+        # can't use self in-case a function / method we are mocking uses self
+        # in the signature
+        _mock_self._mock_check_sig(*args, **kwargs)
+        _mock_self._increment_mock_call(*args, **kwargs)
+>       return _mock_self._mock_call(*args, **kwargs)
+
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/mock/mock.py:1100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+_mock_self = <Mock name='WakeWordValidator().fix' id='140722458370000'>
+args = (ImmutableMultiDict([('dummy1', 'dummy2')]), <Mock name='WakeWordValidator().validate()' id='140722459752192'>)
+kwargs = {}
+
+    def _mock_call(_mock_self, *args, **kwargs):
+>       return _mock_self._execute_mock_call(*args, **kwargs)
+
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/mock/mock.py:1104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+_mock_self = <Mock name='WakeWordValidator().fix' id='140722458370000'>
+args = (ImmutableMultiDict([('dummy1', 'dummy2')]), <Mock name='WakeWordValidator().validate()' id='140722459752192'>)
+kwargs = {}, self = <Mock name='WakeWordValidator().fix' id='140722458370000'>
+effect = WakeWordValidatorError('test error string')
+
+    def _execute_mock_call(_mock_self, *args, **kwargs):
+        self = _mock_self
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+>               raise effect
+E               api.src.validators.WakeWordValidatorError: test error string
+
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/mock/mock.py:1161: WakeWordValidatorError
+
+During handling of the above exception, another exception occurred:
+
+mock_validator = <MagicMock name='WakeWordValidator' id='140722458433376'>
+client = <FlaskClient <Flask 'src.flask_api'>>
+
+    @patch("src.flask_api.WakeWordValidator")
+    def test_new_data_wakeword_validator_issues(mock_validator, client):
+        mock_validator_instance = Mock()
+        mock_validator_instance.fix.side_effect = WakeWordValidatorError(TEST_ERROR)
+        mock_validator.return_value = mock_validator_instance
+    
+        # Verify that the client will catch and throw an error if the validator fails
+>       resp = client.post('/new_data/wakeword', data={"dummy1": "dummy2", 'wav_file': (BytesIO(b'dummyText'), 'dummyfile.txt')})
+
+tests/test_flask_api.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/werkzeug/test.py:1016: in post
+    return self.open(*args, **kw)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/testing.py:222: in open
+    return Client.open(
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/werkzeug/test.py:970: in open
+    response = self.run_wsgi_app(environ.copy(), buffered=buffered)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/werkzeug/test.py:861: in run_wsgi_app
+    rv = run_wsgi_app(self.application, environ, buffered=buffered)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/werkzeug/test.py:1096: in run_wsgi_app
+    app_rv = app(environ, start_response)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/app.py:2463: in __call__
+    return self.wsgi_app(environ, start_response)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/app.py:2449: in wsgi_app
+    response = self.handle_exception(e)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask_cors/extension.py:161: in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/app.py:1866: in handle_exception
+    reraise(exc_type, exc_value, tb)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/_compat.py:39: in reraise
+    raise value
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/app.py:2446: in wsgi_app
+    response = self.full_dispatch_request()
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/app.py:1951: in full_dispatch_request
+    rv = self.handle_user_exception(e)
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask_cors/extension.py:161: in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+../../miniconda3/envs/nimbus/lib/python3.8/site-packages/flask/app.py:1821: in handle_user_exception
+    return handler(e)
+src/flask_api.py:121: in handle_all_errors
+    log_error(e, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+error = WakeWordValidatorError('test error string'), question = None
+
+    def log_error(error, question):
+        error_entry = {
+            "question" : question,
+            "stacktrace" : traceback.format_exc()
+        }
+>       db.insert_entity(ErrorLog, error_entry)
+E       AttributeError: 'NoneType' object has no attribute 'insert_entity'
+
+src/flask_api.py:114: AttributeError
+========================= 3 failed, 22 passed in 2.17s =========================
+NimbusMySQLAlchemy closed
+NimbusMySQLAlchemy closed

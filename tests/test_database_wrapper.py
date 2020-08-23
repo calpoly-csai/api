@@ -3,7 +3,7 @@ import os
 import pytest
 import sys
 
-from database_wrapper import (
+from ..src.database_wrapper import (
     NimbusMySQLAlchemy,
     BadDictionaryKeyError,
     BadDictionaryValueError,
@@ -12,7 +12,7 @@ from database_wrapper import (
     UnsupportedDatabaseError,
     BadConfigFileError,
 )
-from Entity.ExpectedKeys import EXPECTED_KEYS_BY_ENTITY
+from ..src.Entity.ExpectedKeys import EXPECTED_KEYS_BY_ENTITY
 from mock import patch, Mock
 from .MockEntity import MockEntity
 from .MockViewEntity import MockViewEntity
@@ -63,7 +63,6 @@ SQLALCHEMY_DATABASE_URI = "{}+{}://{}:{}@{}:{}/{}".format(
     TEST_CONFIG_DICT["mysql"]["port"],
     TEST_CONFIG_DICT["mysql"]["database"],
 )
-
 
 @patch.object(NimbusMySQLAlchemy, "_create_engine")
 def test_validate_input_keys(mock_create_engine):
@@ -256,12 +255,12 @@ def test_format_audio_sample_meta_data_dict_bad_input(mock_create_engine):
         test_db.format_audio_sample_meta_data_dict(invalid_noise_level)
 
 
-@patch("database_wrapper.create_engine")
+@patch("src.database_wrapper.create_engine")
 def test_create_engine(mock_create_engine):
     mock_engine = Mock()
     mock_create_engine.return_value = mock_engine
 
-    with open("testConfig.json", "w+") as test_config:
+    with open(TEST_CONFIG_FILENAME, "w+") as test_config:
         json.dump(TEST_CONFIG_DICT, test_config)
 
     test_db = NimbusMySQLAlchemy(TEST_CONFIG_FILENAME)
@@ -271,7 +270,7 @@ def test_create_engine(mock_create_engine):
     os.remove(TEST_CONFIG_FILENAME)
 
 
-@patch("database_wrapper.create_engine", return_value=None)
+@patch("src.database_wrapper.create_engine", return_value=None)
 def test_create_engine_bad_config(mock_create_engine):
     with open(TEST_CONFIG_FILENAME, "w+") as test_config:
         json.dump(TEST_CONFIG_DICT, test_config)

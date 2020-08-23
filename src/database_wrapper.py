@@ -21,23 +21,23 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
-from Entity.Entity import Entity
-from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
-from Entity.Calendars import Calendars
-from Entity.Courses import Courses
-from Entity.ErrorLog import ErrorLog
-from Entity.Locations import Locations
-from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
-from Entity.QueryFeedback import QueryFeedback
-from Entity.Professors import ProfessorsProperties
-from Entity.Clubs import Clubs
-from Entity.Sections import Sections, SectionType
-from Entity.Profs import Profs
-from Entity.Professors import Professors
-from Entity.ProfessorSectionView import ProfessorSectionView
-from Entity.OfficeHours import OfficeHours
-from Entity.QuestionLog import QuestionLog
-from Entity.ExpectedKeys import EXPECTED_KEYS_BY_ENTITY
+from .Entity.Entity import Entity
+from .Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
+from .Entity.Calendars import Calendars
+from .Entity.Courses import Courses
+from .Entity.ErrorLog import ErrorLog
+from .Entity.Locations import Locations
+from .Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
+from .Entity.QueryFeedback import QueryFeedback
+from .Entity.Professors import ProfessorsProperties
+from .Entity.Clubs import Clubs
+from .Entity.Sections import Sections, SectionType
+from .Entity.Profs import Profs
+from .Entity.Professors import Professors
+from .Entity.ProfessorSectionView import ProfessorSectionView
+from .Entity.OfficeHours import OfficeHours
+from .Entity.QuestionLog import QuestionLog
+from .Entity.ExpectedKeys import EXPECTED_KEYS_BY_ENTITY
 
 from fuzzywuzzy import fuzz
 
@@ -444,6 +444,7 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
 
         return true_result
 
+    # What does this do??? I'm removing qa_pair.csv for now.
     def return_qa_pair_csv(self):
         data = self.get_all_qa_pairs()
 

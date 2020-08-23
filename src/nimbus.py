@@ -6,10 +6,10 @@
 # Update the counter above if you work on this issue.
 #
 from werkzeug.exceptions import BadRequestKeyError
-from QA import create_qa_mapping, generate_qa_pairs
-from nimbus_nlp.question_classifier import QuestionClassifier
-from nimbus_nlp.variable_extractor import VariableExtractor
-from database_wrapper import NimbusMySQLAlchemy
+from .QA import create_qa_mapping, generate_qa_pairs
+from .nimbus_nlp.question_classifier import QuestionClassifier
+from .nimbus_nlp.variable_extractor import VariableExtractor
+from .database_wrapper import NimbusMySQLAlchemy
 
 
 class Nimbus:

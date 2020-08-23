@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Text
 from sqlalchemy.ext.declarative import declarative_base
-from Entity.Entity import Entity
+from .Entity import Entity
 
 Base = declarative_base()
 

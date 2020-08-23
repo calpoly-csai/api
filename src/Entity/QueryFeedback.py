@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, Text, Enum, Integer
 from sqlalchemy.ext.declarative import declarative_base
 import enum
-from Entity.QuestionAnswerPair import AnswerType
+from .QuestionAnswerPair import AnswerType
 
 
 # This is the way SQLAlchemy initializes their special classes

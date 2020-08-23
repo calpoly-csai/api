@@ -1,12 +1,12 @@
 import json
 import pytest
 
-import flask_api
-from database_wrapper import (NimbusMySQLAlchemy, BadDictionaryKeyError, BadDictionaryValueError,
+import src.flask_api as flask_api
+from src.database_wrapper import (NimbusMySQLAlchemy, BadDictionaryKeyError, BadDictionaryValueError,
                               NimbusDatabaseError, UnsupportedDatabaseError, BadConfigFileError)
 from io import BytesIO
 from mock import patch, Mock
-from modules.validators import WakeWordValidatorError
+from ..src.validators import WakeWordValidatorError
 from .MockEntity import MockEntity
 
 
@@ -34,25 +34,25 @@ def test_hello(client):
     assert resp.json == {"you sent": test_data_dict}
 
 
-@patch("flask_api.nimbus")
-@patch("flask_api.db")
+@patch("src.flask_api.nimbus")
+@patch("src.flask_api.db")
 def test_ask_request_not_json(mock_db, mock_nimbus, client):
     resp = client.post('/ask', data="dummy data")
     assert resp.status_code == BAD_REQUEST
     assert resp.data == b'request must be JSON'
 
 
-@patch("flask_api.nimbus")
-@patch("flask_api.db")
+@patch("src.flask_api.nimbus")
+@patch("src.flask_api.db")
 def test_ask_no_question(mock_db, mock_nimbus, client):
     resp = client.post('/ask', json={})
     assert resp.status_code == BAD_REQUEST
     assert resp.data == b'request body should include the question'
 
 
-@patch("flask_api.generate_session_token", return_value=TOKEN)
-@patch("flask_api.nimbus")
-@patch("flask_api.db")
+@patch("src.flask_api.generate_session_token", return_value=TOKEN)
+@patch("src.flask_api.nimbus")
+@patch("src.flask_api.db")
 def test_ask_question(mock_db, mock_nimbus, mock_generate_session_token, client):
     test_answer = "test_answer"
     dummy_token = "dummy_token"
@@ -70,11 +70,11 @@ def test_ask_question(mock_db, mock_nimbus, mock_generate_session_token, client)
     assert resp.json == {"answer": test_answer, "session": dummy_token}
 
 
-@patch("flask_api.save_audiofile")
-@patch("flask_api.create_filename", return_value="test_filename")
-@patch("flask_api.WakeWordValidator")
-@patch("flask_api.WakeWordFormatter")
-@patch("flask_api.db")
+@patch("src.flask_api.save_audiofile")
+@patch("src.flask_api.create_filename", return_value="test_filename")
+@patch("src.flask_api.WakeWordValidator")
+@patch("src.flask_api.WakeWordFormatter")
+@patch("src.flask_api.db")
 def test_new_data_wakeword(mock_db, mock_formatter, mock_validator, mock_create_filename, mock_save_audiofile, client):
     mock_formatter_instance = Mock()
     mock_formatter_instance.format.return_value = {"filename": "dummy"}
@@ -89,7 +89,7 @@ def test_new_data_wakeword(mock_db, mock_formatter, mock_validator, mock_create_
     assert resp.data == b"Successfully stored audiofile as 'test_filename'"
 
 
-@patch("flask_api.WakeWordValidator")
+@patch("src.flask_api.WakeWordValidator")
 def test_new_data_wakeword_validator_issues(mock_validator, client):
     mock_validator_instance = Mock()
     mock_validator_instance.fix.side_effect = WakeWordValidatorError(TEST_ERROR)

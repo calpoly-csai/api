@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from modules.validators import WakeWordValidator, WakeWordValidatorError
+from ..src.validators import WakeWordValidator, WakeWordValidatorError
 wake_word_data = {
 "isWakeWord":"true",
 "noiseLevel":"l",

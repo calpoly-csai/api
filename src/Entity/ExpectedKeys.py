@@ -3,21 +3,21 @@
 This module holds the expected keys for each Entity type.
 """
 
-from Entity.AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
-from Entity.Calendars import Calendars
-from Entity.Clubs import Clubs
-from Entity.Courses import Courses
-from Entity.ErrorLog import ErrorLog
-from Entity.Locations import Locations
-from Entity.QueryFeedback import QueryFeedback
-from Entity.QuestionAnswerPair import QuestionAnswerPair, AnswerType
-from Entity.QuestionLog import QuestionLog
-from Entity.OfficeHours import OfficeHours
-from Entity.Professors import ProfessorsProperties
-from Entity.Profs import Profs
-from Entity.Professors import Professors
-from Entity.ProfessorSectionView import ProfessorSectionView
-from Entity.Sections import Sections, SectionType
+from .AudioSampleMetaData import AudioSampleMetaData, NoiseLevel
+from .Calendars import Calendars
+from .Clubs import Clubs
+from .Courses import Courses
+from .ErrorLog import ErrorLog
+from .Locations import Locations
+from .QueryFeedback import QueryFeedback
+from .QuestionAnswerPair import QuestionAnswerPair, AnswerType
+from .QuestionLog import QuestionLog
+from .OfficeHours import OfficeHours
+from .Professors import ProfessorsProperties
+from .Profs import Profs
+from .Professors import Professors
+from .ProfessorSectionView import ProfessorSectionView
+from .Sections import Sections, SectionType
 
 # Supported Entities only and their expected keys
 EXPECTED_KEYS_BY_ENTITY = {
