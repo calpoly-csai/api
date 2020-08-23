@@ -255,7 +255,7 @@ def test_format_audio_sample_meta_data_dict_bad_input(mock_create_engine):
         test_db.format_audio_sample_meta_data_dict(invalid_noise_level)
 
 
-@patch("src.database_wrapper.create_engine")
+@patch("api.src.database_wrapper.create_engine")
 def test_create_engine(mock_create_engine):
     mock_engine = Mock()
     mock_create_engine.return_value = mock_engine
@@ -270,7 +270,7 @@ def test_create_engine(mock_create_engine):
     os.remove(TEST_CONFIG_FILENAME)
 
 
-@patch("src.database_wrapper.create_engine", return_value=None)
+@patch("api.src.database_wrapper.create_engine", return_value=None)
 def test_create_engine_bad_config(mock_create_engine):
     with open(TEST_CONFIG_FILENAME, "w+") as test_config:
         json.dump(TEST_CONFIG_DICT, test_config)

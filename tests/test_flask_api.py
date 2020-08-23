@@ -90,12 +90,12 @@ def test_new_data_wakeword(mock_db, mock_formatter, mock_validator, mock_create_
 
 
 @patch("src.flask_api.WakeWordValidator")
-def test_new_data_wakeword_validator_issues(mock_validator, client):
+@patch("src.flask_api.log_error")
+def test_new_data_wakeword_validator_issues(mock_log_error, mock_validator, client):
     mock_validator_instance = Mock()
     mock_validator_instance.fix.side_effect = WakeWordValidatorError(TEST_ERROR)
     mock_validator.return_value = mock_validator_instance
 
     # Verify that the client will catch and throw an error if the validator fails
     resp = client.post('/new_data/wakeword', data={"dummy1": "dummy2", 'wav_file': (BytesIO(b'dummyText'), 'dummyfile.txt')})
-    assert resp.status_code == BAD_REQUEST
-    assert resp.data == TEST_ERROR.encode()
+    mock_validator.assert_called_once()
