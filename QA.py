@@ -51,7 +51,7 @@ class QA:
     def answer(self, extracted_vars):
         db_data = self.db_query(extracted_vars, self.db)
         answer = self.format_answer(extracted_vars, db_data)
-        return answer
+        return None if answer == '' else answer
 
     def __repr__(self):
         return self.q_format
@@ -181,7 +181,7 @@ def format_prof_office_hours(extracted_vars: Extracted_Vars, db_data: DB_Data):
 
 
 def _format_prof_office_hours(prof: str, days: str):
-    hours = lambda x: x[1]
+    def hours(x): return x[1]
 
     week = []
     for token in days.split(", "):
@@ -284,7 +284,8 @@ def generate_qa_pairs(qa_pairs: Tuple[str, str], db: NimbusMySQLAlchemy):
                     tokens[i] = "{db_" + prop + "}"
                 elif len(subtokens) == 4:
                     ent, prop, table, joiner = subtokens
-                    db_access_fns.append(get_property_list(prop, joiner, table))
+                    db_access_fns.append(
+                        get_property_list(prop, joiner, table))
                     tokens[i] = "{db_" + prop + "}"
 
         o = QA(
