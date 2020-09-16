@@ -6,6 +6,7 @@ Contains all the handlers for the API. Also the main code to run Flask.
 from sqlalchemy.exc import OperationalError, InvalidRequestError
 
 from flask import Flask, jsonify, request
+from werkzeug.exceptions import BadRequest
 
 # traceback added for stacktrace logging
 import traceback
@@ -93,15 +94,29 @@ def init_nimbus_db():
             nimbus = Nimbus(db)
 
 
+# returns the question from the request body, if applicable
+def get_question() -> str:
+    if request.is_json is False:
+        raise BadRequest(description="request must be JSON")
+    request_body = request.get_json()
+    question = request_body.get("question", None)
+    # no reason for a custom exception here
+    if question is None:
+        raise BadRequest(description="request body should include the question")
+    else:
+        return question
+
+
 def handle_database_error(error):
     global db
-    if db is None:
-        # reinit the database
-        init_nimbus_db()
-    else:
+    # checks if the session has any changes (new objects, changed objects, 
+    # or deleted objects) - these should be rolled back in the case of an exception
+    if db.session.new or db.session.dirty or db.session.deleted:
+        print("Rolling back")
+        db.session.rollback()
+    if isinstance(error, OperationalError) or db is None:
         # we *probably* have a bad session - try and roll it back,
         # then create a new database connection.
-        db.session.rollback()
         db.session.close()
         db = None
         init_nimbus_db()
@@ -114,10 +129,16 @@ def log_error(error, question):
 
 @app.errorhandler(Exception)
 def handle_all_errors(e):
-    # InvalidRequestError happens when the transaction is broken
-    if isinstance(e, OperationalError) or isinstance(e, InvalidRequestError):
-        handle_database_error(e)
-    log_error(e, None)
+    # we should still be able to extract the question from the request, if one
+    # was asked. We can retry the question once.
+    handle_database_error(e)
+    question = None
+    try:
+        question = get_question()
+    except BadRequest as e:
+        # the question is already None, but we need to catch this exception
+        pass
+    log_error(e, question)
     return jsonify({"ErrorLog": type(e).__name__}), SUCCESS
 
 
@@ -151,15 +172,10 @@ def handle_question():
 
         init_nimbus_db()
 
-        if request.is_json is False:
-            return "request must be JSON", BAD_REQUEST
-
-        request_body = request.get_json()
-
-        question = request_body.get("question", None)
-
-        if "question" not in request_body:
-            return "request body should include the question", BAD_REQUEST
+        try:
+            question = get_question()
+        except (BadRequest) as e:
+            return e.description, BAD_REQUEST
 
         try:
             entity = db.insert_entity(QuestionLog, {"question": question})
@@ -167,7 +183,8 @@ def handle_question():
             print("Could not store question upon user ask: ", str(e))
 
         response = {"answer": nimbus.answer_question(question)}
-
+        # extracting the question checks if we have json, so we should be good here
+        request_body = request.get_json()
         if "session" in request_body:
             response["session"] = request_body["session"]
         else:
