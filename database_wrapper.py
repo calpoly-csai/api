@@ -426,7 +426,6 @@ class NimbusMySQLAlchemy:  # NimbusMySQLAlchemy(NimbusDatabase):
             .limit(numQueries)
         )
         result = query_session.all()
-        print(result)
         unvalidated_qa_pairs = []
         for qa_pair in result:
             formatted_QA_pair = {
