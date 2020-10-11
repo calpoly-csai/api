@@ -1,0 +1,51 @@
+name: Deploy Dev To Staging Server
+
+# on:
+#   push:
+#     branches:
+#       - dev
+
+
+jobs:
+  deploy:
+    name: deploy to heroku
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: heroku login
+      uses: actions/heroku@master
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      with:
+        args: container:login
+
+    - name: heroku push
+      uses: actions/heroku@master
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        DATABASE_HOSTNAME: ${{ secrets.DATABASE_HOSTNAME }}
+        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
+        DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+        PYDRIVE_CLIENT_ID: ${{ secrets.PYDRIVE_CLIENT_ID }}
+        PYDRIVE_CLIENT_SECRET: ${{ secrets.PYDRIVE_CLIENT_SECRET }}
+        # in issue #67 we considered generating 
+        # credentials.json in a similar fashion to config.json
+        # but figured that the file was unreasonably large
+        # and therefore a simple JSON string would suffice. 
+        # https://github.com/calpoly-csai/api/issues/67
+        GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+        GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+        GOOGLE_CLOUD_NLP_CREDENTIALS: ${{ secrets.GOOGLE_CLOUD_NLP_CREDENTIALS }}
+        GOOGLE_CLOUD_NLP_MODEL_NAME:  ${{ secrets.GOOGLE_CLOUD_NLP_MODEL_NAME }}
+      with:
+        args: container:push -a calpoly-csai-nimbus web --arg DATABASE_HOSTNAME,DATABASE_PASSWORD,DATABASE_USERNAME,DATABASE_NAME,PYDRIVE_CLIENT_ID,PYDRIVE_CLIENT_SECRET,GOOGLE_DRIVE_CREDENTIALS,GOOGLE_DRIVE_FOLDER_ID,GOOGLE_CLOUD_NLP_CREDENTIALS,GOOGLE_CLOUD_NLP_MODEL_NAME
+
+    - name: heroku release
+      uses: actions/heroku@master
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      with:
+        args: container:release -a calpoly-csai-nimbus web

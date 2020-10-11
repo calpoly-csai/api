@@ -1,0 +1,1 @@
+0 15 * * * /nimbus/scripts/cert-update.sh > stdout

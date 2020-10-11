@@ -1,3 +1,9 @@
+Dockerfile
+README.md
+*.pyc
+*.pyo
+*.pyd
+__pycache__
 nvenv/*
 
 
@@ -113,7 +119,7 @@ venv.bak/
 .api.py
 .db_config.py
 db_config.py
-.vscode/*
+.vscode/settings.json
 config.json
 credentials.json
 folder_id.txt
@@ -121,9 +127,3 @@ settings.yaml
 .export_env_vars
 auth.json
 settings.yml
-settings.yaml
-nimbus_api.iml
-
-# models
-*pkl
-id_rsa

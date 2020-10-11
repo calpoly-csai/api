@@ -1,0 +1,66 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+## mostly used in tests
+requests = "==2.23.0"
+## auto formatter
+### may need to run 
+### `pipenv lock --pre`
+### or 
+### `pipenv install --pre` 
+### to "Allow pre-releases" for black
+black = "==19.10b0" 
+## linter
+flake8 = "==3.7.9"
+## testing
+hypothesis = "==5.3.1"
+pytest = "==5.3.4"
+## type-checking
+pyre-check = "==0.0.41"
+## like the Unix `make` but better
+invoke = "==1.4.1"
+coverage = "*"
+
+[packages]
+# REST API
+## minimal framework
+Flask = "==1.1.1"
+## for security
+Flask-Cors = "==3.0.8"
+## used with flask in deployment
+gunicorn = "==20.0.4"
+## simple JSON (de)serialization
+marshmallow = "*"
+# save to google drive
+PyDrive = "==1.3.1"
+# database
+## mysql client
+mysql-connector-python = "==8.0.18"
+## object-relational mapper
+SQLAlchemy = "==1.3.13"
+# QA.py
+pandas = "==1.0.1"
+fuzzywuzzy = "==0.18.0"
+python-Levenshtein = "==0.12.0"
+# natural language processing
+google-api-core = "==1.16.0"
+google-cloud = "==0.34.0"
+google-cloud-automl = "==0.10.0"
+nltk = "==3.4.5"
+spacy = "==2.2.3"
+scikit-learn = "==0.20.2"
+# misc
+## used to generate settings.yml
+PyYAML = "==5.3"
+## avoid  PermissionError: [Errno 13] Permission denied
+## for more context see issue #100
+six = "==1.11.0"
+idna = "==2.6"
+## because google-auth 1.11.2 wants setuptools>=40.3.0
+setuptools = ">=40.3.0"
+
+[requires]
+python_version = "3.6"
