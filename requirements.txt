@@ -54,7 +54,7 @@ srsly==1.0.2
 thinc==7.4.0
 tqdm==4.43.0
 uritemplate==3.0.1
-urllib3==1.25.8
+urllib3==1.26.5
 wasabi==0.6.0
 Werkzeug==1.0.0
 zipp==3.0.0
